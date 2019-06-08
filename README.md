@@ -2,9 +2,9 @@
 
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL.
 
-Creating `URLImage` view is described in my post [URL Image view in SwiftUI](https://medium.com/@dmytro.anokhin/url-image-view-in-swiftui-f08f85d942d8)
+Creating `URLImage` view is described in my blog post [URL Image view in SwiftUI](https://medium.com/@dmytro.anokhin/url-image-view-in-swiftui-f08f85d942d8).
 
-There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-image-app)
+There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-image-app).
 
 ## Usage
 
@@ -18,6 +18,8 @@ URLImage(url)
 URLImage(url, placeholder: Image(systemName: "photo"))
 ``` 
 
+Using in a View:
+
 ```swift
 struct MyView : View {
 
@@ -28,6 +30,8 @@ struct MyView : View {
     }
 }
 ```
+
+Using in a ListView:
 
 ```swift
 struct MyListView : View {
