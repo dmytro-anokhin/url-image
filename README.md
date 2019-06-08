@@ -18,7 +18,7 @@ URLImage(url)
 URLImage(url, placeholder: Image(systemName: "photo"))
 ``` 
 
-Using in a View:
+Using in a view:
 
 ```swift
 struct MyView : View {
@@ -31,7 +31,7 @@ struct MyView : View {
 }
 ```
 
-Using in a ListView:
+Using in a list:
 
 ```swift
 struct MyListView : View {
