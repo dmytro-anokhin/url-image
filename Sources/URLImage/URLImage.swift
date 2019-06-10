@@ -27,7 +27,7 @@ public struct URLImage : View {
     
     public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession) {
         self.placeholder = placeholder
-        imageLoader = ImageLoader(url: url)
+        imageLoader = ImageLoader(url: url, session: session)
     }
 
     public var body: some View {
@@ -118,13 +118,13 @@ extension URLImage {
 
         // MARK: Public
 
-        init(session: URLSession, url: URL) {
+        init(url: URL, session: URLSession) {
             self.session = session
             self.url = url
         }
 
         convenience init(url: URL) {
-            self.init(session: Self.session, url: url)
+            self.init(url: url, session: Self.session)
         }
 
         deinit {
