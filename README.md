@@ -11,8 +11,7 @@ There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-imag
 `URLImage` is a Swift Package and you can install it with Xcode 11:
 - Copy SSH `git@github.com:dmytro-anokhin/url-image.git` or HTTPS `https://github.com/dmytro-anokhin/url-image.git` URL from github;
 - Open **File/Swift Packages/Add Package Dependency...** in Xcode 11;
-- Paste the URL and follow steps;
-- Import module: `import URLImage`.
+- Paste the URL and follow steps.
 
 ## Usage
 
@@ -29,6 +28,9 @@ URLImage(url, placeholder: Image(systemName: "photo"))
 Using in a view:
 
 ```swift
+import SwiftUI
+import URLImage
+
 struct MyView : View {
 
     let url: URL
@@ -42,6 +44,9 @@ struct MyView : View {
 Using in a list:
 
 ```swift
+import SwiftUI
+import URLImage
+
 struct MyListView : View {
 
     let urls: [URL]
