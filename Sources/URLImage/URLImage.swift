@@ -20,14 +20,14 @@ public struct URLImage : View {
 
     // MARK: Public
 
-    public init(_ url: URL, placeholder: Image = Image(systemName: "photo")) {
+    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), delay: Double = 0.0) {
         self.placeholder = placeholder
-        imageLoader = ImageLoader(url: url)
+        imageLoader = ImageLoader(url: url, delay: delay)
     }
     
-    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession) {
+    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession, delay: Double = 0.0) {
         self.placeholder = placeholder
-        imageLoader = ImageLoader(url: url, session: session)
+        imageLoader = ImageLoader(url: url, session: session, delay: delay)
     }
 
     public var body: some View {
@@ -118,13 +118,14 @@ extension URLImage {
 
         // MARK: Public
 
-        init(url: URL, session: URLSession) {
-            self.session = session
+        init(url: URL, session: URLSession, delay: Double) {
             self.url = url
+            self.session = session
+            self.delay = delay
         }
 
-        convenience init(url: URL) {
-            self.init(url: url, session: Self.session)
+        convenience init(url: URL, delay: Double) {
+            self.init(url: url, session: Self.session, delay: delay)
         }
 
         deinit {
@@ -211,7 +212,7 @@ extension URLImage {
         }()
         
         /// Delay before loading starts
-        private let delay: Double = 0.25
+        private let delay: Double
 
         private let session: URLSession
 
