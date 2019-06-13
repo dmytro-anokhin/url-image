@@ -20,36 +20,35 @@ public struct URLImage : View {
 
     // MARK: Public
 
-    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), delay: Double = 0.0) {
+    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
         self.placeholder = placeholder
-        imageLoader = ImageLoader(url: url, delay: delay)
-    }
-    
-    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession, delay: Double = 0.0) {
-        self.placeholder = placeholder
+        self.animated = animated
         imageLoader = ImageLoader(url: url, session: session, delay: delay)
     }
 
     public var body: some View {
-        if let image = imageLoader.image {
-            return image
-                .onAppear {}
-                .onDisappear {}
-        }
-        else {
-            return placeholder
-                .onAppear {
-                    self.imageLoader.load()
-                }
-                .onDisappear {
-                    self.imageLoader.cancel()
-                }
+        ZStack {
+            if imageLoader.image == nil {
+                placeholder
+                    .onAppear {
+                        self.imageLoader.load()
+                    }
+                    .onDisappear {
+                        self.imageLoader.cancel()
+                    }
+            }
+
+            imageLoader.image
+                .transition(.opacity)
+                .animation(animated ? .basic(duration: 0.25) : .none)
         }
     }
 
     // MARK: Private
 
     private let placeholder: Image
+
+    private let animated: Bool
 
     @ObjectBinding
     private var imageLoader: ImageLoader
@@ -118,14 +117,10 @@ extension URLImage {
 
         // MARK: Public
 
-        init(url: URL, session: URLSession, delay: Double) {
+        init(url: URL, session: URLSession?, delay: Double) {
             self.url = url
-            self.session = session
+            self.session = session ?? Self.session
             self.delay = delay
-        }
-
-        convenience init(url: URL, delay: Double) {
-            self.init(url: url, session: Self.session, delay: delay)
         }
 
         deinit {

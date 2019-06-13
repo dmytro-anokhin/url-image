@@ -66,7 +66,11 @@ struct MyListView : View {
 
 ## Parameters
 
-`URLImage` allows you to configure its parameters using  `init(_ url: URL, placeholder: Image, session: URLSession, delay: Double)` initializer.
+`URLImage` allows you to configure its parameters using  initializer:
+
+ ```swift
+ init(_ url: URL, placeholder: Image, session: URLSession?, delay: Double, animated: Bool)`
+```
 
 **placeholder**
 
@@ -74,8 +78,12 @@ The image displayed while remote image is downloading or if it failed to downloa
 
 **session**
 
-`URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
+Optional `URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
 
 **delay**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
+
+**animate**
+
+Flag indicating if the transition must be animated (from placeholder to the actual image). Default is `true`.
