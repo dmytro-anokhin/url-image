@@ -54,7 +54,7 @@ struct MyListView : View {
     var body: some View {
         List(urls.identified(by: \.self)) { url in
             HStack {
-                URLImage(url)
+                URLImage(url, delay: 0.25)
                     .frame(width: 100.0, height: 100.0)
                     .clipped()
                 Text("\(url)")
@@ -69,10 +69,13 @@ struct MyListView : View {
 `URLImage` allows you to configure its parameters using  `init(_ url: URL, placeholder: Image, session: URLSession, delay: Double)` initializer.
 
 **placeholder**
-    The image displayed while remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
+
+The image displayed while remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
 
 **session**
-    `URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
+
+`URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
 
 **delay**
-    Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
+
+Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
