@@ -13,7 +13,9 @@ protocol ImageStoreType {
 
     associatedtype ImageType
 
-    func loadImage(for url: URL, completion: @escaping (Result<ImageType, Error>) -> Void)
+    /// Load image from the store. Completion result contains image and optional local file URL.
+    func loadImage(for remoteURL: URL, completion: @escaping (Result<(ImageType, URL?), Error>) -> Void)
 
-    func saveImage(_ image: ImageType, for url: URL)
+    /// Save image to the store.
+    func saveImage(_ image: ImageType, remoteURL: URL, localURL: URL)
 }

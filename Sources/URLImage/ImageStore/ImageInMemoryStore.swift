@@ -16,17 +16,17 @@ struct ImageInMemoryStore : ImageStoreType {
         case generic
     }
 
-    func loadImage(for url: URL, completion: @escaping (Result<UIImage, Swift.Error>) -> Void) {
-        if let image = cache.object(forKey: url as NSURL) {
-            completion(.success(image))
+    func loadImage(for remoteURL: URL, completion: @escaping (Result<(UIImage, URL?), Swift.Error>) -> Void) {
+        if let image = cache.object(forKey: remoteURL as NSURL) {
+            completion(.success((image, nil)))
         }
         else {
             completion(.failure(Error.generic))
         }
     }
 
-    func saveImage(_ image: UIImage, for url: URL) {
-        cache.setObject(image, forKey: url as NSURL)
+    func saveImage(_ image: UIImage, remoteURL: URL, localURL: URL) {
+        cache.setObject(image, forKey: remoteURL as NSURL)
     }
 
     private let cache = NSCache<NSURL, UIImage>()

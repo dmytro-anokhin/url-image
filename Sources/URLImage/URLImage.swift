@@ -50,8 +50,7 @@ public struct URLImage : View {
 
     private let animated: Bool
 
-    @ObjectBinding
-    private var imageLoader: ImageLoader
+    @ObjectBinding private var imageLoader: ImageLoader
 }
 
 
@@ -157,12 +156,13 @@ extension URLImage {
                         // First see if image is in store
                         Self.store.loadImage(for: self.url) { result in
                             switch result {
-                                case .success(let image):
-                                    // Propagate image to other stores
-                                    Self.store.saveImage(image, for: self.url)
+                                case .success(let value):
+                                    if let localURL = value.1 { // Propagate image to other stores
+                                        Self.store.saveImage(value.0, remoteURL: self.url, localURL: localURL)
+                                    }
 
                                     self.transition(to: .finished) {
-                                        self.rawImage = image
+                                        self.rawImage = value.0
                                     }
 
                                 case .failure(_):
@@ -201,7 +201,7 @@ extension URLImage {
         private static let store: ImageStoreGroup<UIImage> = {
             var group = ImageStoreGroup<UIImage>()
             group.addStore(ImageInMemoryStore())
-            group.addStore(ImageLocalStore())
+            group.addStore(ImageLocalStore(directory: FileHelper.cachesDirectoryURL))
 
             return group
         }()
@@ -231,25 +231,47 @@ extension URLImage {
         }
 
         private func makeLoadTask() -> URLSessionTask {
-            return session.dataTask(with: url, completionHandler: { [weak self] data, response, error in
+            return session.downloadTask(with: url) { [weak self] location, response, error in
                 guard let self = self else {
                     return
                 }
 
-                if let data = data, let image = UIImage(data: data) {
-                    Self.store.saveImage(image, for: self.url)
-
-                    self.transition(to: .finished) {
-                        self.rawImage = image
+                guard let location = location else {
+                    // Network error
+                    self.transition(to: .failed) {
                         self.task = nil
                     }
+
+                    return
                 }
-                else {
+
+                // Copy file to caches folder
+                do {
+                    let cachesURL = try FileHelper.copyToCaches(from: location)
+                    
+                    if let image = UIImage(contentsOfFile: cachesURL.path) {
+                        Self.store.saveImage(image, remoteURL: self.url, localURL: cachesURL)
+
+                        self.transition(to: .finished) {
+                            self.rawImage = image
+                            self.task = nil
+                        }
+                    }
+                    else {
+                        // Incorrect file format
+                        try FileHelper.delete(at: cachesURL)
+                        
+                        self.transition(to: .failed) {
+                            self.task = nil
+                        }
+                    }
+                }
+                catch {
                     self.transition(to: .failed) {
                         self.task = nil
                     }
                 }
-            })
+            }
         }
     }
 }

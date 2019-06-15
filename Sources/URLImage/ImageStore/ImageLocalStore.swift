@@ -20,52 +20,42 @@ final class ImageLocalStore : ImageStoreType {
     
     let directory: URL
 
-    init(directory: URL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!) {
+    init(directory: URL) {
         self.directory = directory
     }
 
     // MARK: ImageStoreType
 
-    func loadImage(for url: URL, completion: @escaping (Result<UIImage, Swift.Error>) -> Void) {
+    func loadImage(for remoteURL: URL, completion: @escaping (Result<(UIImage, URL?), Swift.Error>) -> Void) {
         queue.async {
             if self.imageFiles == nil {
                 self.imageFiles = self.load()
             }
 
-            if let file = self.imageFiles![url] {
-                // Try load from disk
-                let url = self.fileURL(for: file)
-
-                if let image = UIImage(contentsOfFile: url.path) {
-                    completion(.success(image))
+            if let file = self.imageFiles![remoteURL] {
+                if let image = UIImage(contentsOfFile: file.localURL.path) {
+                    completion(.success((image, file.localURL)))
                 }
                 else {
+                    // Failed to read image file
                     completion(.failure(Error.generic))
                 }
             }
             else {
+                // Image is not in the local store
                 completion(.failure(Error.generic))
             }
         }
     }
 
-    func saveImage(_ image: UIImage, for url: URL) {
+    func saveImage(_ image: UIImage, remoteURL: URL, localURL: URL) {
         queue.async {
             if self.imageFiles == nil {
                 self.imageFiles = self.load()
             }
 
-            do {
-                let file = ImageFile(url: url)
-                let data = image.pngData()
-                let fileURL = self.fileURL(for: file)
-                try data?.write(to: fileURL)
-                self.imageFiles![url] = file
-            }
-            catch {
-                print(error)
-            }
-
+            let file = ImageFile(remoteURL: remoteURL, localURL: localURL)
+            self.imageFiles![remoteURL] = file
             self.save(imageFiles: self.imageFiles!)
         }
     }
@@ -73,15 +63,13 @@ final class ImageLocalStore : ImageStoreType {
     // MARK: Private
 
     private struct ImageFile: Codable {
-
-        let uuid = UUID()
         
-        let url: URL
+        let remoteURL: URL
+        
+        let localURL: URL
     }
     
-    private static let imagesFileName = "images"
-    
-    private static let cachedImagesDirectoryName = "cachedImages"
+    private static let imagesFileName = "imagesMap"
 
     /// Serial queue
     private let queue = DispatchQueue(label: "URLImage.ImageLocalStore")
@@ -91,17 +79,9 @@ final class ImageLocalStore : ImageStoreType {
     private var imageFilesURL: URL {
         return directory.appendingPathComponent(Self.imagesFileName, isDirectory: false)
     }
-    
-    private var cachedImagesDirectoryURL: URL {
-        return directory.appendingPathComponent(Self.cachedImagesDirectoryName, isDirectory: true)
-    }
-    
-    private func fileURL(for imageFile: ImageFile) -> URL {
-        return cachedImagesDirectoryURL.appendingPathComponent(imageFile.uuid.uuidString, isDirectory: false)
-    }
-    
+
     private func load() -> [URL: ImageFile] {
-        try? FileManager.default.createDirectory(at: cachedImagesDirectoryURL, withIntermediateDirectories: false, attributes: nil)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: nil)
         
         do {
             let data = try Data(contentsOf: imageFilesURL)
