@@ -17,12 +17,6 @@ final class ImageLocalStore : ImageStoreType {
     
         case generic
     }
-    
-    let directory: URL
-
-    init(directory: URL) {
-        self.directory = directory
-    }
 
     // MARK: ImageStoreType
 
@@ -33,8 +27,10 @@ final class ImageLocalStore : ImageStoreType {
             }
 
             if let file = self.imageFiles![remoteURL] {
-                if let image = UIImage(contentsOfFile: file.localURL.path) {
-                    completion(.success((image, file.localURL)))
+                let localURL = CacheHelper.imageCachesDirectoryURL.appendingPathComponent(file.name, isDirectory: false)
+
+                if let image = UIImage(contentsOfFile: localURL.path) {
+                    completion(.success((image, localURL)))
                 }
                 else {
                     // Failed to read image file
@@ -54,7 +50,7 @@ final class ImageLocalStore : ImageStoreType {
                 self.imageFiles = self.load()
             }
 
-            let file = ImageFile(remoteURL: remoteURL, localURL: localURL)
+            let file = ImageFile(name: localURL.lastPathComponent, remoteURL: remoteURL)
             self.imageFiles![remoteURL] = file
             self.save(imageFiles: self.imageFiles!)
         }
@@ -63,10 +59,10 @@ final class ImageLocalStore : ImageStoreType {
     // MARK: Private
 
     private struct ImageFile: Codable {
-        
+
+        let name: String
+
         let remoteURL: URL
-        
-        let localURL: URL
     }
     
     private static let imagesFileName = "imagesMap"
@@ -77,12 +73,10 @@ final class ImageLocalStore : ImageStoreType {
     private var imageFiles: [URL: ImageFile]?
     
     private var imageFilesURL: URL {
-        return directory.appendingPathComponent(Self.imagesFileName, isDirectory: false)
+        return CacheHelper.cachesDirectoryURL.appendingPathComponent(Self.imagesFileName, isDirectory: false)
     }
 
     private func load() -> [URL: ImageFile] {
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: false, attributes: nil)
-        
         do {
             let data = try Data(contentsOf: imageFilesURL)
             let decoder = JSONDecoder()
@@ -99,6 +93,7 @@ final class ImageLocalStore : ImageStoreType {
         
         do {
             let data = try encoder.encode(imageFiles)
+            try? FileManager.default.createDirectory(at: CacheHelper.cachesDirectoryURL, withIntermediateDirectories: false, attributes: nil)
             try data.write(to: imageFilesURL)
         }
         catch {

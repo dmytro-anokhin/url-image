@@ -38,7 +38,7 @@ public struct URLImage : View {
                     }
             }
 
-            imageLoader.image
+            imageLoader.image?
                 .transition(.opacity)
                 .animation(animated ? .basic(duration: 0.25) : .none)
         }
@@ -201,7 +201,7 @@ extension URLImage {
         private static let store: ImageStoreGroup<UIImage> = {
             var group = ImageStoreGroup<UIImage>()
             group.addStore(ImageInMemoryStore())
-            group.addStore(ImageLocalStore(directory: FileHelper.cachesDirectoryURL))
+            group.addStore(ImageLocalStore())
 
             return group
         }()
@@ -247,8 +247,8 @@ extension URLImage {
 
                 // Copy file to caches folder
                 do {
-                    let cachesURL = try FileHelper.copyToCaches(from: location)
-                    
+                    let cachesURL = try CacheHelper.copyToCaches(from: location)
+
                     if let image = UIImage(contentsOfFile: cachesURL.path) {
                         Self.store.saveImage(image, remoteURL: self.url, localURL: cachesURL)
 
@@ -259,7 +259,7 @@ extension URLImage {
                     }
                     else {
                         // Incorrect file format
-                        try FileHelper.delete(at: cachesURL)
+                        try CacheHelper.delete(at: cachesURL)
                         
                         self.transition(to: .failed) {
                             self.task = nil

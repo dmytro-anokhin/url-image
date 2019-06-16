@@ -1,5 +1,5 @@
 //
-//  FileHelper.swift
+//  CacheHelper.swift
 //  URLImage
 //
 //  Created by Dmytro Anokhin on 14/06/2019.
@@ -9,27 +9,38 @@
 import Foundation
 
 
-struct FileHelper {
+struct CacheHelper {
 
     static let cachesDirectoryName = "URLImage"
 
     static let imageCachesDirectoryName = "images"
 
-    /// App caches directory
+    /// App caches directory.
+    ///
+    /// .../Library/Caches/
     static var appCachesDirectoryURL: URL {
         return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
     }
 
-    /// URLImage caches directory inside the app caches directory
+    /// URLImage caches directory inside the app caches directory.
+    ///
+    /// .../Library/Caches/URLImage/
     static var cachesDirectoryURL: URL {
         return appCachesDirectoryURL.appendingPathComponent(cachesDirectoryName, isDirectory: true)
     }
 
-    /// Images directory inside the URLImage caches directory
+    /// Images directory inside the URLImage caches directory.
+    ///
+    /// .../Library/Caches/URLImage/images/
     static var imageCachesDirectoryURL: URL {
         return cachesDirectoryURL.appendingPathComponent(imageCachesDirectoryName, isDirectory: true)
     }
 
+    /// Copies file from `sourceURL` to URLImage caches directory.
+    ///
+    /// Returns URL of the copy. This function generates UUID for the copy.
+    ///
+    /// .../Library/Caches/URLImage/images/01234567-89AB-CDEF-0123-456789ABCDEF
     static func copyToCaches(from sourceURL: URL) throws -> URL {
         let fileManager = FileManager.default
 
