@@ -37,6 +37,8 @@ struct MyView : View {
 
     var body: some View {
         URLImage(url)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
     }
 }
 ```
@@ -55,6 +57,7 @@ struct MyListView : View {
         List(urls.identified(by: \.self)) { url in
             HStack {
                 URLImage(url, delay: 0.25)
+                    .resizable()
                     .frame(width: 100.0, height: 100.0)
                     .clipped()
                 Text("\(url)")
