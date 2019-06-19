@@ -72,21 +72,24 @@ struct MyListView : View {
  init(_ url: URL, placeholder: Image, session: URLSession?, delay: Double, animated: Bool)`
 ```
 
-**placeholder**
+**`placeholder`**
 
 The image displayed while the remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
 
-**session**
+**`session`**
 
 Optional `URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
 
-**delay**
+**`delay`**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
 
 
 ## Styling Images
 
+**`resizable(capInsets:resizingMode:)`**
+
 `func resizable(capInsets: EdgeInsets, resizingMode: Image.ResizingMode) -> URLImage`
+
 Returns resizable `URLImage` object. This function matches the `resizable(capInsets:resizingMode:)` function of the `Image` object.
 Resizable is only applied to the remote image. The placeholder is not affected.
