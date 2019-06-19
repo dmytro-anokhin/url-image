@@ -89,7 +89,5 @@ Delay before `URLImage` fetches the image from cache or starts to download it. T
 
 **`resizable(capInsets:resizingMode:)`**
 
-`func resizable(capInsets: EdgeInsets, resizingMode: Image.ResizingMode) -> URLImage`
-
 Returns resizable `URLImage` object. This function matches the `resizable(capInsets:resizingMode:)` function of the `Image` object.
 Resizable is only applied to the remote image. The placeholder is not affected.
