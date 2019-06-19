@@ -20,46 +20,89 @@ public struct URLImage : View {
 
     // MARK: Public
 
+    let url: URL
+
+    let placeholder: Image
+
+    let session: URLSession?
+
+    let delay: Double
+
+    let animated: Bool
+
     public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
+        self.url = url
         self.placeholder = placeholder
+        self.session = session
+        self.delay = delay
         self.animated = animated
-        imageLoader = ImageLoader(url: url, session: session, delay: delay)
     }
 
     public var body: some View {
-        ZStack {
-            if imageLoader.image == nil {
-                placeholder
-                    .onAppear {
-                        self.imageLoader.load()
-                    }
-                    .onDisappear {
-                        self.imageLoader.cancel()
-                    }
+        DispatchQueue.main.async {
+            if self.previousURL != self.url {
+                self.image = nil
+            }
+        }
+
+        return ZStack {
+            if image == nil {
+                URLImageLoader(url, placeholder: placeholder, session: session, delay: delay, onLoaded: { image in
+                    self.image = image
+                    self.previousURL = self.url
+                })
             }
 
-            imageLoader.image?
-                .transition(.opacity)
-                .animation(animated ? .basic(duration: 0.25) : .none)
+            image
         }
     }
 
     // MARK: Private
 
-    private let placeholder: Image
+    @State private var image: Image? = nil
 
-    private let animated: Bool
-
-    @ObjectBinding private var imageLoader: ImageLoader
+    @State private var previousURL: URL? = nil
 }
 
 
 @available(iOS 13.0, *)
-extension URLImage {
+struct URLImageLoader : View {
+
+    let placeholder: Image
+
+    let onLoaded: (_ image: Image) -> Void
+
+    init(_ url: URL, placeholder: Image, session: URLSession?, delay: Double, onLoaded: @escaping (_ image: Image) -> Void) {
+        self.placeholder = placeholder
+        self.onLoaded = onLoaded
+
+        loader = ImageLoader(url: url, session: session, delay: delay)
+    }
+
+    var body: some View {
+        placeholder
+            .onAppear {
+                self.loader.didLoad = { image in
+                    self.onLoaded(image)
+                }
+
+                self.loader.load()
+            }
+            .onDisappear {
+                self.loader.cancel()
+            }
+    }
+
+    private let loader: ImageLoader
+}
+
+
+@available(iOS 13.0, *)
+extension URLImageLoader {
 
     // MARK: - ImageLoader
 
-    fileprivate final class ImageLoader : BindableObject {
+    fileprivate final class ImageLoader {
 
         // MARK: State
 
@@ -104,9 +147,9 @@ extension URLImage {
             func canTransition(to state: LoadingState) -> Bool {
                 return Self.transitions[self]!.contains(state)
             }
-            
+
             /** Defines if `ImageLoader` should notify about transtion change to this state.
- 
+
                 Some transitions (like to `scheduled` state) may not be important for UI. Transition to `finished` must be reflected.
             */
             var shouldNotify: Bool {
@@ -128,26 +171,13 @@ extension URLImage {
 
         let url: URL
 
-        let didChange = PassthroughSubject<ImageLoader, Never>()
-
         private(set) var state: LoadingState = .initial {
             didSet {
                 assert(Thread.isMainThread)
-                
-                if state.shouldNotify {
-                    didChange.send(self)
-                }
             }
         }
 
-        var image: Image? {
-            if let uiImage = rawImage {
-                return Image(uiImage: uiImage)
-            }
-            else {
-                return nil
-            }
-        }
+        var didLoad: ((_ image: Image) -> Void)?
 
         func load() {
             transition(to: .scheduled) {
@@ -162,7 +192,7 @@ extension URLImage {
                                     }
 
                                     self.transition(to: .finished) {
-                                        self.rawImage = value.0
+                                        self.didLoad?(Image(uiImage: value.0))
                                     }
 
                                 case .failure(_):
@@ -205,7 +235,7 @@ extension URLImage {
 
             return group
         }()
-        
+
         /// Delay before loading starts
         private let delay: Double
 
@@ -213,9 +243,6 @@ extension URLImage {
 
         /// Download task
         private var task: URLSessionTask?
-
-        /// Instance must be retained by in-memory store. Weak reference enables proper resource management on memory warnings.
-        private weak var rawImage: UIImage?
 
         /** Transitions from current state to the new state if such transition is valid. Executes given closure on successful transition. Transition and closure are executed asynchronously on the main queue.
         */
@@ -253,14 +280,14 @@ extension URLImage {
                         Self.store.saveImage(image, remoteURL: self.url, localURL: cachesURL)
 
                         self.transition(to: .finished) {
-                            self.rawImage = image
+                            self.didLoad?(Image(uiImage: image))
                             self.task = nil
                         }
                     }
                     else {
                         // Incorrect file format
                         try CacheHelper.delete(at: cachesURL)
-                        
+
                         self.transition(to: .failed) {
                             self.task = nil
                         }
