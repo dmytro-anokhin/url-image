@@ -36,6 +36,16 @@ public struct URLImage : View {
         self.session = session
         self.delay = delay
         self.animated = animated
+        self.style = nil
+    }
+
+    fileprivate init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true, style: ImageStyle?) {
+        self.url = url
+        self.placeholder = placeholder
+        self.session = session
+        self.delay = delay
+        self.animated = animated
+        self.style = style
     }
 
     public var body: some View {
@@ -43,6 +53,12 @@ public struct URLImage : View {
             if self.previousURL != self.url {
                 self.image = nil
             }
+        }
+
+        var image = self.image
+
+        if let resizable = style?.resizable {
+            image = image?.resizable(capInsets: resizable.capInsets, resizingMode: resizable.resizingMode)
         }
 
         return ZStack {
@@ -59,9 +75,26 @@ public struct URLImage : View {
 
     // MARK: Private
 
+    fileprivate struct ImageStyle {
+
+        var resizable: (capInsets: EdgeInsets, resizingMode: Image.ResizingMode)?
+    }
+
+    private let style: ImageStyle?
+
     @State private var image: Image? = nil
 
     @State private var previousURL: URL? = nil
+}
+
+
+@available(iOS 13.0, *)
+extension URLImage {
+
+    public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
+        let style = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode))
+        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: style)
+    }
 }
 
 
