@@ -83,7 +83,3 @@ Optional `URLSession` used to download the image. Default session is created wit
 **delay**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
-
-**animated**
-
-Animate the change from placeholder to downloaded image. Default is `true`.
