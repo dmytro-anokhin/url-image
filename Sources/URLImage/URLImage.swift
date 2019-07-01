@@ -15,7 +15,7 @@ import Combine
 
     The image is loaded on appearance. Loading operation is cancelled when the view disappears.
  */
-@available(iOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, *)
 public struct URLImage : View {
 
     // MARK: Public
@@ -88,7 +88,7 @@ public struct URLImage : View {
 }
 
 
-@available(iOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, *)
 extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
@@ -98,7 +98,7 @@ extension URLImage {
 }
 
 
-@available(iOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, *)
 struct URLImageLoader : View {
 
     let placeholder: Image
@@ -130,7 +130,7 @@ struct URLImageLoader : View {
 }
 
 
-@available(iOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, *)
 extension URLImageLoader {
 
     // MARK: - ImageLoader
