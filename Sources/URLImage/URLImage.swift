@@ -61,6 +61,10 @@ public struct URLImage : View {
             image = image?.resizable(capInsets: resizable.capInsets, resizingMode: resizable.resizingMode)
         }
 
+        if let renderingMode = style?.renderingMode {
+            image = image?.renderingMode(renderingMode)
+        }
+
         return ZStack {
             if image == nil {
                 URLImageLoader(url, placeholder: placeholder, session: session, delay: delay, onLoaded: { image in
@@ -78,6 +82,8 @@ public struct URLImage : View {
     fileprivate struct ImageStyle {
 
         var resizable: (capInsets: EdgeInsets, resizingMode: Image.ResizingMode)?
+
+        var renderingMode: Image.TemplateRenderingMode?
     }
 
     private let style: ImageStyle?
@@ -92,8 +98,13 @@ public struct URLImage : View {
 extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
-        let style = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode))
-        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: style)
+        let newStyle = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode), renderingMode: style?.renderingMode)
+        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: newStyle)
+    }
+
+    public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
+        let newStyle = ImageStyle(resizable: style?.resizable, renderingMode: renderingMode)
+        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: newStyle)
     }
 }
 
