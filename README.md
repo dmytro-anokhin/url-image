@@ -77,7 +77,17 @@ struct MyListView : View {
 
 **`placeholder`**
 
-The image displayed while the remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
+The view displayed while the remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
+
+Placeholder is a closure that returns a `View` object. This allows you to customize it. For instance, this sample code replaces default placeholder with a circle in a 150x150 bounding box.
+
+```swift
+URLImage(url, placeholder: {
+    Image(systemName: "circle")
+        .resizable()
+        .frame(width: 150.0, height: 150.0)
+    })
+```
 
 **`session`**
 
