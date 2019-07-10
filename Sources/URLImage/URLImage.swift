@@ -67,7 +67,7 @@ public struct URLImage : View {
 
         return ZStack {
             if image == nil {
-                URLImageLoader(url, placeholder: placeholder, session: session, delay: delay, onLoaded: { image in
+                URLImageLoaderView(url, placeholder: placeholder, session: session, delay: delay, onLoaded: { image in
                     self.image = image
                     self.previousURL = self.url
                 })
@@ -110,7 +110,7 @@ extension URLImage {
 
 
 @available(iOS 13.0, tvOS 13.0, *)
-struct URLImageLoader : View {
+struct URLImageLoaderView : View {
 
     let placeholder: Image
 
@@ -142,7 +142,7 @@ struct URLImageLoader : View {
 
 
 @available(iOS 13.0, tvOS 13.0, *)
-extension URLImageLoader {
+extension URLImageLoaderView {
 
     // MARK: - ImageLoader
 
