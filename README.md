@@ -94,3 +94,8 @@ Delay before `URLImage` fetches the image from cache or starts to download it. T
 
 Returns resizable `URLImage` object. This function matches the `resizable(capInsets:resizingMode:)` function of the `Image` object.
 Resizable is only applied to the remote image. The placeholder is not affected.
+
+**`renderingMode(_:)`**
+
+Returns `URLImage` object with applied rendering mode. This function matches the `renderingMode(_:)` function of the `Image` object.
+Rendering mode is only applied to the remote image. The placeholder is not affected.
