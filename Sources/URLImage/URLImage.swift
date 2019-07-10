@@ -16,13 +16,13 @@ import Combine
     The image is loaded on appearance. Loading operation is cancelled when the view disappears.
  */
 @available(iOS 13.0, tvOS 13.0, *)
-public struct URLImage : View {
+public struct URLImage<Placeholder> : View where Placeholder : View {
 
     // MARK: Public
 
     let url: URL
 
-    let placeholder: Image
+    let placeholder: Placeholder
 
     let session: URLSession?
 
@@ -30,18 +30,18 @@ public struct URLImage : View {
 
     let animated: Bool
 
-    public init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
+    public init(_ url: URL, placeholder: () -> Placeholder, session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
         self.url = url
-        self.placeholder = placeholder
+        self.placeholder = placeholder()
         self.session = session
         self.delay = delay
         self.animated = animated
         self.style = nil
     }
 
-    fileprivate init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true, style: ImageStyle?) {
+    fileprivate init(_ url: URL, placeholder: () -> Placeholder, session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true, style: ImageStyle?) {
         self.url = url
-        self.placeholder = placeholder
+        self.placeholder = placeholder()
         self.session = session
         self.delay = delay
         self.animated = animated
@@ -67,7 +67,7 @@ public struct URLImage : View {
 
         return ZStack {
             if image == nil {
-                URLImageLoaderView(url, placeholder: placeholder, session: session, delay: delay, onLoaded: { image in
+                URLImageLoaderView(url, placeholder: AnyView(placeholder), session: session, delay: delay, onLoaded: { image in
                     self.image = image
                     self.previousURL = self.url
                 })
@@ -95,16 +95,30 @@ public struct URLImage : View {
 
 
 @available(iOS 13.0, tvOS 13.0, *)
+public extension URLImage where Placeholder == Image {
+
+    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
+        self.url = url
+        self.placeholder = placeholder
+        self.session = session
+        self.delay = delay
+        self.animated = animated
+        self.style = nil
+    }
+}
+
+
+@available(iOS 13.0, tvOS 13.0, *)
 extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
         let newStyle = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode), renderingMode: style?.renderingMode)
-        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, session: session, delay: delay, animated: animated, style: newStyle)
     }
 
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
         let newStyle = ImageStyle(resizable: style?.resizable, renderingMode: renderingMode)
-        return URLImage(url, placeholder: placeholder, session: session, delay: delay, animated: animated, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, session: session, delay: delay, animated: animated, style: newStyle)
     }
 }
 
@@ -112,11 +126,11 @@ extension URLImage {
 @available(iOS 13.0, tvOS 13.0, *)
 struct URLImageLoaderView : View {
 
-    let placeholder: Image
+    let placeholder: AnyView
 
     let onLoaded: (_ image: Image) -> Void
 
-    init(_ url: URL, placeholder: Image, session: URLSession?, delay: Double, onLoaded: @escaping (_ image: Image) -> Void) {
+    init(_ url: URL, placeholder: AnyView, session: URLSession?, delay: Double, onLoaded: @escaping (_ image: Image) -> Void) {
         self.placeholder = placeholder
         self.onLoaded = onLoaded
 
