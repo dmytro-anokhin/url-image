@@ -54,7 +54,7 @@ struct MyListView : View {
     let urls: [URL]
 
     var body: some View {
-        List(urls.identified(by: \.self)) { url in
+        List(urls, id: \.self) { url in
             HStack {
                 URLImage(url, delay: 0.25)
                     .resizable()
