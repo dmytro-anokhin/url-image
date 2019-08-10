@@ -241,28 +241,37 @@ extension URLImageLoaderView {
             transition(to: .scheduled) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.delay) {
                     self.transition(to: .loading) {
-                        // First see if image is in store
-                        Self.store.loadImage(for: self.url) { result in
-                            switch result {
-                                case .success(let value):
-                                    if let localURL = value.1 { // Propagate image to other stores
-                                        Self.store.saveImage(value.0, remoteURL: self.url, localURL: localURL)
-                                    }
+                        // Check in-memory cache
+                        if let image = self.inMemoryCache.image(for: self.url) {
+                            self.transition(to: .finished) {
+                                self.didLoad?(Image(uiImage: image))
+                            }
+
+                            return
+                        }
+
+                        // Load from disk
+                        self.remoteFileCache.getFile(withRemoteURL: self.url) { localURL in
+                            if let localURL = localURL {
+                                if let image = UIImage(contentsOfFile: localURL.path) {
+                                    // Loaded from disk
+                                    self.inMemoryCache.setImage(image, for: self.url)
 
                                     self.transition(to: .finished) {
-                                        self.didLoad?(Image(uiImage: value.0))
+                                        self.didLoad?(Image(uiImage: image))
                                     }
 
-                                case .failure(_):
-                                    DispatchQueue.main.async {
-                                        guard self.state == .loading else {
-                                            return
-                                        }
-
-                                        self.task = self.makeLoadTask()
-                                        self.task?.resume()
-                                    }
+                                    return
+                                }
+                                else {
+                                    // File was removed
+                                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+                                }
                             }
+
+                            // Load from network
+                            self.task = self.makeLoadTask()
+                            self.task?.resume()
                         }
                     }
                 }
@@ -286,13 +295,9 @@ extension URLImageLoaderView {
             return configuration
         }())
 
-        private static let store: ImageStoreGroup<UIImage> = {
-            var group = ImageStoreGroup<UIImage>()
-            group.addStore(ImageInMemoryStore())
-            group.addStore(ImageLocalStore())
+        private let inMemoryCache: InMemoryCacheService = InMemoryCacheServiceImpl.shared
 
-            return group
-        }()
+        private let remoteFileCache: RemoteFileCacheService = RemoteFileCacheServiceImpl.shared
 
         /// Delay before loading starts
         private let delay: Double
@@ -316,12 +321,12 @@ extension URLImageLoaderView {
         }
 
         private func makeLoadTask() -> URLSessionTask {
-            return session.downloadTask(with: url) { [weak self] location, response, error in
+            return session.downloadTask(with: url) { [weak self] tmpURL, response, error in
                 guard let self = self else {
                     return
                 }
 
-                guard let location = location else {
+                guard let tmpURL = tmpURL else {
                     // Network error
                     self.transition(to: .failed) {
                         self.task = nil
@@ -330,12 +335,12 @@ extension URLImageLoaderView {
                     return
                 }
 
-                // Copy file to caches folder
                 do {
-                    let cachesURL = try CacheHelper.copyToCaches(from: location)
+                    let localURL = try self.remoteFileCache.addFile(withRemoteURL: self.url, sourceURL: tmpURL)
 
-                    if let image = UIImage(contentsOfFile: cachesURL.path) {
-                        Self.store.saveImage(image, remoteURL: self.url, localURL: cachesURL)
+                    if let image = UIImage(contentsOfFile: localURL.path) {
+                        // Cache in memory
+                        self.inMemoryCache.setImage(image, for: self.url)
 
                         self.transition(to: .finished) {
                             self.didLoad?(Image(uiImage: image))
@@ -344,7 +349,7 @@ extension URLImageLoaderView {
                     }
                     else {
                         // Incorrect file format
-                        try CacheHelper.delete(at: cachesURL)
+                        try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
 
                         self.transition(to: .failed) {
                             self.task = nil
@@ -352,6 +357,7 @@ extension URLImageLoaderView {
                     }
                 }
                 catch {
+                    // Write to disk error
                     self.transition(to: .failed) {
                         self.task = nil
                     }
