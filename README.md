@@ -56,7 +56,7 @@ struct MyListView : View {
     var body: some View {
         List(urls, id: \.self) { url in
             HStack {
-                URLImage(url, delay: 0.25)
+                URLImage(url, configuration: Configuration(delay: 0.25))
                     .resizable()
                     .frame(width: 100.0, height: 100.0)
                     .clipped()
@@ -69,10 +69,10 @@ struct MyListView : View {
 
 ## Parameters
 
-`URLImage` allows you to configure its parameters using  initializer:
+`URLImage` allows you to configure its parameters using initializer:
 
  ```swift
- init(_ url: URL, placeholder: Image, session: URLSession?, delay: Double, animated: Bool)`
+ init(_ url: URL, placeholder: Image, configuration: Configuration)`
 ```
 
 **`placeholder`**
@@ -89,13 +89,20 @@ URLImage(url, placeholder: {
     })
 ```
 
-**`session`**
+**`configuration`**
 
-Optional `URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
+Optional `Configuration` object used to specify `urlSession`, `delay`, and `useInMemoryCache` parameters.
+
+**`urlSession`**
+
+`URLSession` used to download the image. Default session is created with `URLSessionConfiguration.default` and `httpMaximumConnectionsPerHost = 1`.
 
 **`delay`**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
+
+**`useInMemoryCache`**
+Flag indicating to use in-memory cache. Can increase performance at a memory cost. Disabled by default.
 
 
 ## Styling Images
