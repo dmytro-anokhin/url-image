@@ -67,19 +67,20 @@ struct MyListView : View {
 }
 ```
 
-## Parameters
+### URLImage ###
 
-`URLImage` allows you to configure its parameters using initializer:
+`URLImage` allows you to configure its parameters using initializers:
 
- ```swift
- init(_ url: URL, placeholder: Image, configuration: Configuration)`
+```swift
+init(_ url: URL, placeholder: Image, configuration: Configuration)
+init(_ url: URL, placeholder: () -> Placeholder, configuration: Configuration)
 ```
 
 **`placeholder`**
 
 The view displayed while the remote image is downloading or if it failed to download. Default is `Image(systemName: "photo")`.
 
-Placeholder is a closure that returns a `View` object. This allows you to customize it. For instance, this sample code replaces default placeholder with a circle in a 150x150 bounding box.
+Placeholder can be a closure that returns a `View` object. This allows you to customize it. For instance, this sample code replaces default placeholder with a circle in a 150x150 bounding box.
 
 ```swift
 URLImage(url, placeholder: {
@@ -92,6 +93,8 @@ URLImage(url, placeholder: {
 **`configuration`**
 
 Optional `Configuration` object used to specify `urlSession`, `delay`, and `useInMemoryCache` parameters.
+
+### Configuration ###
 
 **`urlSession`**
 
