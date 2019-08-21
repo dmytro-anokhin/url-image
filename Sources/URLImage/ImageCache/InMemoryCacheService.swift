@@ -36,3 +36,14 @@ final class InMemoryCacheServiceImpl: InMemoryCacheService {
 
     private let cache = NSCache<NSURL, UIImage>()
 }
+
+
+struct InMemoryCacheServiceDummyImpl: InMemoryCacheService {
+
+    func image(for remoteURL: URL) -> UIImage? {
+        return nil
+    }
+
+    func setImage(_ image: UIImage, for remoteURL: URL) {
+    }
+}

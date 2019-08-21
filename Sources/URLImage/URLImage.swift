@@ -10,6 +10,33 @@ import SwiftUI
 import Combine
 
 
+public struct Configuration {
+
+    /// Shared URLSession with default configuration that runs one connection per host
+    public static let sharedURLSession = URLSession(configuration: {
+        let configuration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
+        configuration.httpMaximumConnectionsPerHost = 1
+
+        return configuration
+    }())
+
+    /// `URLSession` used to download an image
+    public var urlSession: URLSession
+
+    /// Delay before the `URLImage` instance fetches an image from local store or starts download operation
+    public var delay: Double
+
+    /// Enables/disables in-memory caching of downloaded images
+    public var useInMemoryCache: Bool
+
+    public init(urlSession: URLSession = Configuration.sharedURLSession, delay: Double = 0.0, useInMemoryCache: Bool = false) {
+        self.urlSession = urlSession
+        self.delay = delay
+        self.useInMemoryCache = useInMemoryCache
+    }
+}
+
+
 /**
     URLImage is a view that automatically loads an image from provided URL.
 
@@ -24,27 +51,19 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
     let placeholder: Placeholder
 
-    let session: URLSession?
+    let configuration: Configuration
 
-    let delay: Double
-
-    let animated: Bool
-
-    public init(_ url: URL, placeholder: () -> Placeholder, session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
+    public init(_ url: URL, placeholder: () -> Placeholder, configuration: Configuration = Configuration()) {
         self.url = url
         self.placeholder = placeholder()
-        self.session = session
-        self.delay = delay
-        self.animated = animated
+        self.configuration = configuration
         self.style = nil
     }
 
-    fileprivate init(_ url: URL, placeholder: () -> Placeholder, session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true, style: ImageStyle?) {
+    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: Configuration, style: ImageStyle?) {
         self.url = url
         self.placeholder = placeholder()
-        self.session = session
-        self.delay = delay
-        self.animated = animated
+        self.configuration = configuration
         self.style = style
     }
 
@@ -67,7 +86,7 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
         return ZStack {
             if image == nil {
-                URLImageLoaderView(url, placeholder: AnyView(placeholder), session: session, delay: delay, onLoaded: { image in
+                URLImageLoaderView(url, placeholder: AnyView(placeholder), configuration: configuration, onLoaded: { image in
                     self.image = image
                     self.previousURL = self.url
                 })
@@ -97,12 +116,10 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), session: URLSession? = nil, delay: Double = 0.0, animated: Bool = true) {
+    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), configuration: Configuration = Configuration()) {
         self.url = url
         self.placeholder = placeholder
-        self.session = session
-        self.delay = delay
-        self.animated = animated
+        self.configuration = configuration
         self.style = nil
     }
 }
@@ -113,12 +130,12 @@ extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
         let newStyle = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode), renderingMode: style?.renderingMode)
-        return URLImage(url, placeholder: { placeholder }, session: session, delay: delay, animated: animated, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
     }
 
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
         let newStyle = ImageStyle(resizable: style?.resizable, renderingMode: renderingMode)
-        return URLImage(url, placeholder: { placeholder }, session: session, delay: delay, animated: animated, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
     }
 }
 
@@ -126,32 +143,57 @@ extension URLImage {
 @available(iOS 13.0, tvOS 13.0, *)
 struct URLImageLoaderView : View {
 
+    let url: URL
+
     let placeholder: AnyView
+
+    let configuration: Configuration
 
     let onLoaded: (_ image: Image) -> Void
 
-    init(_ url: URL, placeholder: AnyView, session: URLSession?, delay: Double, onLoaded: @escaping (_ image: Image) -> Void) {
+    init(_ url: URL, placeholder: AnyView, configuration: Configuration, onLoaded: @escaping (_ image: Image) -> Void) {
+        self.url = url
         self.placeholder = placeholder
+        self.configuration = configuration
         self.onLoaded = onLoaded
-
-        loader = ImageLoader(url: url, session: session, delay: delay)
     }
 
     var body: some View {
         placeholder
             .onAppear {
-                self.loader.didLoad = { image in
+                self.imageLoader.didLoad = { image in
+                    self.removeImageLoaderFromPool()
                     self.onLoaded(image)
                 }
 
-                self.loader.load()
+                self.imageLoader.load()
             }
             .onDisappear {
-                self.loader.cancel()
+                self.removeImageLoaderFromPool()
             }
     }
 
-    private let loader: ImageLoader
+    private static var imageLoaderPool: [URL: URLImageLoaderView.ImageLoader] = [:]
+
+    private var imageLoader: ImageLoader {
+        if let imageLoader = URLImageLoaderView.imageLoaderPool[url] {
+            return imageLoader
+        }
+
+        let imageLoader = ImageLoader(url: url, session: configuration.urlSession, delay: configuration.delay, inMemoryCache: configuration.useInMemoryCache ? InMemoryCacheServiceImpl.shared : InMemoryCacheServiceDummyImpl())
+        URLImageLoaderView.imageLoaderPool[url] = imageLoader
+
+        return imageLoader
+    }
+
+    private func removeImageLoaderFromPool() {
+        guard let imageLoader = URLImageLoaderView.imageLoaderPool[url] else {
+            return
+        }
+
+        imageLoader.cancel()
+        URLImageLoaderView.imageLoaderPool[url] = nil
+    }
 }
 
 
@@ -217,10 +259,11 @@ extension URLImageLoaderView {
 
         // MARK: Public
 
-        init(url: URL, session: URLSession?, delay: Double) {
+        init(url: URL, session: URLSession, delay: Double, inMemoryCache: InMemoryCacheService) {
             self.url = url
-            self.session = session ?? Self.session
+            self.session = session
             self.delay = delay
+            self.inMemoryCache = inMemoryCache
         }
 
         deinit {
@@ -241,6 +284,7 @@ extension URLImageLoaderView {
             transition(to: .scheduled) {
                 DispatchQueue.main.asyncAfter(deadline: .now() + self.delay) {
                     self.transition(to: .loading) {
+
                         // Check in-memory cache
                         if let image = self.inMemoryCache.image(for: self.url) {
                             self.transition(to: .finished) {
@@ -250,8 +294,13 @@ extension URLImageLoaderView {
                             return
                         }
 
+                        // Load from network
+                        self.task = self.makeLoadTask()
+                        self.task?.resume()
+
                         // Load from disk
                         self.remoteFileCache.getFile(withRemoteURL: self.url) { localURL in
+
                             if let localURL = localURL {
                                 if let image = UIImage(contentsOfFile: localURL.path) {
                                     // Loaded from disk
@@ -287,15 +336,7 @@ extension URLImageLoaderView {
 
         // MARK: Private
 
-        /// Shared URLSession with default configuration that runs one connection per host
-        private static let session = URLSession(configuration: {
-            let configuration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
-            configuration.httpMaximumConnectionsPerHost = 1
-
-            return configuration
-        }())
-
-        private let inMemoryCache: InMemoryCacheService = InMemoryCacheServiceImpl.shared
+        private let inMemoryCache: InMemoryCacheService
 
         private let remoteFileCache: RemoteFileCacheService = RemoteFileCacheServiceImpl.shared
 

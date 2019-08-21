@@ -20,6 +20,7 @@ protocol RemoteFileCacheService {
     func delete(fileName: String) throws
 }
 
+
 // MARK: - RemoteFileCacheServiceImpl
 
 @available(iOS 10.0, *)
