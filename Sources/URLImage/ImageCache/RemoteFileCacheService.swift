@@ -23,7 +23,7 @@ protocol RemoteFileCacheService {
 
 // MARK: - RemoteFileCacheServiceImpl
 
-@available(iOS 10.0, *)
+@available(iOS 10.0, tvOS 13.0, watchOS 6.0, *)
 final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 
     static let shared = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
@@ -105,7 +105,7 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 
 // MARK: - File Operations
 
-@available(iOS 10.0, *)
+@available(iOS 10.0, tvOS 13.0, watchOS 6.0, *)
 fileprivate extension RemoteFileCacheServiceImpl {
 
     /// Returns the URL of a file in the directory managed by the `RemoteImageCacheService` instance.
@@ -141,7 +141,7 @@ final class RemoteFileManagedObject: NSManagedObject {
 
 // MARK: - FileIndex
 
-@available(iOS 10.0, *)
+@available(iOS 10.0, tvOS 13.0, watchOS 6.0, *)
 fileprivate class FileIndex {
 
     init(url: URL) {

@@ -18,7 +18,7 @@ protocol InMemoryCacheService {
 }
 
 
-@available(iOS 10.0, *)
+@available(iOS 10.0, tvOS 13.0, watchOS 6.0, *)
 final class InMemoryCacheServiceImpl: InMemoryCacheService {
 
     static let shared = InMemoryCacheServiceImpl()

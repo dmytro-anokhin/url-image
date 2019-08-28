@@ -42,7 +42,7 @@ public struct Configuration {
 
     The image is loaded on appearance. Loading operation is cancelled when the view disappears.
  */
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImage<Placeholder> : View where Placeholder : View {
 
     // MARK: Public
@@ -113,7 +113,7 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Placeholder == Image {
 
     init(_ url: URL, placeholder: Image = Image(systemName: "photo"), configuration: Configuration = Configuration()) {
@@ -125,7 +125,7 @@ public extension URLImage where Placeholder == Image {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
@@ -140,7 +140,7 @@ extension URLImage {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 struct URLImageLoaderView : View {
 
     let url: URL
@@ -187,6 +187,7 @@ struct URLImageLoaderView : View {
     }
 
     private func removeImageLoaderFromPool() {
+
         guard let imageLoader = URLImageLoaderView.imageLoaderPool[url] else {
             return
         }
@@ -197,7 +198,7 @@ struct URLImageLoaderView : View {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageLoaderView {
 
     // MARK: - ImageLoader
@@ -300,22 +301,33 @@ extension URLImageLoaderView {
 
                         // Load from disk
                         self.remoteFileCache.getFile(withRemoteURL: self.url) { localURL in
-
                             if let localURL = localURL {
-                                if let image = UIImage(contentsOfFile: localURL.path) {
-                                    // Loaded from disk
-                                    self.inMemoryCache.setImage(image, for: self.url)
 
-                                    self.transition(to: .finished) {
-                                        self.didLoad?(Image(uiImage: image))
+                                do {
+                                    if let image = UIImage(data: try NSData(contentsOfFile: localURL.path) as Data) {
+                                        //print("wtf load from disk")
+
+                                        // Loaded from disk
+                                        self.inMemoryCache.setImage(image, for: self.url)
+
+                                        self.transition(to: .finished) {
+                                            //print("wtf didLoad from disk")
+
+                                            self.didLoad?(Image(uiImage: image))
+                                        }
+
+                                        return
                                     }
-
-                                    return
-                                }
-                                else {
+                                    else {
+                                        // File was removed
+                                        try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+                                    }
+                                } catch {
                                     // File was removed
                                     try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                                 }
+
+
                             }
 
                             // Load from network
@@ -379,7 +391,7 @@ extension URLImageLoaderView {
                 do {
                     let localURL = try self.remoteFileCache.addFile(withRemoteURL: self.url, sourceURL: tmpURL)
 
-                    if let image = UIImage(contentsOfFile: localURL.path) {
+                    if let image = UIImage(data: try NSData(contentsOfFile: localURL.path) as Data) {
                         // Cache in memory
                         self.inMemoryCache.setImage(image, for: self.url)
 
