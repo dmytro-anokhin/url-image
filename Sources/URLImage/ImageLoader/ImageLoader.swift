@@ -22,7 +22,7 @@ protocol ImageLoader {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 final class ImageLoaderImpl: ImageLoader {
 
     // MARK: State
@@ -116,19 +116,23 @@ final class ImageLoaderImpl: ImageLoader {
 
                     // Load from disk
                     self.remoteFileCache.getFile(withRemoteURL: self.url) { localURL in
+                            if let localURL = localURL {
+                            do {
+                                if let image = UIImage(data: try NSData(contentsOfFile: localURL.path) as Data) {
+                                    // Loaded from disk
+                                    self.inMemoryCache.setImage(image, for: self.url)
 
-                        if let localURL = localURL {
-                            if let image = UIImage(contentsOfFile: localURL.path) {
-                                // Loaded from disk
-                                self.inMemoryCache.setImage(image, for: self.url)
+                                    self.transition(to: .finished) {
+                                        self.didLoad?(Image(uiImage: image))
+                                    }
 
-                                self.transition(to: .finished) {
-                                    self.didLoad?(Image(uiImage: image))
+                                    return
                                 }
-
-                                return
-                            }
-                            else {
+                                else {
+                                    // File was removed
+                                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+                                }
+                            } catch {
                                 // File was removed
                                 try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                             }
