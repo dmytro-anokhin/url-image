@@ -92,7 +92,7 @@ URLImage(url, placeholder: {
 
 **`configuration`**
 
-Optional `Configuration` object used to specify `urlSession`, `delay`, and `useInMemoryCache` parameters.
+Optional `ImageLoaderConfiguration` object used to specify `urlSession`, `delay`, and `useInMemoryCache` parameters.
 
 ### Configuration ###
 
