@@ -201,7 +201,7 @@ final class ImageLoaderImpl: ImageLoader {
             do {
                 let localURL = try self.remoteFileCache.addFile(withRemoteURL: self.url, sourceURL: tmpURL)
 
-                if let image = UIImage(contentsOfFile: localURL.path) {
+                if let image = UIImage(data: try NSData(contentsOfFile: localURL.path) as Data) {
                     // Cache in memory
                     self.inMemoryCache.setImage(image, for: self.url)
 
