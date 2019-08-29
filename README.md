@@ -56,7 +56,7 @@ struct MyListView : View {
     var body: some View {
         List(urls, id: \.self) { url in
             HStack {
-                URLImage(url, configuration: Configuration(delay: 0.25))
+                URLImage(url, configuration: ImageLoaderConfiguration(delay: 0.25))
                     .resizable()
                     .frame(width: 100.0, height: 100.0)
                     .clipped()
@@ -72,8 +72,8 @@ struct MyListView : View {
 `URLImage` allows you to configure its parameters using initializers:
 
 ```swift
-init(_ url: URL, placeholder: Image, configuration: Configuration)
-init(_ url: URL, placeholder: () -> Placeholder, configuration: Configuration)
+init(_ url: URL, placeholder: Image, configuration: ImageLoaderConfiguration)
+init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration)
 ```
 
 **`placeholder`**
