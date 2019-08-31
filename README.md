@@ -1,5 +1,8 @@
 # URLImage
 
+![Supported platform: iOS, tvOS, watchOS](https://img.shields.io/badge/platform-iOS%2C%20tvOS%2C%20watchOS-lightgrey)
+![Follow me on Twitter](https://img.shields.io/twitter/follow/dmytroanokhin?style=social)
+
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL. `URLImage` manages downloading remote image and caching it locally, both in memory and on disk, for you.
 
 Creating `URLImage` view is described in my blog post [URL Image view in SwiftUI](https://medium.com/@dmytro.anokhin/url-image-view-in-swiftui-f08f85d942d8).
