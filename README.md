@@ -9,7 +9,7 @@ There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-imag
 ## Installation
 
 `URLImage` is a Swift Package and you can install it with Xcode 11:
-- Copy SSH `git@github.com:dmytro-anokhin/url-image.git` or HTTPS `https://github.com/dmytro-anokhin/url-image.git` URL from github;
+- HTTPS `https://github.com/dmytro-anokhin/url-image.git` URL from github;
 - Open **File/Swift Packages/Add Package Dependency...** in Xcode 11;
 - Paste the URL and follow steps.
 
