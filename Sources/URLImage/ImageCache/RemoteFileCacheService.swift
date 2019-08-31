@@ -54,12 +54,14 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF"
     func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL {
-        let fileName = UUID().uuidString
-        try copy(from: sourceURL, fileName: fileName)
+        let pathExtension = remoteURL.pathExtension.isEmpty ? "file" : remoteURL.pathExtension
+        let fileName = UUID().uuidString + "." + (pathExtension)
+        let destinationURL = fileURL(forFileName: fileName)
 
+        try copy(from: sourceURL, to: destinationURL)
         index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
 
-        return fileURL(forFileName: fileName)
+        return destinationURL
     }
 
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void) {
@@ -110,16 +112,15 @@ fileprivate extension RemoteFileCacheServiceImpl {
 
     /// Returns the URL of a file in the directory managed by the `RemoteImageCacheService` instance.
     ///
-    /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF"
+    /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.png"
     func fileURL(forFileName fileName: String) -> URL {
         return filesDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
     }
 
     /// Copy a file from `sourceURL` to the directory managed by the `RemoteImageCacheService` instance.
     /// `fileName` must be provided.
-    func copy(from sourceURL: URL, fileName: String) throws {
+    func copy(from sourceURL: URL, to destinationURL: URL) throws {
         let fileManager = FileManager.default
-        let destinationURL = fileURL(forFileName: fileName)
 
         try? fileManager.createDirectory(at: filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
         try fileManager.copyItem(at: sourceURL, to: destinationURL)
