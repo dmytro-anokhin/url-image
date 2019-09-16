@@ -28,7 +28,7 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 
     static let shared = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
 
-    /// The name of the directory managed by the `RemoteImageCacheService` instance.
+    /// The name of the directory managed by the `RemoteFileCacheService` instance.
     ///
     /// Example: "URLImage"
     let name: String
@@ -49,7 +49,7 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         index = FileIndex(url: filesIndexURL)
     }
 
-    /// Copy a file downloaded from `remoteURL` and located at `sourceURL` to the directory managed by the `RemoteImageCacheService` instance.
+    /// Copy a file downloaded from `remoteURL` and located at `sourceURL` to the directory managed by the `RemoteFileCacheService` instance.
     /// Returns URL of the copy. This function generates unique name for the copied file.
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF"
@@ -76,7 +76,7 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         }
     }
 
-    /// Removes the file from the directory managed by the `RemoteImageCacheService` instance.
+    /// Removes the file from the directory managed by the `RemoteFileCacheService` instance.
     func delete(fileName: String) throws {
         defer {
             index.removeFileInfo(forFileName: fileName)
@@ -86,12 +86,12 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         try FileManager.default.removeItem(at: localFileURL)
     }
 
-    /// URL of the directory managed by the `RemoteImageCacheService`. This is the concatenation of the `name` and `baseURL`
+    /// URL of the directory managed by the `RemoteFileCacheService`. This is the concatenation of the `name` and `baseURL`
     ///
     /// Example: ".../Library/Caches/URLImage/"
     private let directoryURL: URL
 
-    /// URL of the directory inside the `directoryURL` where the `RemoteImageCacheService` keeps copied files.
+    /// URL of the directory inside the `directoryURL` where the `RemoteFileCacheService` keeps copied files.
     ///
     /// Example: ".../Library/Caches/URLImage/files"
     private let filesDirectoryURL: URL
@@ -110,14 +110,14 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 @available(iOS 10.0, *)
 fileprivate extension RemoteFileCacheServiceImpl {
 
-    /// Returns the URL of a file in the directory managed by the `RemoteImageCacheService` instance.
+    /// Returns the URL of a file in the directory managed by the `RemoteFileCacheService` instance.
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.png"
     func fileURL(forFileName fileName: String) -> URL {
         return filesDirectoryURL.appendingPathComponent(fileName, isDirectory: false)
     }
 
-    /// Copy a file from `sourceURL` to the directory managed by the `RemoteImageCacheService` instance.
+    /// Copy a file from `sourceURL` to the directory managed by the `RemoteFileCacheService` instance.
     /// `fileName` must be provided.
     func copy(from sourceURL: URL, to destinationURL: URL) throws {
         let fileManager = FileManager.default
