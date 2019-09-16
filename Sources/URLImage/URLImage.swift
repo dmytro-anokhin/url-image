@@ -33,13 +33,6 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
         self.style = nil
     }
 
-    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration, style: ImageStyle?) {
-        self.url = url
-        self.placeholder = placeholder()
-        self.configuration = configuration
-        self.style = style
-    }
-
     public var body: some View {
         DispatchQueue.main.async {
             if self.previousURL != self.url {
@@ -55,6 +48,14 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
         if let renderingMode = style?.renderingMode {
             image = image?.renderingMode(renderingMode)
+        }
+
+        if let interpolation = style?.interpolation {
+            image = image?.interpolation(interpolation)
+        }
+
+        if let isAntialiased = style?.isAntialiased {
+            image = image?.antialiased(isAntialiased)
         }
 
         return ZStack {
@@ -76,6 +77,10 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
         var resizable: (capInsets: EdgeInsets, resizingMode: Image.ResizingMode)?
 
         var renderingMode: Image.TemplateRenderingMode?
+
+        var interpolation: Image.Interpolation?
+
+        var isAntialiased: Bool?
     }
 
     private let style: ImageStyle?
@@ -83,6 +88,17 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
     @State private var image: Image? = nil
 
     @State private var previousURL: URL? = nil
+}
+
+
+public extension URLImage {
+
+    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration, style: ImageStyle?) {
+        self.url = url
+        self.placeholder = placeholder()
+        self.configuration = configuration
+        self.style = style
+    }
 }
 
 
@@ -102,12 +118,49 @@ public extension URLImage where Placeholder == Image {
 extension URLImage {
 
     public func resizable(capInsets: EdgeInsets = EdgeInsets(), resizingMode: Image.ResizingMode = .stretch) -> URLImage {
-        let newStyle = ImageStyle(resizable: (capInsets: capInsets, resizingMode: resizingMode), renderingMode: style?.renderingMode)
+        let newStyle = ImageStyle(
+            resizable: (
+                capInsets: capInsets,
+                resizingMode: resizingMode
+            ),
+            renderingMode: style?.renderingMode,
+            interpolation: style?.interpolation,
+            isAntialiased: style?.isAntialiased
+        )
+
         return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
     }
 
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
-        let newStyle = ImageStyle(resizable: style?.resizable, renderingMode: renderingMode)
+        let newStyle = ImageStyle(
+            resizable: style?.resizable,
+            renderingMode: renderingMode,
+            interpolation: style?.interpolation,
+            isAntialiased: style?.isAntialiased
+        )
+
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+    }
+
+    public func interpolation(_ interpolation: Image.Interpolation) -> URLImage {
+        let newStyle = ImageStyle(
+            resizable: style?.resizable,
+            renderingMode: style?.renderingMode,
+            interpolation: interpolation,
+            isAntialiased: style?.isAntialiased
+        )
+
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+    }
+
+    public func antialiased(_ isAntialiased: Bool) -> URLImage {
+        let newStyle = ImageStyle(
+            resizable: style?.resizable,
+            renderingMode: style?.renderingMode,
+            interpolation: style?.interpolation,
+            isAntialiased: isAntialiased
+        )
+
         return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
     }
 }
