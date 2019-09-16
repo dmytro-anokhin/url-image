@@ -116,9 +116,17 @@ Flag indicating to use in-memory cache. Can increase performance at a memory cos
 **`resizable(capInsets:resizingMode:)`**
 
 Returns resizable `URLImage` object. This function matches the `resizable(capInsets:resizingMode:)` function of the `Image` object.
-Resizable is only applied to the remote image. The placeholder is not affected.
 
 **`renderingMode(_:)`**
 
 Returns `URLImage` object with applied rendering mode. This function matches the `renderingMode(_:)` function of the `Image` object.
-Rendering mode is only applied to the remote image. The placeholder is not affected.
+
+**`interpolation(_:)`**
+This function matches the `interpolation(_:)` function of the `Image` object.
+
+**`antialiased(_:)`**
+
+This function matches the `antialiased(_:)` function of the `Image` object.
+
+
+Styles are only applied to the remote image. The placeholder is not affected.
