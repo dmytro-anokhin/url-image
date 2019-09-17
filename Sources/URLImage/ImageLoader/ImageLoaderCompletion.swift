@@ -10,4 +10,4 @@
 import SwiftUI
 
 
-typealias ImageLoaderCompletion = (_ image: Image) -> Void
+typealias ImageLoaderCompletion = (_ image: UIImage) -> Void

@@ -25,12 +25,15 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
     let placeholder: Placeholder
 
     let configuration: ImageLoaderConfiguration
+    
+    let completion: ((UIImage?) -> Void)?
 
-    public init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration = ImageLoaderConfiguration()) {
+    public init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration = ImageLoaderConfiguration(), completion: ((UIImage?) -> Void)? = nil) {
         self.url = url
         self.placeholder = placeholder()
         self.configuration = configuration
         self.style = nil
+        self.completion = completion
     }
 
     public var body: some View {
@@ -61,8 +64,9 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
         return ZStack {
             if image == nil {
                 URLImageLoaderView(url, placeholder: AnyView(placeholder), configuration: configuration, onLoaded: { image in
-                    self.image = image
+                    self.image = Image(uiImage: image)
                     self.previousURL = self.url
+                    self.completion?(image)
                 })
             }
 
@@ -93,11 +97,12 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
 public extension URLImage {
 
-    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration, style: ImageStyle?) {
+    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration, style: ImageStyle?, completion: ((UIImage?) -> Void)? = nil) {
         self.url = url
         self.placeholder = placeholder()
         self.configuration = configuration
         self.style = style
+        self.completion = completion
     }
 }
 
@@ -105,11 +110,12 @@ public extension URLImage {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), configuration: ImageLoaderConfiguration = ImageLoaderConfiguration()) {
+    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), configuration: ImageLoaderConfiguration = ImageLoaderConfiguration(), completion: ((UIImage?) -> Void)? = nil) {
         self.url = url
         self.placeholder = placeholder
         self.configuration = configuration
         self.style = nil
+        self.completion = completion
     }
 }
 
@@ -128,7 +134,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle, completion: completion)
     }
 
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
@@ -139,7 +145,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle, completion: completion)
     }
 
     public func interpolation(_ interpolation: Image.Interpolation) -> URLImage {
@@ -150,7 +156,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle, completion: completion)
     }
 
     public func antialiased(_ isAntialiased: Bool) -> URLImage {
@@ -161,7 +167,7 @@ extension URLImage {
             isAntialiased: isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle, completion: completion)
     }
 }
 
@@ -175,9 +181,9 @@ struct URLImageLoaderView : View {
 
     let configuration: ImageLoaderConfiguration
 
-    let onLoaded: (_ image: Image) -> Void
+    let onLoaded: (_ image: UIImage) -> Void
 
-    init(_ url: URL, placeholder: AnyView, configuration: ImageLoaderConfiguration, onLoaded: @escaping (_ image: Image) -> Void) {
+    init(_ url: URL, placeholder: AnyView, configuration: ImageLoaderConfiguration, onLoaded: @escaping (_ image: UIImage) -> Void) {
         self.url = url
         self.placeholder = placeholder
         self.configuration = configuration

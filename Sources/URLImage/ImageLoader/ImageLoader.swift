@@ -104,7 +104,7 @@ final class ImageLoaderImpl: ImageLoader {
                     // Check in-memory cache
                     if let image = self.inMemoryCache.image(for: self.url) {
                         self.transition(to: .finished) {
-                            self.didLoad?(Image(uiImage: image))
+                            self.didLoad?(image)
                         }
 
                         return
@@ -123,7 +123,7 @@ final class ImageLoaderImpl: ImageLoader {
                                 self.inMemoryCache.setImage(image, for: self.url)
 
                                 self.transition(to: .finished) {
-                                    self.didLoad?(Image(uiImage: image))
+                                    self.didLoad?(image)
                                 }
 
                                 return
@@ -206,7 +206,7 @@ final class ImageLoaderImpl: ImageLoader {
                     self.inMemoryCache.setImage(image, for: self.url)
 
                     self.transition(to: .finished) {
-                        self.didLoad?(Image(uiImage: image))
+                        self.didLoad?(image)
                         self.task = nil
                     }
                 }
