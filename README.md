@@ -5,10 +5,6 @@
 
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL. `URLImage` manages downloading remote image and caching it locally, both in memory and on disk, for you.
 
-Creating `URLImage` view is described in my blog post [URL Image view in SwiftUI](https://medium.com/@dmytro.anokhin/url-image-view-in-swiftui-f08f85d942d8).
-
-There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-image-app).
-
 ## Installation
 
 `URLImage` is a Swift Package and you can install it with Xcode 11:
@@ -21,7 +17,7 @@ There's also a demo app [URLImageApp](https://github.com/dmytro-anokhin/url-imag
  `URLImage` must be initialized with a URL and optional placeholder image.
  
  ```swift
-let url: URL = // ...
+let url: URL = // Remote image url
 
 URLImage(url)
 
