@@ -7,14 +7,14 @@
 //  Copyright © 2019 Dmytro Anokhin. All rights reserved.
 //
 
-import UIKit
+import Foundation
 
 
 protocol InMemoryCacheService {
 
-    func image(for remoteURL: URL) -> UIImage?
+    func image(for remoteURL: URL) -> ImageWrapper?
 
-    func setImage(_ image: UIImage, for remoteURL: URL)
+    func setImage(_ image: ImageWrapper, for remoteURL: URL)
 }
 
 
@@ -26,24 +26,24 @@ final class InMemoryCacheServiceImpl: InMemoryCacheService {
     init() {
     }
 
-    func image(for remoteURL: URL) -> UIImage? {
+    func image(for remoteURL: URL) -> ImageWrapper? {
         return cache.object(forKey: remoteURL as NSURL)
     }
 
-    func setImage(_ image: UIImage, for remoteURL: URL) {
+    func setImage(_ image: ImageWrapper, for remoteURL: URL) {
         cache.setObject(image, forKey: remoteURL as NSURL)
     }
 
-    private let cache = NSCache<NSURL, UIImage>()
+    private let cache = NSCache<NSURL, ImageWrapper>()
 }
 
 
 struct InMemoryCacheServiceDummyImpl: InMemoryCacheService {
 
-    func image(for remoteURL: URL) -> UIImage? {
+    func image(for remoteURL: URL) -> ImageWrapper? {
         return nil
     }
 
-    func setImage(_ image: UIImage, for remoteURL: URL) {
+    func setImage(_ image: ImageWrapper, for remoteURL: URL) {
     }
 }

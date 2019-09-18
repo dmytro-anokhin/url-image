@@ -12,10 +12,10 @@ import SwiftUI
 
 final class ImageLoaderObserver {
 
-    let closure: ImageLoaderCompletion
+    let completion: ImageLoaderCompletion
 
-    init(closure: @escaping ImageLoaderCompletion) {
-        self.closure = closure
+    init(completion: @escaping ImageLoaderCompletion) {
+        self.completion = completion
     }
 }
 

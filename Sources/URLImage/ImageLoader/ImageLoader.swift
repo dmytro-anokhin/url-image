@@ -102,9 +102,9 @@ final class ImageLoaderImpl: ImageLoader {
                 self.transition(to: .loading) {
 
                     // Check in-memory cache
-                    if let image = self.inMemoryCache.image(for: self.url) {
+                    if let imageWrapper = self.inMemoryCache.image(for: self.url) {
                         self.transition(to: .finished) {
-                            self.didLoad?(Image(uiImage: image))
+                            self.didLoad?(imageWrapper.image)
                         }
 
                         return
@@ -118,12 +118,12 @@ final class ImageLoaderImpl: ImageLoader {
                     self.remoteFileCache.getFile(withRemoteURL: self.url) { localURL in
 
                         if let localURL = localURL {
-                            if let image = UIImage(contentsOfFile: localURL.path) {
+                            if let imageWrapper = ImageWrapper(fileURL: localURL) {
                                 // Loaded from disk
-                                self.inMemoryCache.setImage(image, for: self.url)
+                                self.inMemoryCache.setImage(imageWrapper, for: self.url)
 
                                 self.transition(to: .finished) {
-                                    self.didLoad?(Image(uiImage: image))
+                                    self.didLoad?(imageWrapper.image)
                                 }
 
                                 return
@@ -201,12 +201,12 @@ final class ImageLoaderImpl: ImageLoader {
             do {
                 let localURL = try self.remoteFileCache.addFile(withRemoteURL: self.url, sourceURL: tmpURL)
 
-                if let image = UIImage(contentsOfFile: localURL.path) {
+                if let imageWrapper = ImageWrapper(fileURL: localURL) {
                     // Cache in memory
-                    self.inMemoryCache.setImage(image, for: self.url)
+                    self.inMemoryCache.setImage(imageWrapper, for: self.url)
 
                     self.transition(to: .finished) {
-                        self.didLoad?(Image(uiImage: image))
+                        self.didLoad?(imageWrapper.image)
                         self.task = nil
                     }
                 }

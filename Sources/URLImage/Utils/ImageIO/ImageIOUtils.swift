@@ -1,0 +1,24 @@
+//
+//  ImageIOUtils.swift
+//  
+//
+//  Created by Dmytro Anokhin on 18/09/2019.
+//
+
+import Foundation
+import ImageIO
+
+
+func createCGImage(fileURL url: URL) -> CGImage? {
+
+    let options = [
+        kCGImageSourceShouldCache : true,
+        kCGImageSourceShouldAllowFloat: true
+    ]
+
+    guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, options as CFDictionary) else {
+        return nil
+    }
+
+    return CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
+}

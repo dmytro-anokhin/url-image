@@ -71,7 +71,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
             }
 
             for observer in observers {
-                observer.closure(image)
+                observer.completion(image)
             }
 
             self.urlToObserversMap.removeValue(forKey: url)
