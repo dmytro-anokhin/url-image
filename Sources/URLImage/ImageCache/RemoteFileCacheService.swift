@@ -153,6 +153,10 @@ fileprivate class FileIndex {
 
         container = NSPersistentContainer(name: "URLImage", managedObjectModel: model)
         container.persistentStoreDescriptions = [storeDescription]
+        container.load()
+
+        context = container.newBackgroundContext()
+        context.undoManager = nil
     }
 
     func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated date: Date) {
@@ -236,27 +240,7 @@ fileprivate class FileIndex {
 
     private let container: NSPersistentContainer
 
-    private var _context: NSManagedObjectContext?
-
-    private var context: NSManagedObjectContext {
-        if _context == nil {
-            load()
-            _context = container.newBackgroundContext()
-            _context?.undoManager = nil
-        }
-
-        return _context!
-    }
-
-    private func load() {
-        let semaphore = DispatchSemaphore(value: 1)
-
-        container.loadPersistentStores { result, error in
-            semaphore.signal()
-        }
-
-        semaphore.wait()
-    }
+    private let context: NSManagedObjectContext
 
     private func fetch(urlString: String? = nil, fileName: String? = nil, action: @escaping (_ object: Result<RemoteFileManagedObject?, Error>) -> Void) {
         context.perform {
@@ -280,5 +264,19 @@ fileprivate class FileIndex {
                 action(.failure(error))
             }
         }
+    }
+}
+
+
+fileprivate extension NSPersistentContainer {
+
+    func load() {
+        let semaphore = DispatchSemaphore(value: 1)
+
+        loadPersistentStores { result, error in
+            semaphore.signal()
+        }
+
+        semaphore.wait()
     }
 }
