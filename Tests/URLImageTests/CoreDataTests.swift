@@ -13,7 +13,7 @@ import CoreData
 
 
 @objc(Image)
-public class Image: NSManagedObject {
+public class ImageManagedObject: NSManagedObject {
 
     static let entityName = "Image"
 
@@ -37,7 +37,7 @@ final class CoreDataTests: XCTestCase {
         // Create and load Core Data stack
         let persistentContainer = makePersistentContainer(CoreDataModelDescription(
             entities: [
-                .entity(name: Image.entityName, managedObjectClass: Image.self, attributes: [
+                .entity(name: ImageManagedObject.entityName, managedObjectClass: ImageManagedObject.self, attributes: [
                     .attribute(name: "originalURLString", type: .stringAttributeType),
                     .attribute(name: "localURLString", type: .stringAttributeType),
                     .attribute(name: "dateCreated", type: .dateAttributeType)
@@ -50,7 +50,7 @@ final class CoreDataTests: XCTestCase {
         let dateCreated = Date()
 
         // Build initial managed object
-        let imageObject = Image(context: persistentContainer.viewContext)
+        let imageObject = ImageManagedObject(context: persistentContainer.viewContext)
         imageObject.originalURLString = originalURLString
         imageObject.localURLString = localURLString
         imageObject.dateCreated = dateCreated
@@ -62,7 +62,7 @@ final class CoreDataTests: XCTestCase {
 
         let backgroundContext = persistentContainer.newBackgroundContext()
         backgroundContext.perform {
-            let request = NSFetchRequest<Image>(entityName: Image.entityName)
+            let request = NSFetchRequest<ImageManagedObject>(entityName: ImageManagedObject.entityName)
 
             do {
                 let fetchedImageObjects = try backgroundContext.fetch(request)
