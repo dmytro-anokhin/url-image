@@ -44,9 +44,8 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 
         directoryURL = baseURL.appendingPathComponent(name, isDirectory: true)
         filesDirectoryURL = directoryURL.appendingPathComponent("files", isDirectory: true)
-        filesIndexURL = directoryURL.appendingPathComponent("files").appendingPathExtension("db")
 
-        index = FileIndex(url: filesIndexURL)
+        index = FileIndex(directoryURL: directoryURL, fileName: "files", pathExtension: "db")
     }
 
     /// Copy a file downloaded from `remoteURL` and located at `sourceURL` to the directory managed by the `RemoteFileCacheService` instance.
@@ -96,11 +95,6 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Example: ".../Library/Caches/URLImage/files"
     private let filesDirectoryURL: URL
 
-    /// URL of the database file inside the `directoryURL`.
-    ///
-    /// Example: ".../Library/Caches/URLImage/files.db"
-    private let filesIndexURL: URL
-
     /// The database used to keep track of copied and deleted files
     private let index: FileIndex
 }
@@ -145,11 +139,15 @@ final class RemoteFileManagedObject: NSManagedObject {
 @available(iOS 10.0, *)
 fileprivate class FileIndex {
 
-    init(url: URL) {
+    init(directoryURL: URL, fileName: String, pathExtension: String) {
+
+        // Create directory if necessary
+        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: false, attributes: nil)
+
         let model = FileIndex.coreDataModelDescription.makeModel()
 
         let storeDescription = NSPersistentStoreDescription()
-        storeDescription.url = url
+        storeDescription.url = directoryURL.appendingPathComponent(fileName, isDirectory: false).appendingPathExtension(pathExtension)
 
         container = NSPersistentContainer(name: "URLImage", managedObjectModel: model)
         container.persistentStoreDescriptions = [storeDescription]
@@ -266,7 +264,6 @@ fileprivate class FileIndex {
         }
     }
 }
-
 
 fileprivate extension NSPersistentContainer {
 
