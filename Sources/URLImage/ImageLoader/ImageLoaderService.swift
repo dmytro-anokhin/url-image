@@ -22,79 +22,97 @@ protocol ImageLoaderService {
 
 final class ImageLoaderServiceImpl: ImageLoaderService {
 
-    static let shared = ImageLoaderServiceImpl()
+    static let shared = ImageLoaderServiceImpl(remoteFileCache: RemoteFileCacheServiceImpl.shared)
 
-    init() {
+    init(remoteFileCache: RemoteFileCacheService) {
+        let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
+        urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
+
+        urlSessionDelegate = URLSessionDownloadDelegateWrapper()
+        urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
+
+        self.remoteFileCache = remoteFileCache
+
+        urlSessionDelegate.completionCallback = { task, tmpURL in
+            guard let url = task.originalRequest?.url else {
+                return
+            }
+
+            self.urlToDownloaderMap[url]?.complete(with: tmpURL)
+        }
+
+        urlSessionDelegate.progressCallback = { _, _, _, _ in
+        }
+
+        urlSessionDelegate.failureCallback = { task, error in
+            guard let url = task.originalRequest?.url else {
+                return
+            }
+
+            self.urlToDownloaderMap[url]?.fail(with: error)
+        }
     }
 
     func subscribe(forURL url: URL, _ observer: ImageLoaderObserver) {
-        var observers = urlToObserversMap[url] ?? []
-        observers.insert(observer)
-        urlToObserversMap[url] = observers
+        queue.addOperation {
+            self.createDownloaderIfNeeded(forURL: url)
+            self.urlToDownloaderMap[url]?.addObserver(observer)
+        }
     }
 
     func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL) {
-        guard var observers = urlToObserversMap[url] else {
-            return
-        }
+        queue.addOperation {
+            guard let task = self.urlToDownloaderMap[url] else {
+                return
+            }
 
-        observers.remove(observer)
+            task.removeObserver(observer)
 
-        if observers.isEmpty {
-            urlToObserversMap.removeValue(forKey: url)
-            cancel(url: url)
-        }
-        else {
-            urlToObserversMap[url] = observers
+            if task.observers.isEmpty {
+                self.urlToDownloaderMap[url]?.cancel()
+            }
         }
     }
 
     func load(url: URL, configuration: ImageLoaderConfiguration) {
-        assert(!(urlToObserversMap[url]?.isEmpty ?? false), "Loading image at \(url) when there are no observers subscribed")
-
-        guard urlToImageLoaderMap[url] == nil else {
-            return
-        }
-
-        var imageLoader: ImageLoader = ImageLoaderImpl(
-            url: url,
-            session: configuration.urlSession,
-            delay: configuration.delay,
-            remoteFileCache: RemoteFileCacheServiceImpl.shared,
-            inMemoryCache: configuration.useInMemoryCache ? InMemoryCacheServiceImpl.shared : InMemoryCacheServiceDummyImpl())
-
-        imageLoader.didLoad = { image in
-            self.urlToImageLoaderMap.removeValue(forKey: url)
-
-            guard let observers = self.urlToObserversMap[url] else {
+        queue.addOperation {
+            guard self.urlToDownloaderMap[url] != nil else {
+                assert(self.urlToDownloaderMap[url] != nil, "Downloader must be created before calling load")
                 return
             }
 
-            for observer in observers {
-                observer.completion(image)
-            }
-
-            self.urlToObserversMap.removeValue(forKey: url)
+            self.urlToDownloaderMap[url]?.resume(after: configuration.delay)
         }
-
-        urlToImageLoaderMap[url] = imageLoader
-        imageLoader.load()
     }
 
     // MARK: Private
 
-    private var urlToImageLoaderMap: [URL: ImageLoader] = [:]
+    private let queue: OperationQueue = {
+        let queue = OperationQueue()
+        queue.name = "URLImage.ImageLoaderService.queue"
+        queue.maxConcurrentOperationCount = 1
 
-    private var urlToObserversMap: [URL: Set<ImageLoaderObserver>] = [:]
+        return queue
+    }()
 
-    private func cancel(url: URL) {
-        assert(urlToObserversMap[url]?.isEmpty ?? true, "Cancelling loading image at \(url) while some observers are still subscribed")
+    private let urlSession: URLSession
+    private let urlSessionDelegate: URLSessionDownloadDelegateWrapper
 
-        guard let imageLoader = urlToImageLoaderMap[url] else {
+    private let remoteFileCache: RemoteFileCacheService
+
+    private var urlToDownloaderMap: [URL: Downloader] = [:]
+
+    private func createDownloaderIfNeeded(forURL url: URL) {
+        guard urlToDownloaderMap[url] == nil else {
             return
         }
 
-        imageLoader.cancel()
-        urlToImageLoaderMap.removeValue(forKey: url)
+        let task = Downloader(url: url, task: urlSession.downloadTask(with: url), queue: self.queue, remoteFileCache: remoteFileCache)
+
+        task.completionCallback = {
+            self.urlToDownloaderMap.removeValue(forKey: url)
+        }
+
+        urlToDownloaderMap[url] = task
     }
 }

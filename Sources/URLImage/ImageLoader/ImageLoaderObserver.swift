@@ -12,9 +12,9 @@ import SwiftUI
 
 final class ImageLoaderObserver {
 
-    let completion: ImageLoaderCompletion
+    let completion: ImageLoaderCompletionCallback
 
-    init(completion: @escaping ImageLoaderCompletion) {
+    init(completion: @escaping ImageLoaderCompletionCallback) {
         self.completion = completion
     }
 }
