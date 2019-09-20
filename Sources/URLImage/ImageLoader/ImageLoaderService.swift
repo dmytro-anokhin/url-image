@@ -16,15 +16,18 @@ protocol ImageLoaderService {
 
     func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL)
 
-    func load(url: URL, configuration: ImageLoaderConfiguration)
+    func load(url: URL, delay: TimeInterval)
 }
 
 
 final class ImageLoaderServiceImpl: ImageLoaderService {
 
-    static let shared = ImageLoaderServiceImpl(remoteFileCache: RemoteFileCacheServiceImpl.shared)
+    static let shared = ImageLoaderServiceImpl(
+        remoteFileCache: RemoteFileCacheServiceImpl.shared,
+        inMemoryCacheService: InMemoryCacheServiceImpl.shared
+    )
 
-    init(remoteFileCache: RemoteFileCacheService) {
+    init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
 
@@ -32,6 +35,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
+        self.inMemoryCacheService = inMemoryCacheService
 
         urlSessionDelegate.completionCallback = { task, tmpURL in
             guard let url = task.originalRequest?.url else {
@@ -74,14 +78,14 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
     }
 
-    func load(url: URL, configuration: ImageLoaderConfiguration) {
+    func load(url: URL, delay: TimeInterval) {
         queue.addOperation {
             guard self.urlToDownloaderMap[url] != nil else {
                 assert(self.urlToDownloaderMap[url] != nil, "Downloader must be created before calling load")
                 return
             }
 
-            self.urlToDownloaderMap[url]?.resume(after: configuration.delay)
+            self.urlToDownloaderMap[url]?.resume(after: delay)
         }
     }
 
@@ -99,6 +103,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     private let urlSessionDelegate: URLSessionDownloadDelegateWrapper
 
     private let remoteFileCache: RemoteFileCacheService
+    private let inMemoryCacheService: InMemoryCacheService
 
     private var urlToDownloaderMap: [URL: Downloader] = [:]
 
@@ -107,7 +112,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
             return
         }
 
-        let task = Downloader(url: url, task: urlSession.downloadTask(with: url), queue: self.queue, remoteFileCache: remoteFileCache)
+        let task = Downloader(url: url, task: urlSession.downloadTask(with: url), remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
 
         task.completionCallback = {
             self.urlToDownloaderMap.removeValue(forKey: url)

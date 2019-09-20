@@ -14,31 +14,42 @@ final class Downloader {
 
     let task: URLSessionDownloadTask
 
-    let queue: OperationQueue
-
     let remoteFileCache: RemoteFileCacheService
 
-    init(url: URL, task: URLSessionDownloadTask, queue: OperationQueue, remoteFileCache: RemoteFileCacheService) {
+    let inMemoryCacheService: InMemoryCacheService
+
+    init(url: URL, task: URLSessionDownloadTask, remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         self.url = url
         self.task = task
-        self.queue = queue
         self.remoteFileCache = remoteFileCache
+        self.inMemoryCacheService = inMemoryCacheService
     }
 
     var completionCallback: (() -> Void)?
 
-    func resume(after delay: TimeInterval) {
+    func resume(after delay: Double) {
         assert(!observers.isEmpty, "Starting to load the image at \(url) but no observers subscribed")
 
         guard transition(to: .scheduled) else {
             return
         }
 
+        if let imageWrapper = inMemoryCacheService.image(for: url) {
+            guard self.transition(to: .finished) else {
+                return
+            }
+
+            self.notifyObservers(imageWrapper)
+            self.completionCallback?()
+
+            return
+        }
+
         remoteFileCache.getFile(withRemoteURL: url) { localURL in
             if let localURL = localURL {
-                if let imageWrapper = ImageWrapper(fileURL: localURL) {
-                    // Loaded from disk
-                    // TODO: Cache in memory
+                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
+
+                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
 
                     guard self.transition(to: .finished) else {
                         return
@@ -50,7 +61,7 @@ final class Downloader {
                     return
                 }
                 else {
-                    // File was removed
+                    // URL is still registered in the local cache but the file was removed
                     try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                 }
             }
@@ -69,7 +80,7 @@ final class Downloader {
     func cancel() {
         assert(observers.isEmpty, "Cancelling loading the image at \(url) while some observers are still subscribed")
 
-        guard transition(to: .cancelled) else {
+        guard transition(to: .cancelling) else {
             return
         }
 
@@ -92,7 +103,7 @@ final class Downloader {
 
             DispatchQueue.main.async {
                 if let imageWrapper = ImageWrapper(fileURL: localURL) {
-                    // TODO: Cache in memory
+                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
                     self.notifyObservers(imageWrapper)
                 }
                 else {
@@ -112,11 +123,18 @@ final class Downloader {
     }
 
     func fail(with error: Error) {
-        guard transition(to: .failed) else {
-            return
-        }
+        let nsError = error as NSError
 
-        completionCallback?()
+        if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+            if transition(to: .cancelled) {
+                completionCallback?()
+            }
+        }
+        else {
+            if transition(to: .failed) {
+                completionCallback?()
+            }
+        }
     }
 
     // MARK: Private
@@ -138,6 +156,9 @@ final class Downloader {
         /// Failed to load or decode data
         case failed
 
+        /// Cancelling
+        case cancelling
+
         /// Cancelled
         case cancelled
 
@@ -153,6 +174,7 @@ final class Downloader {
             .loading   : [ .finished, .failed, .cancelled ],
             .finished  : [ .scheduled ],
             .failed    : [ .scheduled ],
+            .cancelling : [ .cancelled ],
             .cancelled : [ .scheduled ]
         ]
 

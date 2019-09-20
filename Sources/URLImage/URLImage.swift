@@ -24,12 +24,12 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
     let placeholder: Placeholder
 
-    let configuration: ImageLoaderConfiguration
+    let delay: TimeInterval
 
-    public init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration = ImageLoaderConfiguration()) {
+    public init(_ url: URL, placeholder: () -> Placeholder, delay: TimeInterval = 0.0) {
         self.url = url
         self.placeholder = placeholder()
-        self.configuration = configuration
+        self.delay = delay
         self.style = nil
     }
 
@@ -60,7 +60,7 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
         return ZStack {
             if image == nil {
-                URLImageLoaderView(url, placeholder: AnyView(placeholder), configuration: configuration, onLoaded: { image in
+                URLImageLoaderView(url, placeholder: AnyView(placeholder), delay: delay, onLoaded: { image in
                     self.image = image
                     self.previousURL = self.url
                 })
@@ -93,10 +93,10 @@ public struct URLImage<Placeholder> : View where Placeholder : View {
 
 public extension URLImage {
 
-    fileprivate init(_ url: URL, placeholder: () -> Placeholder, configuration: ImageLoaderConfiguration, style: ImageStyle?) {
+    fileprivate init(_ url: URL, placeholder: () -> Placeholder, delay: TimeInterval, style: ImageStyle?) {
         self.url = url
         self.placeholder = placeholder()
-        self.configuration = configuration
+        self.delay = delay
         self.style = style
     }
 }
@@ -105,10 +105,10 @@ public extension URLImage {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), configuration: ImageLoaderConfiguration = ImageLoaderConfiguration()) {
+    init(_ url: URL, placeholder: Image = Image(systemName: "photo"), delay: TimeInterval = 0.0) {
         self.url = url
         self.placeholder = placeholder
-        self.configuration = configuration
+        self.delay = delay
         self.style = nil
     }
 }
@@ -128,7 +128,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, delay: delay, style: newStyle)
     }
 
     public func renderingMode(_ renderingMode: Image.TemplateRenderingMode?) -> URLImage {
@@ -139,7 +139,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, delay: delay, style: newStyle)
     }
 
     public func interpolation(_ interpolation: Image.Interpolation) -> URLImage {
@@ -150,7 +150,7 @@ extension URLImage {
             isAntialiased: style?.isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, delay: delay, style: newStyle)
     }
 
     public func antialiased(_ isAntialiased: Bool) -> URLImage {
@@ -161,7 +161,7 @@ extension URLImage {
             isAntialiased: isAntialiased
         )
 
-        return URLImage(url, placeholder: { placeholder }, configuration: configuration, style: newStyle)
+        return URLImage(url, placeholder: { placeholder }, delay: delay, style: newStyle)
     }
 }
 
@@ -173,14 +173,14 @@ struct URLImageLoaderView : View {
 
     let placeholder: AnyView
 
-    let configuration: ImageLoaderConfiguration
+    let delay: TimeInterval
 
     let onLoaded: (_ image: Image) -> Void
 
-    init(_ url: URL, placeholder: AnyView, configuration: ImageLoaderConfiguration, onLoaded: @escaping (_ image: Image) -> Void) {
+    init(_ url: URL, placeholder: AnyView, delay: TimeInterval, onLoaded: @escaping (_ image: Image) -> Void) {
         self.url = url
         self.placeholder = placeholder
-        self.configuration = configuration
+        self.delay = delay
         self.onLoaded = onLoaded
     }
 
@@ -192,7 +192,7 @@ struct URLImageLoaderView : View {
         return placeholder
             .onAppear {
                 self.imageLoaderService.subscribe(forURL: self.url, observer)
-                self.imageLoaderService.load(url: self.url, configuration: self.configuration)
+                self.imageLoaderService.load(url: self.url, delay: self.delay)
             }
             .onDisappear {
                 self.imageLoaderService.unsubscribe(observer, fromURL: self.url)
