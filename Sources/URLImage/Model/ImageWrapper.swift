@@ -9,31 +9,21 @@ import SwiftUI
 
 
 #if canImport(UIKit)
-
 import UIKit
-
-extension ImageWrapper {
-
-    var image: Image {
-        return Image(uiImage: UIImage(cgImage: cgImage))
-    }
-}
-
-#elseif canImport(AppKit)
-
-import AppKit
-
-extension ImageWrapper {
-
-    var image: Image {
-        fatalError("Not implemented")
-    }
-}
-
 #endif
 
 
-final class ImageWrapper {
+public protocol ImageProxy {
+
+#if canImport(UIKit)
+    var uiImage: UIImage { get }
+#endif
+
+    var image: Image { get }
+}
+
+
+final class ImageWrapper: ImageProxy {
 
     convenience init?(fileURL: URL) {
         guard let cgImage = createCGImage(fileURL: fileURL) else {
@@ -48,4 +38,16 @@ final class ImageWrapper {
     }
 
     private let cgImage: CGImage
+
+    #if canImport(UIKit)
+
+    var uiImage: UIImage {
+        return UIImage(cgImage: cgImage)
+    }
+
+    var image: Image {
+        return Image(uiImage: uiImage)
+    }
+
+    #endif
 }

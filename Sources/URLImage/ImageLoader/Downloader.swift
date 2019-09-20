@@ -198,7 +198,7 @@ final class Downloader {
 
     private func notifyObservers(_ imageWrapper: ImageWrapper) {
         for observer in observers {
-            observer.completion(imageWrapper.image)
+            observer.completion(imageWrapper)
         }
     }
 }
