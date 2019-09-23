@@ -12,9 +12,12 @@ import SwiftUI
 
 final class ImageLoaderObserver {
 
+    let progress: ImageLoaderProgressCallback
+
     let completion: ImageLoaderCompletionCallback
 
-    init(completion: @escaping ImageLoaderCompletionCallback) {
+    init(progress: @escaping ImageLoaderProgressCallback, completion: @escaping ImageLoaderCompletionCallback) {
+        self.progress = progress
         self.completion = completion
     }
 }

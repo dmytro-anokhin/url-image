@@ -10,5 +10,5 @@
 import SwiftUI
 
 
-typealias ImageLoaderProgressCallback = (_ image: @autoclosure () -> Image) -> Void
+typealias ImageLoaderProgressCallback = (_ progress: Float?) -> Void
 typealias ImageLoaderCompletionCallback = (_ imageProxy: ImageProxy) -> Void

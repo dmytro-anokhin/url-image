@@ -23,7 +23,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let delay: TimeInterval
 
-    public init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping () -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    public init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = placeholder
         self.content = content
@@ -43,7 +43,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
             return AnyView(imageView)
         }
         else {
-            let loaderView = URLImageLoaderView(url, delay: delay, placeholder: placeholder)
+            let loaderView = ImageLoaderView(url, delay: delay, placeholder: placeholder)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url
@@ -55,7 +55,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     // MARK: Private
 
-    private let placeholder: () -> Placeholder
+    private let placeholder: (_ partialImage: PartialImage) -> Placeholder
 
     private let content: (_ imageProxy: ImageProxy) -> Content
 
@@ -71,7 +71,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Content == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping () -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = placeholder
         self.content = content
@@ -83,16 +83,9 @@ public extension URLImage where Content == Image {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping () -> Placeholder = { Image(systemName: "photo") }, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval = 0.0, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
-        self.placeholder = placeholder
-        self.content = content
-        self.delay = delay
-    }
-
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping @autoclosure () -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
-        self.url = url
-        self.placeholder = placeholder
+        self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
     }
@@ -102,16 +95,9 @@ public extension URLImage where Placeholder == Image {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping () -> Placeholder = { Image(systemName: "photo") }, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
-        self.placeholder = placeholder
-        self.content = content
-        self.delay = delay
-    }
-
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping @autoclosure () -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
-        self.url = url
-        self.placeholder = placeholder
+        self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
     }

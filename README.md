@@ -7,8 +7,9 @@
 
 ## Features
 - Follows SwiftUI declarative style;
-- Supports local disk cache;
-- Allows customization of the placeholder and the image views.
+- Local disk cache;
+- Allows customization of the placeholder and the image views;
+- Supports displaying loading progress.
 
 ## Usage
 
@@ -58,6 +59,18 @@ URLImage(url, placeholder: {
 URLImage(url, placeholder: {
     // Replace placeholder image with text
     Text("Loading...")
+})
+```
+
+### Progress View
+
+User `ProgressView` as a placeholder to display download progress.
+
+```
+URLImage(url, placeholder: {
+    ProgressView($0) { progress in
+        CircleProgressView(progress)
+    }
 })
 ```
 

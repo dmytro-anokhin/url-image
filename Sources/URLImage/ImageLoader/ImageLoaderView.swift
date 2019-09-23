@@ -1,5 +1,5 @@
 //
-//  URLImageLoaderView.swift
+//  ImageLoaderView.swift
 //  
 //
 //  Created by Dmytro Anokhin on 20/09/2019.
@@ -9,15 +9,15 @@ import SwiftUI
 
 
 @available(iOS 13.0, tvOS 13.0, *)
-struct URLImageLoaderView<Placeholder> : View where Placeholder : View {
+struct ImageLoaderView<Placeholder> : View where Placeholder : View {
 
     let url: URL
 
-    let placeholder: () -> Placeholder
+    let placeholder: (_ partialImage: PartialImage) -> Placeholder
 
     let delay: TimeInterval
 
-    init(_ url: URL, delay: TimeInterval, placeholder: @escaping () -> Placeholder) {
+    init(_ url: URL, delay: TimeInterval, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
@@ -25,11 +25,17 @@ struct URLImageLoaderView<Placeholder> : View where Placeholder : View {
     }
 
     var body: some View {
-        let observer = ImageLoaderObserver { imageProxy in
-            self.onLoad?(imageProxy)
-        }
+        let partialImage = PartialImage()
 
-        return placeholder()
+        let observer = ImageLoaderObserver(
+            progress: { progress in
+                partialImage.progress = progress
+            },
+            completion: { imageProxy in
+                self.onLoad?(imageProxy)
+            })
+
+        return placeholder(partialImage)
             .onAppear {
                 self.imageLoaderService.subscribe(forURL: self.url, observer)
                 self.imageLoaderService.load(url: self.url, delay: self.delay)
@@ -40,10 +46,10 @@ struct URLImageLoaderView<Placeholder> : View where Placeholder : View {
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> some View {
-        return URLImageLoaderView(url, delay: delay, placeholder: placeholder, onLoad: action)
+        return ImageLoaderView(url, delay: delay, placeholder: placeholder, onLoad: action)
     }
 
-    private init(_ url: URL, delay: TimeInterval, placeholder: @escaping () -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ url: URL, delay: TimeInterval, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay

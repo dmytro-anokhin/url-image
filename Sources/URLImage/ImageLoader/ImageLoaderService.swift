@@ -30,6 +30,8 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
+        urlSessionConfiguration.timeoutIntervalForRequest = 300.0
+        urlSessionConfiguration.timeoutIntervalForResource = 300.0
 
         urlSessionDelegate = URLSessionDownloadDelegateWrapper()
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
@@ -45,7 +47,18 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
             self.urlToDownloaderMap[url]?.complete(with: tmpURL)
         }
 
-        urlSessionDelegate.progressCallback = { _, _, _, _ in
+        urlSessionDelegate.progressCallback = { task, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] else {
+                return
+            }
+
+            if totalBytesExpectedToWrite > 0 {
+                let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
+                downloader.progress(Float(progress))
+            }
+            else {
+                downloader.progress(nil)
+            }
         }
 
         urlSessionDelegate.failureCallback = { task, error in

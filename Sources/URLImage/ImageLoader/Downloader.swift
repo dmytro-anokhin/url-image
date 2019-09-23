@@ -39,13 +39,14 @@ final class Downloader {
                 return
             }
 
-            self.notifyObservers(imageWrapper)
+            self.notifyObserversAboutCompletion(imageWrapper)
             self.completionCallback?()
 
             return
         }
 
         remoteFileCache.getFile(withRemoteURL: url) { localURL in
+
             if let localURL = localURL {
                 if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
 
@@ -55,7 +56,7 @@ final class Downloader {
                         return
                     }
 
-                    self.notifyObservers(imageWrapper)
+                    self.notifyObserversAboutCompletion(imageWrapper)
                     self.completionCallback?()
 
                     return
@@ -104,7 +105,7 @@ final class Downloader {
             DispatchQueue.main.async {
                 if let imageWrapper = ImageWrapper(fileURL: localURL) {
                     self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
-                    self.notifyObservers(imageWrapper)
+                    self.notifyObserversAboutCompletion(imageWrapper)
                 }
                 else {
                     // Can not read the file
@@ -119,7 +120,10 @@ final class Downloader {
         completionCallback?()
     }
 
-    func progress() {
+    func progress(_ progress: Float?) {
+        DispatchQueue.main.async {
+            self.notifyObserversAboutProgress(progress)
+        }
     }
 
     func fail(with error: Error) {
@@ -196,7 +200,13 @@ final class Downloader {
         return true
     }
 
-    private func notifyObservers(_ imageWrapper: ImageWrapper) {
+    private func notifyObserversAboutProgress(_ progress: Float?) {
+        for observer in observers {
+            observer.progress(progress)
+        }
+    }
+
+    private func notifyObserversAboutCompletion(_ imageWrapper: ImageWrapper) {
         for observer in observers {
             observer.completion(imageWrapper)
         }
