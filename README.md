@@ -31,6 +31,14 @@ The placeholder image can be changed:
 URLImage(url, placeholder: Image(systemName: "circle"))
 ```
 
+### Transition from 0.6.3 to 0.7.0
+
+0.7.0 release introduces some breaking changes:
+- In 0.6.3 image was internal view. In 0.7.0 image is created by `content` closure with a proxy object. This provides more flexibility in customization.
+- Placeholder closure is now also accepts an object that can be used to track loading progress.
+- Styling functions are now gone. Use `content` closure to style the image.
+- Configuration object is now gone.
+
 ### Advanced Customization
 
 `URLImage` utilizes closures for customization. Downloaded image can be customized using `(ImageProxy) -> Content` closure. The closure parameter is a proxy that provides access to `Image` and `UIImage` or `NSImage` for iOS and macOS.
@@ -48,7 +56,7 @@ URLImage(url) { proxy in
 The placeholder can be customized with `() -> Placeholder` closure.
 
 ```swift
-URLImage(url, placeholder: {
+URLImage(url, placeholder: { _ in
     Image(systemName: "circle")             // Use different image for the placeholder
         .resizable()                        // Make it resizable
         .frame(width: 150.0, height: 150.0) // Set frame to 150x150
@@ -56,7 +64,7 @@ URLImage(url, placeholder: {
 ```
 
 ```swift
-URLImage(url, placeholder: {
+URLImage(url, placeholder: { _ in
     // Replace placeholder image with text
     Text("Loading...")
 })
@@ -66,7 +74,7 @@ URLImage(url, placeholder: {
 
 User `ProgressView` as a placeholder to display download progress.
 
-```
+```swift
 URLImage(url, placeholder: {
     ProgressView($0) { progress in
         CircleProgressView(progress)
@@ -87,7 +95,7 @@ struct MyView : View {
     let url: URL
 
     var body: some View {
-        URLImage(url, placeholder: {
+        URLImage(url, placeholder: { _ in
             Image(systemName: "circle")
                 .resizable()
                 .frame(width: 150.0, height: 150.0)
