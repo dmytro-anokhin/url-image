@@ -17,10 +17,11 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
 
     let delay: TimeInterval
 
-    init(_ url: URL, delay: TimeInterval, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder) {
+    init(_ url: URL, delay: TimeInterval, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
+        self.imageLoaderService = imageLoaderService
         self.onLoad = nil
     }
 
@@ -46,17 +47,18 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> some View {
-        return ImageLoaderView(url, delay: delay, placeholder: placeholder, onLoad: action)
+        return ImageLoaderView(url, delay: delay, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: action)
     }
 
-    private init(_ url: URL, delay: TimeInterval, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ url: URL, delay: TimeInterval, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
+        self.imageLoaderService = imageLoaderService
         self.onLoad = onLoad
     }
 
-    private var imageLoaderService: ImageLoaderService = ImageLoaderServiceImpl.shared
+    private let imageLoaderService: ImageLoaderService
 
-    private var onLoad: ((_ imageProxy: ImageProxy) -> Void)?
+    private let onLoad: ((_ imageProxy: ImageProxy) -> Void)?
 }

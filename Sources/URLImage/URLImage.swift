@@ -43,7 +43,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
             return AnyView(imageView)
         }
         else {
-            let loaderView = ImageLoaderView(url, delay: delay, placeholder: placeholder)
+            let loaderView = ImageLoaderView(url, delay: delay, imageLoaderService: URLImage.defaultImageLoaderService, placeholder: placeholder)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url
@@ -54,6 +54,8 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
     }
 
     // MARK: Private
+
+    private static let defaultImageLoaderService: ImageLoaderService = ImageLoaderServiceImpl.shared
 
     private let placeholder: (_ partialImage: PartialImage) -> Placeholder
 
