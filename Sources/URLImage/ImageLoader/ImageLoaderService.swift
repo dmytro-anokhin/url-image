@@ -30,8 +30,6 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
-        urlSessionConfiguration.timeoutIntervalForRequest = 300.0
-        urlSessionConfiguration.timeoutIntervalForResource = 300.0
 
         urlSessionDelegate = URLSessionDownloadDelegateWrapper()
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
