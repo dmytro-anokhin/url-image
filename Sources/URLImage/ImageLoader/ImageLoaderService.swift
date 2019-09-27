@@ -24,7 +24,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
 
     static let shared = ImageLoaderServiceImpl(
         remoteFileCache: RemoteFileCacheServiceImpl.shared,
-        inMemoryCacheService: InMemoryCacheServiceImpl.shared
+        inMemoryCacheService: InMemoryCacheServiceDummyImpl()
     )
 
     init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
