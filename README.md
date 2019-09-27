@@ -74,13 +74,29 @@ URLImage(url, placeholder: { _ in
 
 User `ProgressView` as a placeholder to display download progress.
 
+Downloading image is a two step process:
+- When `progress` is 0 the download has not started yet. The best is to display continuously animated activity indicator.
+- When download is in progress the best is to display a progress indicator. Note: for smaller images the progress can go from 0 to 1 in one go. Than this step won't be called.
+
 ```swift
 URLImage(url, placeholder: {
     ProgressView($0) { progress in
-        CircleProgressView(progress)
+        ZStack {
+            if progress > 0.0 {
+                // The download has started. CircleProgressView displays the progress.
+                CircleProgressView(progress).stroke(lineWidth: 8.0)
+            }
+            else {
+                // The download has not yet started. CircleActivityView is animated activity indicator that suits this case.
+                CircleActivityView().stroke(lineWidth: 50.0)
+            }
+        }
     }
+        .frame(width: 50.0, height: 50.0)
 })
 ```
+
+`CircleProgressView` and `CircleActivityView` are two progress views included in the package to showcase the functionality.
 
 ### Examples
 
