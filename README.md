@@ -53,7 +53,7 @@ URLImage(url) { proxy in
     .frame(width: 100.0, height: 100.0)  // Set frame to 100x100.
 ```
 
-The placeholder can be customized with `() -> Placeholder` closure.
+The placeholder can be customized with `(PartialImage) -> Placeholder` closure.
 
 ```swift
 URLImage(url, placeholder: { _ in
