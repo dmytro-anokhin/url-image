@@ -111,7 +111,7 @@ struct DetailView : View {
     let url: URL
 
     var body: some View {
-        URLImage(url, delay: 5.0,
+        URLImage(url,
             placeholder: {
                 ProgressView($0) { progress in
                     ZStack {
