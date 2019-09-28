@@ -106,21 +106,33 @@ Using in a view:
 import SwiftUI
 import URLImage
 
-struct MyView : View {
+struct DetailView : View {
 
     let url: URL
 
     var body: some View {
-        URLImage(url, placeholder: { _ in
-            Image(systemName: "circle")
-                .resizable()
-                .frame(width: 150.0, height: 150.0)
-            }) { proxy in
-                proxy.image
+        URLImage(url, delay: 5.0,
+            placeholder: {
+                ProgressView($0) { progress in
+                    ZStack {
+                        if progress > 0.0 {
+                            CircleProgressView(progress).stroke(lineWidth: 8.0)
+                        }
+                        else {
+                            CircleActivityView().stroke(lineWidth: 50.0)
+                        }
+                    }
+                }
+                    .frame(width: 50.0, height: 50.0)
+            },
+            content: {
+                $0.image
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .padding(.all, 0)
-                }
+                    .clipShape(RoundedRectangle(cornerRadius: 5))
+                    .padding(.all, 40.0)
+                    .shadow(radius: 10.0)
+            })
     }
 }
 ```
@@ -131,23 +143,28 @@ Using in a list:
 import SwiftUI
 import URLImage
 
-struct MyListView : View {
+struct ListView : View {
 
     let urls: [URL]
 
     var body: some View {
-        List(urls, id: \.self) { url in
-            HStack {
-                URLImage(url, delay: 0.25) { proxy in
-                        proxy.image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .clipped()
-                    }
-                    .frame(width: 100.0, height: 100.0)
+        NavigationView {
+            List(urls, id: \.self) { url in
+                NavigationLink(destination: DetailView(url: url)) {
+                    HStack {
+                        URLImage(url, delay: 0.25) {
+                                $0.image
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fill)
+                                    .clipped()
+                            }
+                                .frame(width: 100.0, height: 100.0)
 
-                Text("\(url)")
+                        Text("\(url)")
+                    }
+                }
             }
+            .navigationBarTitle(Text("Images"))
         }
     }
 }
