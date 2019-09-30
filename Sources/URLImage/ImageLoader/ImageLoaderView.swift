@@ -17,10 +17,13 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
 
     let delay: TimeInterval
 
-    init(_ url: URL, delay: TimeInterval, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder) {
+    let incremental: Bool
+
+    init(_ url: URL, delay: TimeInterval, incremental: Bool, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
+        self.incremental = incremental
         self.imageLoaderService = imageLoaderService
         self.onLoad = nil
     }
@@ -32,13 +35,16 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
             progress: { progress in
                 partialImage.progress = progress
             },
+            partial: { imageProxy in
+                self.onLoad?(imageProxy)
+            },
             completion: { imageProxy in
                 self.onLoad?(imageProxy)
             })
 
         return placeholder(partialImage)
             .onAppear {
-                self.imageLoaderService.subscribe(forURL: self.url, observer)
+                self.imageLoaderService.subscribe(forURL: self.url, incremental: self.incremental, observer)
                 self.imageLoaderService.load(url: self.url, delay: self.delay)
             }
             .onDisappear {
@@ -47,13 +53,14 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> some View {
-        return ImageLoaderView(url, delay: delay, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: action)
+        return ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: action)
     }
 
-    private init(_ url: URL, delay: TimeInterval, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ url: URL, delay: TimeInterval, incremental: Bool, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
+        self.incremental = incremental
         self.imageLoaderService = imageLoaderService
         self.onLoad = onLoad
     }

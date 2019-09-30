@@ -12,7 +12,7 @@ import Foundation
 
 protocol ImageLoaderService {
 
-    func subscribe(forURL url: URL, _ observer: ImageLoaderObserver)
+    func subscribe(forURL url: URL, incremental: Bool, _ observer: ImageLoaderObserver)
 
     func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL)
 
@@ -31,22 +31,22 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
 
-        urlSessionDelegate = URLSessionDownloadDelegateWrapper()
+        urlSessionDelegate = URLSessionDelegateWrapper()
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
         self.inMemoryCacheService = inMemoryCacheService
 
-        urlSessionDelegate.completionCallback = { task, tmpURL in
-            guard let url = task.originalRequest?.url else {
+        urlSessionDelegate.finishDownloadingCallback = { task, tmpURL in
+            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? FileDownloader else {
                 return
             }
 
-            self.urlToDownloaderMap[url]?.complete(with: tmpURL)
+            downloader.finishDownloading(with: tmpURL)
         }
 
-        urlSessionDelegate.progressCallback = { task, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] else {
+        urlSessionDelegate.writeDataCallback = { task, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
+            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? FileDownloader else {
                 return
             }
 
@@ -59,18 +59,27 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
             }
         }
 
-        urlSessionDelegate.failureCallback = { task, error in
-            guard let url = task.originalRequest?.url else {
+        urlSessionDelegate.receiveDataCallback = { task, data in
+            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? DataDownloader else {
                 return
             }
 
-            self.urlToDownloaderMap[url]?.fail(with: error)
+            downloader.append(data: data)
+        }
+
+        urlSessionDelegate.completeCallback = { task, error in
+            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] else {
+                return
+            }
+
+            (downloader as? DataDownloader)?.finishDownloading()
+            downloader.complete(with: error)
         }
     }
 
-    func subscribe(forURL url: URL, _ observer: ImageLoaderObserver) {
+    func subscribe(forURL url: URL, incremental: Bool, _ observer: ImageLoaderObserver) {
         queue.addOperation {
-            self.createDownloaderIfNeeded(forURL: url)
+            self.createDownloaderIfNeeded(forURL: url, incremental: incremental)
             self.urlToDownloaderMap[url]?.addObserver(observer)
         }
     }
@@ -111,24 +120,33 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     }()
 
     private let urlSession: URLSession
-    private let urlSessionDelegate: URLSessionDownloadDelegateWrapper
+    private let urlSessionDelegate: URLSessionDelegateWrapper
 
     private let remoteFileCache: RemoteFileCacheService
     private let inMemoryCacheService: InMemoryCacheService
 
     private var urlToDownloaderMap: [URL: Downloader] = [:]
 
-    private func createDownloaderIfNeeded(forURL url: URL) {
+    private func createDownloaderIfNeeded(forURL url: URL, incremental: Bool) {
         guard urlToDownloaderMap[url] == nil else {
             return
         }
 
-        let task = Downloader(url: url, task: urlSession.downloadTask(with: url), remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
+        let downloader: Downloader
 
-        task.completionCallback = {
+        if incremental {
+            let task = urlSession.dataTask(with: url)
+            downloader = DataDownloader(url: url, task: task, remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
+        }
+        else {
+            let task = urlSession.downloadTask(with: url)
+            downloader = FileDownloader(url: url, task: task, remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
+        }
+
+        downloader.completionCallback = {
             self.urlToDownloaderMap.removeValue(forKey: url)
         }
 
-        urlToDownloaderMap[url] = task
+        urlToDownloaderMap[url] = downloader
     }
 }

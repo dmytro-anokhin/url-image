@@ -14,10 +14,13 @@ final class ImageLoaderObserver {
 
     let progress: ImageLoaderProgressCallback
 
+    let partial: ImageLoaderPartialCallback
+
     let completion: ImageLoaderCompletionCallback
 
-    init(progress: @escaping ImageLoaderProgressCallback, completion: @escaping ImageLoaderCompletionCallback) {
+    init(progress: @escaping ImageLoaderProgressCallback, partial: @escaping ImageLoaderPartialCallback, completion: @escaping ImageLoaderCompletionCallback) {
         self.progress = progress
+        self.partial = partial
         self.completion = completion
     }
 }

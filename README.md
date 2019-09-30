@@ -9,7 +9,7 @@
 - Follows SwiftUI declarative style;
 - Local disk cache;
 - Allows customization of the placeholder and the image views;
-- Supports displaying loading progress.
+- Supports displaying download progress.
 
 ## Usage
 
@@ -35,7 +35,7 @@ URLImage(url, placeholder: Image(systemName: "circle"))
 
 0.7.0 release introduces some breaking changes:
 - In 0.6.3 image was internal view. In 0.7.0 image is created by `content` closure with a proxy object. This provides more flexibility in customization.
-- Placeholder closure is now also accepts an object that can be used to track loading progress.
+- Placeholder closure is now also accepts an object that can be used to track download progress.
 - Styling functions are now gone. Use `content` closure to style the image.
 - Configuration object is now gone.
 
@@ -76,7 +76,7 @@ User `ProgressView` as a placeholder to display download progress.
 
 Downloading image is a two step process:
 - When `progress` is 0 the download has not started yet. The best is to display continuously animated activity indicator.
-- When download is in progress the best is to display a progress indicator. Note: for smaller images the progress can go from 0 to 1 in one go. Than this step won't be called.
+- When download is in progress you can show a progress indicator. Note: for smaller images the progress can go from 0 to 1 in one go. Than this step won't be called.
 
 ```swift
 URLImage(url, placeholder: {

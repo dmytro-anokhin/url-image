@@ -8,17 +8,17 @@
 import Foundation
 
 
-final class Downloader {
+class Downloader {
 
     let url: URL
 
-    let task: URLSessionDownloadTask
+    let task: URLSessionTask
 
     let remoteFileCache: RemoteFileCacheService
 
     let inMemoryCacheService: InMemoryCacheService
 
-    init(url: URL, task: URLSessionDownloadTask, remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
+    init(url: URL, task: URLSessionTask, remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         self.url = url
         self.task = task
         self.remoteFileCache = remoteFileCache
@@ -47,25 +47,25 @@ final class Downloader {
 
         remoteFileCache.getFile(withRemoteURL: url) { localURL in
 
-            if let localURL = localURL {
-                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
-
-                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
-
-                    guard self.transition(to: .finished) else {
-                        return
-                    }
-
-                    self.notifyObserversAboutCompletion(imageWrapper)
-                    self.completionCallback?()
-
-                    return
-                }
-                else {
-                    // URL is still registered in the local cache but the file was removed
-                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
-                }
-            }
+//            if let localURL = localURL {
+//                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
+//
+//                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
+//
+//                    guard self.transition(to: .finished) else {
+//                        return
+//                    }
+//
+//                    self.notifyObserversAboutCompletion(imageWrapper)
+//                    self.completionCallback?()
+//
+//                    return
+//                }
+//                else {
+//                    // URL is still registered in the local cache but the file was removed
+//                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+//                }
+//            }
 
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
                 // Load from network
@@ -98,101 +98,34 @@ final class Downloader {
         observers.remove(observer)
     }
 
-    func complete(with tmpURL: URL) {
-        do {
-            let localURL = try self.remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL)
+    func complete(with error: Error?) {
+        switch error {
+            case .none:
+                transition(to: .finished)
+                completionCallback?()
 
-            DispatchQueue.main.async {
-                if let imageWrapper = ImageWrapper(fileURL: localURL) {
-                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
-                    self.notifyObserversAboutCompletion(imageWrapper)
+            case .some(let nsError as NSError):
+                if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+                    if transition(to: .cancelled) {
+                        completionCallback?()
+                    }
                 }
                 else {
-                    // Can not read the file
-                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+                    if transition(to: .failed) {
+                        completionCallback?()
+                    }
                 }
-            }
-        }
-        catch {
-            // Failed to copy the file to the cache
-        }
-
-        completionCallback?()
-    }
-
-    func progress(_ progress: Float?) {
-        DispatchQueue.main.async {
-            self.notifyObserversAboutProgress(progress)
-        }
-    }
-
-    func fail(with error: Error) {
-        let nsError = error as NSError
-
-        if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-            if transition(to: .cancelled) {
-                completionCallback?()
-            }
-        }
-        else {
-            if transition(to: .failed) {
-                completionCallback?()
-            }
         }
     }
 
     // MARK: Private
 
-    enum LoadingState : Hashable {
-
-        /// Initial state after the object was created
-        case initial
-
-        /// Loading is scheduled and about to start shortly after delay
-        case scheduled
-
-        /// Loading is in progress
-        case loading
-
-        /// Successfully loaded and decoded data
-        case finished
-
-        /// Failed to load or decode data
-        case failed
-
-        /// Cancelling
-        case cancelling
-
-        /// Cancelled
-        case cancelled
-
-        /** Map of valid transitions.
-
-            Each transition has "from" and "to" states.  Key in the map is "from" state. Value is a set of possible "to" states. Together this indicates all possible transitions for a state.
-
-            Allowing transition from `finished`, `failed`, and  `cancelled` states back to `scheduled` state enables reloading data.
-        */
-        private static let transitions: [LoadingState: Set<LoadingState>] = [
-            .initial   : [ .scheduled ],
-            .scheduled  : [ .loading, .finished, .cancelled ],
-            .loading   : [ .finished, .failed, .cancelled ],
-            .finished  : [ .scheduled ],
-            .failed    : [ .scheduled ],
-            .cancelling : [ .cancelled ],
-            .cancelled : [ .scheduled ]
-        ]
-
-        /** Verifies if transition from `self` to `state` is possible.
-        */
-        func canTransition(to state: LoadingState) -> Bool {
-            return Self.transitions[self]!.contains(state)
-        }
-    }
-
     private var state: LoadingState = .initial
 
-    private func transition(to newState: LoadingState) -> Bool {
+    @discardableResult
+    fileprivate func transition(to newState: LoadingState) -> Bool {
         guard state.canTransition(to: newState) else {
+            print("Can not transition from \(state) to \(newState)")
             return false
         }
 
@@ -200,15 +133,92 @@ final class Downloader {
         return true
     }
 
-    private func notifyObserversAboutProgress(_ progress: Float?) {
+    fileprivate func notifyObserversAboutProgress(_ progress: Float?) {
         for observer in observers {
             observer.progress(progress)
         }
     }
 
-    private func notifyObserversAboutCompletion(_ imageWrapper: ImageWrapper) {
+    fileprivate func notifyObserversAboutPartial(_ imageProxy: ImageProxy) {
         for observer in observers {
-            observer.completion(imageWrapper)
+            observer.partial(imageProxy)
+        }
+    }
+
+    fileprivate func notifyObserversAboutCompletion(_ imageProxy: ImageProxy) {
+        for observer in observers {
+            observer.completion(imageProxy)
+        }
+    }
+}
+
+
+final class FileDownloader: Downloader {
+
+    func finishDownloading(with tmpURL: URL) {
+        guard transition(to: .finishing) else {
+            return
+        }
+
+        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL) else {
+            // Failed to cache the file
+            transition(to: .failed)
+            return
+        }
+
+        guard let imageWrapper = ImageWrapper(fileURL: localURL) else {
+            // Failed to read the file
+            // Remove the file from the cache
+            try? remoteFileCache.delete(fileName: localURL.lastPathComponent)
+            transition(to: .failed)
+            return
+        }
+
+        DispatchQueue.main.async {
+            self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
+            self.notifyObserversAboutCompletion(imageWrapper)
+        }
+    }
+
+    func progress(_ progress: Float?) {
+        DispatchQueue.main.async {
+            self.notifyObserversAboutProgress(progress)
+        }
+    }
+}
+
+
+final class DataDownloader: Downloader {
+
+    private var imageWrapper = IncrementalImageWrapper()
+
+    func append(data: Data) {
+        imageWrapper.append(data)
+        notifyObserversAboutPartial(imageWrapper)
+    }
+
+    func finishDownloading() {
+        guard transition(to: .finishing) else {
+            return
+        }
+
+        imageWrapper.isFinal = true
+
+//        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL) else {
+//            // Failed to cache the file
+//            transition(to: .failed)
+//            return
+//        }
+
+        guard !imageWrapper.isEmpty else {
+//            try? remoteFileCache.delete(fileName: localURL.lastPathComponent)
+            transition(to: .failed)
+            return
+        }
+
+        DispatchQueue.main.async {
+            // self.inMemoryCacheService.setImage(self.imageWrapper, for: self.url)
+            self.notifyObserversAboutCompletion(self.imageWrapper)
         }
     }
 }

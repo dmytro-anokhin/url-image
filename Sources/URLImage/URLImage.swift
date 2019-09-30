@@ -23,6 +23,8 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let delay: TimeInterval
 
+    let incremental: Bool = false
+
     public init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = placeholder
@@ -43,7 +45,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
             return AnyView(imageView)
         }
         else {
-            let loaderView = ImageLoaderView(url, delay: delay, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder)
+            let loaderView = ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url

@@ -22,3 +22,18 @@ func createCGImage(fileURL url: URL) -> CGImage? {
 
     return CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
 }
+
+
+func createCGImage(data: Data) -> CGImage? {
+
+    let options = [
+        kCGImageSourceShouldCache : true,
+        kCGImageSourceShouldAllowFloat: true
+    ]
+
+    guard let imageSource = CGImageSourceCreateWithData(data as CFData, options as CFDictionary) else {
+        return nil
+    }
+
+    return CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
+}

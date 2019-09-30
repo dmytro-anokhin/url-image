@@ -11,4 +11,5 @@ import SwiftUI
 
 
 typealias ImageLoaderProgressCallback = (_ progress: Float?) -> Void
+typealias ImageLoaderPartialCallback = (_ imageProxy: ImageProxy) -> Void
 typealias ImageLoaderCompletionCallback = (_ imageProxy: ImageProxy) -> Void
