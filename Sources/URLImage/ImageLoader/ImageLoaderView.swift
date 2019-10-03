@@ -26,6 +26,7 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
         self.incremental = incremental
         self.imageLoaderService = imageLoaderService
         self.onLoad = nil
+        self.onPartial = nil
     }
 
     var body: some View {
@@ -36,7 +37,7 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
                 partialImage.progress = progress
             },
             partial: { imageProxy in
-                self.onLoad?(imageProxy)
+                self.onPartial?(imageProxy)
             },
             completion: { imageProxy in
                 self.onLoad?(imageProxy)
@@ -52,20 +53,27 @@ struct ImageLoaderView<Placeholder> : View where Placeholder : View {
             }
     }
 
-    func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> some View {
-        return ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: action)
+    func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Placeholder> {
+        return ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: action, onPartial: onPartial)
     }
 
-    private init(_ url: URL, delay: TimeInterval, incremental: Bool, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    func onPartial(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Placeholder> {
+        return ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: imageLoaderService, placeholder: placeholder, onLoad: onLoad, onPartial: action)
+    }
+
+    private init(_ url: URL, delay: TimeInterval, incremental: Bool, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, onLoad: ((_ imageProxy: ImageProxy) -> Void)?, onPartial: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.placeholder = placeholder
         self.delay = delay
         self.incremental = incremental
         self.imageLoaderService = imageLoaderService
         self.onLoad = onLoad
+        self.onPartial = onPartial
     }
 
     private let imageLoaderService: ImageLoaderService
 
     private let onLoad: ((_ imageProxy: ImageProxy) -> Void)?
+
+    private let onPartial: ((_ imageProxy: ImageProxy) -> Void)?
 }

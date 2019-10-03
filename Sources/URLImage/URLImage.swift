@@ -23,13 +23,14 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let delay: TimeInterval
 
-    let incremental: Bool = false
+    let incremental: Bool
 
-    public init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
+        self.incremental = incremental
     }
 
     public var body: some View {
@@ -39,19 +40,26 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
             }
         }
 
-        if let imageProxy = self.imageProxy {
-            let imageView = content(imageProxy)
-
-            return AnyView(imageView)
-        }
-        else {
-            let loaderView = ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder)
-                .onLoad { imageProxy in
-                    self.imageProxy = imageProxy
-                    self.previousURL = self.url
+        return ZStack {
+            if self.imageProxy != nil {
+                content(imageProxy!)
+            }
+            else {
+                if partialTrigger > 0 {
+                    content(partialImageProxy!)
                 }
 
-            return AnyView(loaderView)
+                ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder)
+                    .onLoad { imageProxy in
+                        self.imageProxy = imageProxy
+                        self.previousURL = self.url
+                    }
+                    .onPartial { imageProxy in
+                        self.partialImageProxy = imageProxy
+                        self.partialTrigger += 1
+                    }
+                    .opacity(partialTrigger == 0 ? 1.0 : 0.001)
+            }
         }
     }
 
@@ -63,6 +71,9 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     @State private var imageProxy: ImageProxy? = nil
 
+    @State private var partialImageProxy: ImageProxy? = nil
+    @State private var partialTrigger = 0
+
     @State private var previousURL: URL? = nil
 }
 
@@ -73,11 +84,12 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Content == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
+        self.incremental = incremental
     }
 }
 
@@ -85,11 +97,12 @@ public extension URLImage where Content == Image {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
+        self.incremental = incremental
     }
 }
 
@@ -97,10 +110,11 @@ public extension URLImage where Placeholder == Image {
 @available(iOS 13.0, tvOS 13.0, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
+        self.incremental = incremental
     }
 }
