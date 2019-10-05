@@ -45,20 +45,11 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
                 content(imageProxy!)
             }
             else {
-                if partialTrigger > 0 {
-                    content(partialImageProxy!)
+                ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder, content: content)
+                .onLoad { imageProxy in
+                    self.imageProxy = imageProxy
+                    self.previousURL = self.url
                 }
-
-                ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder)
-                    .onLoad { imageProxy in
-                        self.imageProxy = imageProxy
-                        self.previousURL = self.url
-                    }
-                    .onPartial { imageProxy in
-                        self.partialImageProxy = imageProxy
-                        self.partialTrigger += 1
-                    }
-                    .opacity(partialTrigger == 0 ? 1.0 : 0.001)
             }
         }
     }
@@ -70,10 +61,6 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
     private let content: (_ imageProxy: ImageProxy) -> Content
 
     @State private var imageProxy: ImageProxy? = nil
-
-    @State private var partialImageProxy: ImageProxy? = nil
-    @State private var partialTrigger = 0
-
     @State private var previousURL: URL? = nil
 }
 

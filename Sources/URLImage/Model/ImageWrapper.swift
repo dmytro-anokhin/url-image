@@ -92,7 +92,7 @@ final class IncrementalImageWrapper: ImageProxy {
     }
 
     /// Accumulates data
-    private var data = Data()
+    private(set) var data = Data()
 
     private var imageSource: CGImageSource
 

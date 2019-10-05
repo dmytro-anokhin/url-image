@@ -15,6 +15,8 @@ protocol RemoteFileCacheService {
 
     func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL
 
+    func createFile(withRemoteURL remoteURL: URL, data: Data) throws -> URL
+
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void)
 
     func delete(fileName: String) throws
@@ -51,13 +53,22 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Copy a file downloaded from `remoteURL` and located at `sourceURL` to the directory managed by the `RemoteFileCacheService` instance.
     /// Returns URL of the copy. This function generates unique name for the copied file.
     ///
-    /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF"
+    /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.file"
     func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL {
-        let pathExtension = remoteURL.pathExtension.isEmpty ? "file" : remoteURL.pathExtension
-        let fileName = UUID().uuidString + "." + (pathExtension)
+        let fileName = self.fileName(forRemoteURL: remoteURL)
         let destinationURL = fileURL(forFileName: fileName)
 
         try copy(from: sourceURL, to: destinationURL)
+        index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
+
+        return destinationURL
+    }
+
+    func createFile(withRemoteURL remoteURL: URL, data: Data) throws -> URL {
+        let fileName = self.fileName(forRemoteURL: remoteURL)
+        let destinationURL = fileURL(forFileName: fileName)
+
+        try data.write(to: destinationURL)
         index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
 
         return destinationURL
@@ -97,6 +108,15 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
 
     /// The database used to keep track of copied and deleted files
     private let index: FileIndex
+
+    /// File name including path extension
+    /// If the remote url does not contain path extension the default one is used (.file)
+    ///
+    /// 01234567-89AB-CDEF-0123-456789ABCDEF.file
+    private func fileName(forRemoteURL remoteURL: URL) -> String {
+        let pathExtension = remoteURL.pathExtension.isEmpty ? "file" : remoteURL.pathExtension
+        return UUID().uuidString + "." + (pathExtension)
+    }
 }
 
 // MARK: - File Operations

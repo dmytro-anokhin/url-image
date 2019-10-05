@@ -47,25 +47,25 @@ class Downloader {
 
         remoteFileCache.getFile(withRemoteURL: url) { localURL in
 
-//            if let localURL = localURL {
-//                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
-//
-//                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
-//
-//                    guard self.transition(to: .finished) else {
-//                        return
-//                    }
-//
-//                    self.notifyObserversAboutCompletion(imageWrapper)
-//                    self.completionCallback?()
-//
-//                    return
-//                }
-//                else {
-//                    // URL is still registered in the local cache but the file was removed
-//                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
-//                }
-//            }
+            if let localURL = localURL {
+                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
+
+                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
+
+                    guard self.transition(to: .finished) else {
+                        return
+                    }
+
+                    self.notifyObserversAboutCompletion(imageWrapper)
+                    self.completionCallback?()
+
+                    return
+                }
+                else {
+                    // URL is still registered in the local cache but the file was removed
+                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+                }
+            }
 
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
                 // Load from network
@@ -194,7 +194,10 @@ final class DataDownloader: Downloader {
 
     func append(data: Data) {
         imageWrapper.append(data)
-        notifyObserversAboutPartial(imageWrapper)
+        
+        DispatchQueue.main.async {
+            self.notifyObserversAboutPartial(self.imageWrapper)
+        }
     }
 
     func finishDownloading() {
@@ -204,14 +207,13 @@ final class DataDownloader: Downloader {
 
         imageWrapper.isFinal = true
 
-//        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL) else {
-//            // Failed to cache the file
-//            transition(to: .failed)
-//            return
-//        }
-
         guard !imageWrapper.isEmpty else {
-//            try? remoteFileCache.delete(fileName: localURL.lastPathComponent)
+            transition(to: .failed)
+            return
+        }
+
+        guard let _ = try? remoteFileCache.createFile(withRemoteURL: url, data: imageWrapper.data) else {
+            // Failed to cache the file
             transition(to: .failed)
             return
         }
