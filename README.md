@@ -6,10 +6,14 @@
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL. `URLImage` manages downloading remote image and caching it locally, both in memory and on disk, for you.
 
 ## Features
-- Follows SwiftUI declarative style;
-- Local disk cache;
-- Allows customization of the placeholder and the image views;
-- Supports displaying download progress.
+- SwiftUI image view for remote images;
+- Asynchronous image loading in the background with cancellation when view disappears;
+- Local disk cache for downloaded images;
+- Download progress indication;
+- Incremental downloading with interlaced images support (interlaced PNG, interlaced GIF, and progressive JPEG);
+- Fully customizable including placeholder, progress indication, and the image view;
+- Control over download delay for better scroll performance in lists;
+- Lower memory consumption when downloading image data directly to disk.
 
 ## Usage
 
@@ -31,7 +35,7 @@ The placeholder image can be changed:
 URLImage(url, placeholder: Image(systemName: "circle"))
 ```
 
-### Transition from 0.6.3 to 0.7.0
+### Transition from 0.6.3 to 0.7.0 and later
 
 0.7.0 release introduces some breaking changes:
 - In 0.6.3 image was internal view. In 0.7.0 image is created by `content` closure with a proxy object. This provides more flexibility in customization.
@@ -97,6 +101,18 @@ URLImage(url, placeholder: {
 ```
 
 `CircleProgressView` and `CircleActivityView` are two progress views included in the package to showcase the functionality.
+
+### Incremental Image Loading
+
+`URLImage` supports incremental image loading. This way of loading image can create better user experience especially when using with interlaced PNG, GIF, or progressive JPEG format. Set  `incremental` flag to enable it:
+
+```swift
+URLImage(url, incremental: true)
+```
+
+Incremental download won't report progress but you can still use activity indicator to play animation when the first bytes has not been loaded yet.
+
+Note: memory consumption in this mode is higher because the image data is stored in memory and written to disk only after the download completes.
 
 ### Examples
 
@@ -175,7 +191,7 @@ struct ListView : View {
 `URLImage` allows you to configure its parameters using initializers:
 
 ```swift
-init(_ url: URL, delay: TimeInterval)
+init(_ url: URL, delay: TimeInterval, incremental: Bool)
 ```
 
 **`url`**
@@ -185,6 +201,9 @@ URL of the remote image.
 **`delay`**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
+
+**`incremental`**
+Set to use incremental image downloading mode.
 
 ## Installation
 
