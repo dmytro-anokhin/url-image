@@ -203,6 +203,7 @@ URL of the remote image.
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.
 
 **`incremental`**
+
 Set to use incremental image downloading mode.
 
 ## Installation
