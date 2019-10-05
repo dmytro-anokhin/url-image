@@ -125,7 +125,7 @@ class Downloader {
     @discardableResult
     fileprivate func transition(to newState: LoadingState) -> Bool {
         guard state.canTransition(to: newState) else {
-            print("Can not transition from \(state) to \(newState)")
+            // print("Can not transition from \(state) to \(newState)")
             return false
         }
 
