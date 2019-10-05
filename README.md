@@ -104,7 +104,7 @@ URLImage(url, placeholder: {
 
 ### Incremental Image Loading
 
-`URLImage` supports incremental image loading. This way of loading image can create better user experience especially when using with interlaced PNG, GIF, or progressive JPEG format. Set  `incremental` flag to enable it:
+`URLImage` supports incremental image loading. This way of loading image can create better user experience when using with interlaced PNG, GIF, or progressive JPEG format. Set `incremental` flag to enable it:
 
 ```swift
 URLImage(url, incremental: true)
