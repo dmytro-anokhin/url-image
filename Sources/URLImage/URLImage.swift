@@ -8,17 +8,8 @@
 
 import SwiftUI
 
-
 #if canImport(AppKit)
-
 import AppKit
-
-public let defaultPlaceholderImage = Image(nsImage: NSImage())
-
-#else
-
-public let defaultPlaceholderImage = Image(systemName: "photo")
-
 #endif
 
 
@@ -97,7 +88,13 @@ public extension URLImage where Content == Image {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = defaultPlaceholderImage, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = {
+#if canImport(AppKit)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
@@ -110,7 +107,13 @@ public extension URLImage where Placeholder == Image {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = defaultPlaceholderImage, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = {
+#if canImport(AppKit)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
