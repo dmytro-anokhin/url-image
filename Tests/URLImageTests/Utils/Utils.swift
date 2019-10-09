@@ -12,7 +12,7 @@ import ImageIO
 import MobileCoreServices
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 fileprivate extension CGContext {
 
     /// Bitmap context with specific pixel `width` x `height` and sRGB color space
@@ -64,7 +64,7 @@ extension CGImage {
 typealias Pixel = (r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat)
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 extension CGImage {
 
     static func draw(pixels: [[Pixel]]) -> CGImage? {

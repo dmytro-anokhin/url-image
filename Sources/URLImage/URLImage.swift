@@ -9,12 +9,25 @@
 import SwiftUI
 
 
+#if canImport(AppKit)
+
+import AppKit
+
+public let defaultPlaceholderImage = Image(nsImage: NSImage())
+
+#else
+
+public let defaultPlaceholderImage = Image(systemName: "photo")
+
+#endif
+
+
 /**
     URLImage is a view that automatically loads an image from provided URL.
 
     The image is loaded on appearance. Loading operation is cancelled when the view disappears.
  */
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public struct URLImage<Content, Placeholder> : View where Content : View, Placeholder : View {
 
     // MARK: Public
@@ -68,7 +81,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 // MARK: Extensions
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Content == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
@@ -81,10 +94,10 @@ public extension URLImage where Content == Image {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = defaultPlaceholderImage, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
@@ -94,10 +107,10 @@ public extension URLImage where Placeholder == Image {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = Image(systemName: "photo"), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, placeholder placeholderImage: Image = defaultPlaceholderImage, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content

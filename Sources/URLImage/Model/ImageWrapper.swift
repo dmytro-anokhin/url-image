@@ -15,10 +15,19 @@ import UIKit
 #endif
 
 
+#if canImport(AppKit)
+import AppKit
+#endif
+
+
 public protocol ImageProxy {
 
 #if canImport(UIKit)
     var uiImage: UIImage { get }
+#endif
+
+#if canImport(AppKit)
+    var nsImage: NSImage { get }
 #endif
 
     var image: Image { get }
@@ -60,6 +69,19 @@ final class ImageWrapper: ImageProxy {
     }
 
     #endif
+
+    #if canImport(AppKit)
+
+    var nsImage: NSImage {
+        return NSImage(cgImage: cgImage, size: NSZeroSize)
+    }
+
+    var image: Image {
+        return Image(nsImage: nsImage)
+    }
+
+    #endif
+
 }
 
 
@@ -108,6 +130,22 @@ final class IncrementalImageWrapper: ImageProxy {
 
     var image: Image {
         return Image(uiImage: uiImage)
+    }
+
+    #endif
+
+    #if canImport(AppKit)
+
+    var nsImage: NSImage {
+        guard let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+            return NSImage()
+        }
+
+        return NSImage(cgImage: cgImage, size: NSZeroSize)
+    }
+
+    var image: Image {
+        return Image(nsImage: nsImage)
     }
 
     #endif
