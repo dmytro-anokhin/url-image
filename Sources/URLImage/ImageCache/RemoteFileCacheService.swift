@@ -47,6 +47,9 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         directoryURL = baseURL.appendingPathComponent(name, isDirectory: true)
         filesDirectoryURL = directoryURL.appendingPathComponent("files", isDirectory: true)
 
+        // Create directory if necessary. Directory must be created before initializing index or adding files.
+        try? FileManager.default.createDirectory(at: filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+
         index = FileIndex(directoryURL: directoryURL, fileName: "files", pathExtension: "db")
     }
 
@@ -134,10 +137,7 @@ fileprivate extension RemoteFileCacheServiceImpl {
     /// Copy a file from `sourceURL` to the directory managed by the `RemoteFileCacheService` instance.
     /// `fileName` must be provided.
     func copy(from sourceURL: URL, to destinationURL: URL) throws {
-        let fileManager = FileManager.default
-
-        try? fileManager.createDirectory(at: filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
-        try fileManager.copyItem(at: sourceURL, to: destinationURL)
+        try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
     }
 }
 
@@ -160,9 +160,6 @@ final class RemoteFileManagedObject: NSManagedObject {
 fileprivate class FileIndex {
 
     init(directoryURL: URL, fileName: String, pathExtension: String) {
-
-        // Create directory if necessary
-        try? FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: false, attributes: nil)
 
         let model = FileIndex.coreDataModelDescription.makeModel()
 
