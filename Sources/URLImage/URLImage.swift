@@ -49,7 +49,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
                 content(imageProxy!)
             }
             else {
-                ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: ImageLoaderServiceImpl.shared, placeholder: placeholder, content: content)
+                ImageLoaderView(url, delay: delay, incremental: incremental, imageLoaderService: URLImageService.shared.services.imageLoaderService, placeholder: placeholder, content: content)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url

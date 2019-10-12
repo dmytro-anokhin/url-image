@@ -20,6 +20,8 @@ protocol RemoteFileCacheService {
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void)
 
     func delete(fileName: String) throws
+
+    func reset()
 }
 
 
@@ -58,45 +60,65 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.file"
     func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL {
-        let fileName = self.fileName(forRemoteURL: remoteURL)
-        let destinationURL = fileURL(forFileName: fileName)
+        return try queue.sync {
+            let fileName = self.fileName(forRemoteURL: remoteURL)
+            let destinationURL = fileURL(forFileName: fileName)
 
-        try copy(from: sourceURL, to: destinationURL)
-        index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
+            try copy(from: sourceURL, to: destinationURL)
+            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
 
-        return destinationURL
+            return destinationURL
+        }
     }
 
     func createFile(withRemoteURL remoteURL: URL, data: Data) throws -> URL {
-        let fileName = self.fileName(forRemoteURL: remoteURL)
-        let destinationURL = fileURL(forFileName: fileName)
+        return try queue.sync {
+            let fileName = self.fileName(forRemoteURL: remoteURL)
+            let destinationURL = fileURL(forFileName: fileName)
 
-        try data.write(to: destinationURL)
-        index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
+            try data.write(to: destinationURL)
+            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
 
-        return destinationURL
+            return destinationURL
+        }
     }
 
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void) {
-        index.fileInfo(forRemoteURL: remoteURL) { fileInfo in
-            guard let fileInfo = fileInfo else {
-                completion(nil)
-                return
-            }
+        queue.async {
+            self.index.fileInfo(forRemoteURL: remoteURL) { fileInfo in
+                guard let fileInfo = fileInfo else {
+                    completion(nil)
+                    return
+                }
 
-            let localFileURL = self.fileURL(forFileName: fileInfo.fileName)
-            completion(localFileURL)
+                let localFileURL = self.fileURL(forFileName: fileInfo.fileName)
+                completion(localFileURL)
+            }
         }
     }
 
     /// Removes the file from the directory managed by the `RemoteFileCacheService` instance.
     func delete(fileName: String) throws {
-        defer {
-            index.removeFileInfo(forFileName: fileName)
-        }
+        try queue.sync {
+            defer {
+                index.removeFileInfo(forFileName: fileName)
+            }
 
-        let localFileURL = fileURL(forFileName: fileName)
-        try FileManager.default.removeItem(at: localFileURL)
+            let localFileURL = fileURL(forFileName: fileName)
+            try FileManager.default.removeItem(at: localFileURL)
+        }
+    }
+
+    func reset() {
+        queue.async(flags: .barrier) {
+            self.index.shutDown()
+
+            let fileManager = FileManager.default
+            try? fileManager.removeItem(at: self.directoryURL)
+            try? fileManager.createDirectory(at: self.filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+
+            self.index = FileIndex(directoryURL: self.directoryURL, fileName: "files", pathExtension: "db")
+        }
     }
 
     /// URL of the directory managed by the `RemoteFileCacheService`. This is the concatenation of the `name` and `baseURL`
@@ -109,8 +131,10 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Example: ".../Library/Caches/URLImage/files"
     private let filesDirectoryURL: URL
 
+    private let queue = DispatchQueue(label: "URLImage.RemoteFileCacheServiceImpl.queue", attributes: .concurrent)
+
     /// The database used to keep track of copied and deleted files
-    private let index: FileIndex
+    private var index: FileIndex
 
     /// File name including path extension
     /// If the remote url does not contain path extension the default one is used (.file)
@@ -172,6 +196,23 @@ fileprivate class FileIndex {
 
         context = container.newBackgroundContext()
         context.undoManager = nil
+    }
+
+    func shutDown() {
+        let persistentStoreDescriptions = container.persistentStoreDescriptions
+
+        for persistentStoreDescription in persistentStoreDescriptions {
+            guard let url = persistentStoreDescription.url else {
+                continue
+            }
+
+            do {
+                try container.persistentStoreCoordinator.destroyPersistentStore(at: url, ofType: persistentStoreDescription.type, options: nil)
+            }
+            catch {
+                print(error)
+            }
+        }
     }
 
     func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated date: Date) {

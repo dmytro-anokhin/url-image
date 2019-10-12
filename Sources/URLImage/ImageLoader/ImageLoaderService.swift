@@ -22,11 +22,6 @@ protocol ImageLoaderService {
 
 final class ImageLoaderServiceImpl: ImageLoaderService {
 
-    static let shared = ImageLoaderServiceImpl(
-        remoteFileCache: RemoteFileCacheServiceImpl.shared,
-        inMemoryCacheService: InMemoryCacheServiceDummyImpl()
-    )
-
     init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
@@ -113,7 +108,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
 
     private let queue: OperationQueue = {
         let queue = OperationQueue()
-        queue.name = "URLImage.ImageLoaderService.queue"
+        queue.name = "URLImage.ImageLoaderServiceImpl.queue"
         queue.maxConcurrentOperationCount = 1
 
         return queue
