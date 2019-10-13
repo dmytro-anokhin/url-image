@@ -25,7 +25,7 @@ URLImage(url)
 
 When using in lists `delay` can be provided to postpone loading and improve scrolling performance:
 
-```
+```swift
 URLImage(url, delay: 0.25)
 ```
 
