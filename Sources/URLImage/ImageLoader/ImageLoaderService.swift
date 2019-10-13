@@ -16,7 +16,7 @@ protocol ImageLoaderService {
 
     func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL)
 
-    func load(url: URL, delay: TimeInterval)
+    func load(url: URL, delay: TimeInterval, expiryDate: Date?)
 }
 
 
@@ -93,14 +93,24 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
     }
 
-    func load(url: URL, delay: TimeInterval) {
+    func load(url: URL, delay: TimeInterval, expiryDate: Date?) {
         queue.addOperation {
-            guard self.urlToDownloaderMap[url] != nil else {
-                assert(self.urlToDownloaderMap[url] != nil, "Downloader must be created before calling load")
+            guard let downloader = self.urlToDownloaderMap[url] else {
+                assertionFailure("Downloader must be created before calling load")
                 return
             }
 
-            self.urlToDownloaderMap[url]?.resume(after: delay)
+            if let expiryDate = expiryDate {
+                if let currentExpiryDate = downloader.expiryDate {
+                    // If there is expiry date make sure to use the latest of two
+                    downloader.expiryDate = currentExpiryDate < expiryDate ? expiryDate : currentExpiryDate
+                }
+                else {
+                    downloader.expiryDate = expiryDate
+                }
+            }
+
+            downloader.resume(after: delay)
         }
     }
 

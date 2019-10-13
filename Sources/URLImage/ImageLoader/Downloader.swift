@@ -27,6 +27,8 @@ class Downloader {
 
     var completionCallback: (() -> Void)?
 
+    var expiryDate: Date? = nil
+
     func resume(after delay: Double) {
         assert(!observers.isEmpty, "Starting to load the image at \(url) but no observers subscribed")
 
@@ -160,7 +162,7 @@ final class FileDownloader: Downloader {
             return
         }
 
-        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL) else {
+        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate) else {
             // Failed to cache the file
             transition(to: .failed)
             return
@@ -212,7 +214,7 @@ final class DataDownloader: Downloader {
             return
         }
 
-        guard let _ = try? remoteFileCache.createFile(withRemoteURL: url, data: imageWrapper.data) else {
+        guard let _ = try? remoteFileCache.createFile(withRemoteURL: url, data: imageWrapper.data, expiryDate: expiryDate) else {
             // Failed to cache the file
             transition(to: .failed)
             return

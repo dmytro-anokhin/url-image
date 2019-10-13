@@ -13,15 +13,17 @@ import CoreData
 
 protocol RemoteFileCacheService {
 
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL
+    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?) throws -> URL
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data) throws -> URL
+    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?) throws -> URL
 
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void)
 
     func delete(fileName: String) throws
 
     func reset()
+
+    func clean()
 }
 
 
@@ -59,25 +61,25 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Returns URL of the copy. This function generates unique name for the copied file.
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.file"
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL {
+    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?) throws -> URL {
         return try queue.sync {
             let fileName = self.fileName(forRemoteURL: remoteURL)
             let destinationURL = fileURL(forFileName: fileName)
 
             try copy(from: sourceURL, to: destinationURL)
-            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
+            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
 
             return destinationURL
         }
     }
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data) throws -> URL {
+    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?) throws -> URL {
         return try queue.sync {
             let fileName = self.fileName(forRemoteURL: remoteURL)
             let destinationURL = fileURL(forFileName: fileName)
 
             try data.write(to: destinationURL)
-            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date())
+            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
 
             return destinationURL
         }
@@ -89,6 +91,15 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
                 guard let fileInfo = fileInfo else {
                     completion(nil)
                     return
+                }
+
+                // Check if expired
+                if let expiryDate = fileInfo.expiryDate {
+                    guard expiryDate > Date() else {
+                        try? self.delete(fileName: fileInfo.fileName)
+                        completion(nil)
+                        return
+                    }
                 }
 
                 let localFileURL = self.fileURL(forFileName: fileInfo.fileName)
@@ -118,6 +129,12 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
             try? fileManager.createDirectory(at: self.filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
 
             self.index = FileIndex(directoryURL: self.directoryURL, fileName: "files", pathExtension: "db")
+        }
+    }
+
+    func clean() {
+        queue.async(flags: .barrier) {
+            self.index.removeExpired()
         }
     }
 
@@ -175,6 +192,8 @@ final class RemoteFileManagedObject: NSManagedObject {
 
     @NSManaged public var dateCreated: Date?
 
+    @NSManaged public var expiryDate: Date?
+
     @NSManaged public var fileName: String?
 }
 
@@ -215,11 +234,12 @@ fileprivate class FileIndex {
         }
     }
 
-    func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated date: Date) {
+    func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated: Date, expiryDate: Date?) {
         context.perform {
             let file = NSEntityDescription.insertNewObject(forEntityName: RemoteFileManagedObject.entityName, into: self.context) as! RemoteFileManagedObject
             file.urlString = remoteURL.absoluteString
-            file.dateCreated = date
+            file.dateCreated = dateCreated
+            file.expiryDate = expiryDate
             file.fileName = fileName
 
             do {
@@ -231,7 +251,7 @@ fileprivate class FileIndex {
         }
     }
 
-    typealias RemoteFileInfo = (urlString: String, dateCreated: Date, fileName: String)
+    typealias RemoteFileInfo = (urlString: String, dateCreated: Date, expiryDate: Date?, fileName: String)
 
     func fileInfo(forRemoteURL remoteURL: URL, completion: @escaping (_ fileInfo: RemoteFileInfo?) -> Void) {
         fetch(urlString: remoteURL.absoluteString) { result in
@@ -242,8 +262,7 @@ fileprivate class FileIndex {
                         return
                     }
 
-                    // Here file must contain all the fields
-                    let result = RemoteFileInfo(urlString: file.urlString!, dateCreated: file.dateCreated!, fileName: file.fileName!)
+                    let result = RemoteFileInfo(urlString: file.urlString!, dateCreated: file.dateCreated!, expiryDate: file.expiryDate, fileName: file.fileName!)
                     completion(result)
 
                 case .failure(let error):
@@ -271,6 +290,36 @@ fileprivate class FileIndex {
         }
     }
 
+    func removeExpired() {
+        context.perform {
+            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
+            // request.fetchBatchSize = 10
+            let now = Date()
+
+            do {
+                let fetchedObjects = try self.context.fetch(request)
+
+                for object in fetchedObjects {
+                    let expired: Bool
+
+                    if let expiryDate = object.expiryDate {
+                        expired = expiryDate < now
+                    }
+                    else {
+                        expired = true
+                    }
+
+                    if expired {
+                        self.context.delete(object)
+                    }
+                }
+            }
+            catch {
+                print(error)
+            }
+        }
+    }
+
     private static let coreDataModelDescription = CoreDataModelDescription(
         entities: [
             .entity(
@@ -289,6 +338,10 @@ fileprivate class FileIndex {
                     .attribute(
                         name: "dateCreated",
                         type: .dateAttributeType
+                    ),
+                    .attribute(
+                        name: "expiryDate",
+                        type: .dateAttributeType
                     )
                 ])
         ]
@@ -298,19 +351,27 @@ fileprivate class FileIndex {
 
     private let context: NSManagedObjectContext
 
-    private func fetch(urlString: String? = nil, fileName: String? = nil, action: @escaping (_ object: Result<RemoteFileManagedObject?, Error>) -> Void) {
+    private typealias FetchCompletion = (_ object: Result<RemoteFileManagedObject?, Error>) -> Void
+
+    private func fetch(urlString: String, action: @escaping FetchCompletion) {
         context.perform {
             let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
+            request.predicate = NSPredicate(format: "urlString == %@", urlString)
 
-            if let urlString = urlString {
-                request.predicate = NSPredicate(format: "urlString == %@", urlString)
+            do {
+                let fetchedObjects = try self.context.fetch(request)
+                action(.success(fetchedObjects.first))
             }
-
-            if let fileName = fileName {
-                request.predicate = NSPredicate(format: "fileName == %@", fileName)
+            catch {
+                action(.failure(error))
             }
+        }
+    }
 
-            assert(request.predicate != nil, "urlString or fileName mustbe provided")
+    private func fetch(fileName: String, action: @escaping FetchCompletion) {
+        context.perform {
+            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
+            request.predicate = NSPredicate(format: "fileName == %@", fileName)
 
             do {
                 let fetchedObjects = try self.context.fetch(request)

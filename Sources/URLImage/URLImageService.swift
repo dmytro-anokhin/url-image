@@ -12,7 +12,13 @@ public protocol URLImageServiceType {
 
     var services: Services { get }
 
+    var defaultExpiryTime: TimeInterval { get }
+
+    func setDefaultExpiryTime(_ defaultExpiryTime: TimeInterval)
+
     func resetFileCache()
+
+    func cleanFileCache()
 }
 
 
@@ -38,8 +44,18 @@ public final class URLImageService: URLImageServiceType {
 
     public let services: Services
 
+    public private(set) var defaultExpiryTime: TimeInterval = 60.0 * 60.0 * 24.0 * 7.0 // 1 week
+
+    public func setDefaultExpiryTime(_ defaultExpiryTime: TimeInterval) {
+        self.defaultExpiryTime = defaultExpiryTime
+    }
+
     public func resetFileCache() {
         services.remoteFileCacheService.reset()
+    }
+
+    public func cleanFileCache() {
+        services.remoteFileCacheService.clean()
     }
 
     private init() {

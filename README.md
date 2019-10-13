@@ -45,7 +45,7 @@ URLImage(url, placeholder: Image(systemName: "circle"))
 - Styling functions are now gone. Use `content` closure to style the image.
 - Configuration object is now gone.
 
-### Advanced Customization
+## Advanced Customization
 
 `URLImage` utilizes closures for customization. Downloaded image can be customized using `(ImageProxy) -> Content` closure. The closure parameter is a proxy that provides access to `Image` and `UIImage` or `NSImage` for iOS and macOS.
 
@@ -76,7 +76,7 @@ URLImage(url, placeholder: { _ in
 })
 ```
 
-### Progress View
+## Progress View
 
 User `ProgressView` as a placeholder to display download progress.
 
@@ -104,7 +104,7 @@ URLImage(url, placeholder: {
 
 `CircleProgressView` and `CircleActivityView` are two progress views included in the package to showcase the functionality.
 
-### Incremental Image Loading
+## Incremental Image Loading
 
 `URLImage` supports incremental image loading. This way of loading image can create better user experience when using with interlaced PNG, GIF, or progressive JPEG format. Set `incremental` flag to enable it:
 
@@ -116,7 +116,31 @@ Incremental download won't report progress but you can still use activity indica
 
 Note: memory consumption in this mode is higher because the image data is stored in memory and written to disk only after the download completes.
 
-### Examples
+## Local Cache
+
+`URLImage` stores downloaded image files in the `Caches/` folder. The system may delete the `Caches/` folder to free up disk space. However to provide better control this files have `expiryDate` set. Files with surpassed expiry date are deleted (lazily on attempt to read). By default files expire 7 days after download. Here are the ways to control this:
+
+Provide `expiryDate` in the constructor:
+
+```swift
+URLImage(url, expireAfter: Date(timeIntervalSinceNow: 31_556_926.0)) // Expire after a year
+```
+
+Change default `expiryDate`:
+
+```swift
+URLImageService.shared.setDefaultExpiryTime(3600.0) // Expire after an hour
+```
+
+### Maintaining Local Cache
+
+Because cached files are deleted lazily it is a good idea to clean caches time to time:
+
+- Call `URLImageService.shared.cleanFileCache()` at some point on the app launch. This method will asynchronoously clean caches and won't block your launch sequence.
+
+- Files cache can be reset by calling `URLImageService.shared.resetFileCache()`.
+
+## Examples
 
 Using in a view:
 
@@ -188,7 +212,7 @@ struct ListView : View {
 }
 ```
 
-### URLImage ###
+## `URLImage`
 
 `URLImage` allows you to configure its parameters using initializers:
 
@@ -207,6 +231,10 @@ Delay before `URLImage` fetches the image from cache or starts to download it. T
 **`incremental`**
 
 Set to use incremental image downloading mode.
+
+**`expiryDate`**
+
+Date when image considered to be expired and needs to be redownloaded. 
 
 ## Installation
 
