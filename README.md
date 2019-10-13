@@ -214,10 +214,10 @@ struct ListView : View {
 
 ## `URLImage`
 
-`URLImage` allows you to configure its parameters using initializers:
+`URLImage` allows you to configure its parameters using initializer:
 
 ```swift
-init(_ url: URL, delay: TimeInterval, incremental: Bool)
+init(_ url: URL, delay: TimeInterval, incremental: Bool, expiryDate: Date?)
 ```
 
 **`url`**
