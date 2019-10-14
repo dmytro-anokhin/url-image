@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
 #endif
 
@@ -93,7 +93,7 @@ public extension URLImage where Content == Image {
 public extension URLImage where Placeholder == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder placeholderImage: Image = {
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
 return Image(systemName: "photo")
@@ -113,7 +113,7 @@ return Image(systemName: "photo")
 public extension URLImage where Content == Image, Placeholder == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder placeholderImage: Image = {
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
 return Image(systemName: "photo")

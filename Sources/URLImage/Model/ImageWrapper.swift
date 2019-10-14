@@ -15,7 +15,7 @@ import UIKit
 #endif
 
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 import AppKit
 #endif
 
@@ -26,7 +26,7 @@ public protocol ImageProxy {
     var uiImage: UIImage { get }
 #endif
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
     var nsImage: NSImage { get }
 #endif
 
@@ -70,7 +70,7 @@ final class ImageWrapper: ImageProxy {
 
     #endif
 
-    #if canImport(AppKit)
+    #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 
     var nsImage: NSImage {
         return NSImage(cgImage: cgImage, size: NSZeroSize)
@@ -134,7 +134,7 @@ final class IncrementalImageWrapper: ImageProxy {
 
     #endif
 
-    #if canImport(AppKit)
+    #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 
     var nsImage: NSImage {
         guard let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
