@@ -82,7 +82,7 @@ final class RemoteImageCacheServiceTests: XCTestCase {
         }
 
         let manager = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: testDirectoryURL)
-        let managedURL = try manager.addFile(withRemoteURL: sourceURL, sourceURL: sourceURL)
+        let managedURL = try manager.addFile(withRemoteURL: sourceURL, sourceURL: sourceURL, expiryDate: Date(timeIntervalSinceNow: 1.0))
 
         // Verify file copied
         XCTAssertTrue(FileManager.default.fileExists(atPath: managedURL.path), "Image file must exist at the managed URL")
