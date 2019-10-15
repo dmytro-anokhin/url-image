@@ -31,7 +31,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let expiryDate: Date?
 
-    public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.placeholder = placeholder
         self.content = content
@@ -63,7 +63,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     // MARK: Private
 
-    private let placeholder: (_ partialImage: PartialImage) -> Placeholder
+    private let placeholder: (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder
 
     private let content: (_ imageProxy: ImageProxy) -> Content
 
@@ -78,7 +78,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
 public extension URLImage where Content == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
         self.url = url
         self.placeholder = placeholder
         self.content = content

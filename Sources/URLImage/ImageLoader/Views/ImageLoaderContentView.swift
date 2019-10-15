@@ -17,19 +17,19 @@ struct ImageLoaderContentView<Content, Placeholder> : View where Content : View,
         /// Image for incremental loading
         @Published var imageProxy: ImageProxy?
 
-        let partialImage: PartialImage
+        let downloadProgressWrapper: DownloadProgressWrapper
 
         init() {
             imageProxy = nil
-            partialImage = PartialImage()
+            downloadProgressWrapper = DownloadProgressWrapper()
         }
     }
 
-    let placeholder: (_ partialImage: PartialImage) -> Placeholder
+    let placeholder: (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder
 
     let content: (_ imageProxy: ImageProxy) -> Content
 
-    init(model: Model, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(model: Model, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.model = model
         self.placeholder = placeholder
         self.content = content
@@ -38,7 +38,7 @@ struct ImageLoaderContentView<Content, Placeholder> : View where Content : View,
     var body: some View {
         ZStack {
             if model.imageProxy == nil {
-                placeholder(model.partialImage)
+                placeholder(model.downloadProgressWrapper)
             }
             else {
                 content(model.imageProxy!)

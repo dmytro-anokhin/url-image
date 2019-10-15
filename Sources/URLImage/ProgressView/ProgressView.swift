@@ -10,16 +10,16 @@ import SwiftUI
 
 public struct ProgressView<Content>: View where Content : View {
 
-    public init(_ partialImage: PartialImage, content: @escaping (_ progress: Float) -> Content) {
-        self.partialImage = partialImage
+    public init(_ downloadProgressWrapper: DownloadProgressWrapper, content: @escaping (_ progress: Float) -> Content) {
+        self.downloadProgressWrapper = downloadProgressWrapper
         self.content = content
     }
 
-    @ObservedObject public var partialImage: PartialImage
+    @ObservedObject public var downloadProgressWrapper: DownloadProgressWrapper
 
     public var content: (_ progress: Float) -> Content
 
     public var body: some View {
-        content($partialImage.progress.wrappedValue ?? 0.0)
+        content($downloadProgressWrapper.progress.wrappedValue ?? 0.0)
     }
 }

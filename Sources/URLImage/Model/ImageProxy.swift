@@ -1,5 +1,5 @@
 //
-//  ImageWrapper.swift
+//  ImageProxy.swift
 //  
 //
 //  Created by Dmytro Anokhin on 18/09/2019.

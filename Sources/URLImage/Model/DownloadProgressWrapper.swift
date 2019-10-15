@@ -1,5 +1,5 @@
 //
-//  PartialImage.swift
+//  DownloadProgressWrapper.swift
 //  
 //
 //  Created by Dmytro Anokhin on 21/09/2019.
@@ -8,7 +8,7 @@
 import Combine
 
 
-public final class PartialImage: ObservableObject {
+public final class DownloadProgressWrapper: ObservableObject {
 
     @Published public var progress: Float?
 

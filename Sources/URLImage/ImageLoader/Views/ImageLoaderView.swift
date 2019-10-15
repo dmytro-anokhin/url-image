@@ -20,11 +20,11 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let expiryDate: Date?
 
-    let placeholder: (_ partialImage: PartialImage) -> Placeholder
+    let placeholder: (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder
 
     let content: (_ imageProxy: ImageProxy) -> Content
 
-    init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.delay = delay
         self.incremental = incremental
@@ -41,7 +41,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
         let observer = ImageLoaderObserver(
             progress: { progress in
-                viewModel.partialImage.progress = progress
+                viewModel.downloadProgressWrapper.progress = progress
             },
             partial: { imageProxy in
                 viewModel.imageProxy = imageProxy
@@ -64,7 +64,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
         return ImageLoaderView(url, delay: delay, incremental: incremental, expireAfter: expiryDate, imageLoaderService: imageLoaderService, placeholder: placeholder, content: content, onLoad: action)
     }
 
-    private init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ partialImage: PartialImage) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, imageLoaderService: ImageLoaderService, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.delay = delay
         self.incremental = incremental
