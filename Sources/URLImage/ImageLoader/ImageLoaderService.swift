@@ -130,7 +130,19 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     private let remoteFileCache: RemoteFileCacheService
     private let inMemoryCacheService: InMemoryCacheService
 
-    private var urlToDownloaderMap: [URL: Downloader] = [:]
+    private var _urlToDownloaderMap: [URL: Downloader] = [:]
+
+    private var urlToDownloaderMap: [URL: Downloader] {
+        get {
+            assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
+            return _urlToDownloaderMap
+        }
+
+        set {
+            assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
+            _urlToDownloaderMap = newValue
+        }
+    }
 
     private func createDownloaderIfNeeded(forURL url: URL, incremental: Bool) {
         guard urlToDownloaderMap[url] == nil else {
@@ -149,7 +161,9 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
 
         downloader.completionCallback = {
-            self.urlToDownloaderMap.removeValue(forKey: url)
+            self.queue.addOperation {
+                self.urlToDownloaderMap.removeValue(forKey: url)
+            }
         }
 
         urlToDownloaderMap[url] = downloader
