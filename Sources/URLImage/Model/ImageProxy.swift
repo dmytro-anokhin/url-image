@@ -52,7 +52,7 @@ final class ImageWrapper: ImageProxy {
         self.init(cgImage: cgImage)
     }
 
-    private init(cgImage: CGImage) {
+    init(cgImage: CGImage) {
         self.cgImage = cgImage
     }
 

@@ -24,17 +24,17 @@ public protocol URLImageServiceType {
 
 public final class Services {
 
-    init(remoteFileCacheService: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService, imageLoaderService: ImageLoaderService) {
+    init(remoteFileCacheService: RemoteFileCacheService, imageLoaderService: ImageLoaderService, imageProcessingService: ImageProcessingService) {
         self.remoteFileCacheService = remoteFileCacheService
-        self.inMemoryCacheService = inMemoryCacheService
         self.imageLoaderService = imageLoaderService
+        self.imageProcessingService = imageProcessingService
     }
 
     let remoteFileCacheService: RemoteFileCacheService
 
-    let inMemoryCacheService: InMemoryCacheService
-
     let imageLoaderService: ImageLoaderService
+
+    let imageProcessingService: ImageProcessingService
 }
 
 
@@ -60,9 +60,10 @@ public final class URLImageService: URLImageServiceType {
 
     private init() {
         let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
-        let inMemoryCacheService = InMemoryCacheServiceDummyImpl()
-        let imageLoaderService = ImageLoaderServiceImpl(remoteFileCache: remoteFileCacheService, inMemoryCacheService: inMemoryCacheService)
+        let imageProcessingService = ImageProcessingServiceImpl()
 
-        services = Services(remoteFileCacheService: remoteFileCacheService, inMemoryCacheService: inMemoryCacheService, imageLoaderService: imageLoaderService)
+        let imageLoaderService = ImageLoaderServiceImpl(remoteFileCache: remoteFileCacheService, imageProcessingService: imageProcessingService)
+
+        services = Services(remoteFileCacheService: remoteFileCacheService, imageLoaderService: imageLoaderService, imageProcessingService: imageProcessingService)
     }
 }

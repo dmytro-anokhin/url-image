@@ -8,11 +8,12 @@
 //
 
 import Foundation
+import CoreGraphics
 
 
-protocol ImageLoaderService {
+protocol ImageLoaderService: AnyObject {
 
-    func subscribe(forURL url: URL, incremental: Bool, _ observer: ImageLoaderObserver)
+    func subscribe(forURL url: URL, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver)
 
     func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL)
 
@@ -22,7 +23,7 @@ protocol ImageLoaderService {
 
 final class ImageLoaderServiceImpl: ImageLoaderService {
 
-    init(remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
+    init(remoteFileCache: RemoteFileCacheService, imageProcessingService: ImageProcessingService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
 
@@ -30,7 +31,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
-        self.inMemoryCacheService = inMemoryCacheService
+        self.imageProcessingService = imageProcessingService
 
         urlSessionDelegate.finishDownloadingCallback = { task, tmpURL in
             guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? FileDownloader else {
@@ -72,10 +73,11 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
     }
 
-    func subscribe(forURL url: URL, incremental: Bool, _ observer: ImageLoaderObserver) {
+    func subscribe(forURL url: URL, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver) {
         queue.addOperation {
             self.createDownloaderIfNeeded(forURL: url, incremental: incremental)
-            self.urlToDownloaderMap[url]?.addObserver(observer)
+            let handler = ImageLoadHandler(processor: processor, observer: observer)
+            self.urlToDownloaderMap[url]?.addHandler(handler)
         }
     }
 
@@ -85,9 +87,13 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
                 return
             }
 
-            task.removeObserver(observer)
+            let handlersToRemove = task.handlers.filter { $0.observer === observer }
 
-            if task.observers.isEmpty {
+            for handler in handlersToRemove {
+                task.removeHandler(handler)
+            }
+
+            if task.handlers.isEmpty {
                 self.urlToDownloaderMap[url]?.cancel()
             }
         }
@@ -127,8 +133,8 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     private let urlSession: URLSession
     private let urlSessionDelegate: URLSessionDelegateWrapper
 
-    private let remoteFileCache: RemoteFileCacheService
-    private let inMemoryCacheService: InMemoryCacheService
+    private unowned let remoteFileCache: RemoteFileCacheService
+    private unowned let imageProcessingService: ImageProcessingService
 
     private var _urlToDownloaderMap: [URL: Downloader] = [:]
 
@@ -153,11 +159,11 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
 
         if incremental {
             let task = urlSession.dataTask(with: url)
-            downloader = DataDownloader(url: url, task: task, remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
+            downloader = DataDownloader(url: url, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
         }
         else {
             let task = urlSession.downloadTask(with: url)
-            downloader = FileDownloader(url: url, task: task, remoteFileCache: remoteFileCache, inMemoryCacheService: inMemoryCacheService)
+            downloader = FileDownloader(url: url, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
         }
 
         downloader.completionCallback = {

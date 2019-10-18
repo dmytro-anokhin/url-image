@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 
 class Downloader {
@@ -16,13 +17,13 @@ class Downloader {
 
     let remoteFileCache: RemoteFileCacheService
 
-    let inMemoryCacheService: InMemoryCacheService
+    let imageProcessingService: ImageProcessingService
 
-    init(url: URL, task: URLSessionTask, remoteFileCache: RemoteFileCacheService, inMemoryCacheService: InMemoryCacheService) {
+    init(url: URL, task: URLSessionTask, remoteFileCache: RemoteFileCacheService, imageProcessingService: ImageProcessingService) {
         self.url = url
         self.task = task
         self.remoteFileCache = remoteFileCache
-        self.inMemoryCacheService = inMemoryCacheService
+        self.imageProcessingService = imageProcessingService
     }
 
     var completionCallback: (() -> Void)?
@@ -30,43 +31,51 @@ class Downloader {
     var expiryDate: Date? = nil
 
     func resume(after delay: Double) {
-        assert(!observers.isEmpty, "Starting to load the image at \(url) but no observers subscribed")
+        assert(!handlers.isEmpty, "Starting to load the image at \(url) but no handlers created")
 
         guard transition(to: .scheduled) else {
-            return
-        }
-
-        if let imageWrapper = inMemoryCacheService.image(for: url) {
-            guard self.transition(to: .finished) else {
-                return
-            }
-
-            self.notifyObserversAboutCompletion(imageWrapper)
-            self.completionCallback?()
-
             return
         }
 
         remoteFileCache.getFile(withRemoteURL: url) { localURL in
 
             if let localURL = localURL {
-                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
+                if let image = createCGImage(fileURL: localURL) {
+                    guard self.transition(to: .finishing) else {
+                        return
+                    }
 
-                    self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
+                    self.notifyObserversAboutCompletion(image)
 
                     guard self.transition(to: .finished) else {
                         return
                     }
 
-                    self.notifyObserversAboutCompletion(imageWrapper)
                     self.completionCallback?()
 
                     return
                 }
                 else {
-                    // URL is still registered in the local cache but the file was removed
+                    // Not able to load image from file. This is inconsistent state: URL is still registered in the local cache but the file was removed or corrupted. Remove file from the cache and redownload.
                     try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                 }
+
+//                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
+//
+//
+//                    guard self.transition(to: .finished) else {
+//                        return
+//                    }
+//
+//                    self.notifyObserversAboutCompletion(imageWrapper)
+//                    self.completionCallback?()
+//
+//                    return
+//                }
+//                else {
+//                    // URL is still registered in the local cache but the file was removed
+//                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
+//                }
             }
 
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
@@ -81,7 +90,7 @@ class Downloader {
     }
 
     func cancel() {
-        assert(observers.isEmpty, "Cancelling loading the image at \(url) while some observers are still subscribed")
+        assert(handlers.isEmpty, "Cancelling loading the image at \(url) while some handlers are still attached")
 
         guard transition(to: .cancelling) else {
             return
@@ -90,14 +99,14 @@ class Downloader {
         task.cancel()
     }
 
-    private(set) var observers = Set<ImageLoaderObserver>()
+    private(set) var handlers = Set<ImageLoadHandler>()
 
-    func addObserver(_ observer: ImageLoaderObserver) {
-        observers.insert(observer)
+    func addHandler(_ handler: ImageLoadHandler) {
+        handlers.insert(handler)
     }
 
-    func removeObserver(_ observer: ImageLoaderObserver) {
-        observers.remove(observer)
+    func removeHandler(_ handler: ImageLoadHandler) {
+        handlers.remove(handler)
     }
 
     func complete(with error: Error?) {
@@ -136,20 +145,35 @@ class Downloader {
     }
 
     fileprivate func notifyObserversAboutProgress(_ progress: Float?) {
-        for observer in observers {
-            observer.progress(progress)
+        for handler in handlers {
+            handler.observer.progress(progress)
         }
     }
 
     fileprivate func notifyObserversAboutPartial(_ imageProxy: ImageProxy) {
-        for observer in observers {
-            observer.partial(imageProxy)
+        for handler in handlers {
+            handler.observer.partial(imageProxy)
         }
     }
 
     fileprivate func notifyObserversAboutCompletion(_ imageProxy: ImageProxy) {
-        for observer in observers {
-            observer.completion(imageProxy)
+        for handler in handlers {
+            handler.observer.completion(imageProxy)
+        }
+    }
+
+    fileprivate func notifyObserversAboutCompletion(_ image: CGImage) {
+        for handler in handlers {
+            if let processor = handler.processor {
+                imageProcessingService.processImage(image, usingProcessor: processor) { resultImage in
+                    let imageProxy: ImageProxy = ImageWrapper(cgImage: resultImage)
+                    handler.observer.completion(imageProxy)
+                }
+            }
+            else {
+                let imageProxy: ImageProxy = ImageWrapper(cgImage: image)
+                handler.observer.completion(imageProxy)
+            }
         }
     }
 }
@@ -177,7 +201,6 @@ final class FileDownloader: Downloader {
         }
 
         DispatchQueue.main.async {
-            self.inMemoryCacheService.setImage(imageWrapper, for: self.url)
             self.notifyObserversAboutCompletion(imageWrapper)
         }
     }
@@ -221,7 +244,6 @@ final class DataDownloader: Downloader {
         }
 
         DispatchQueue.main.async {
-            // self.inMemoryCacheService.setImage(self.imageWrapper, for: self.url)
             self.notifyObserversAboutCompletion(self.imageWrapper)
         }
     }

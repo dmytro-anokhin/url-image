@@ -11,7 +11,7 @@ import Foundation
 import CoreData
 
 
-protocol RemoteFileCacheService {
+protocol RemoteFileCacheService: AnyObject {
 
     func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?) throws -> URL
 
