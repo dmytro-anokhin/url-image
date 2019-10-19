@@ -157,7 +157,7 @@ Image processing is performed in-order on a background queue. `URLImage` limits 
 
 There are two ways to implement custom image processor:
 
-1. Implement `ImageProcessing` protocol. This is the most flexible and reusable approach.
+Implement `ImageProcessing` protocol. This is the most flexible and reusable approach.
 
 ```swift
 protocol ImageProcessing {
@@ -166,7 +166,7 @@ protocol ImageProcessing {
 }
 ```
 
-2. Use `ImageProcessorClosure` and pass image processor as a closure.
+Use `ImageProcessorClosure` and pass image processor as a closure.
 
 ```swift
 URLImage(url, processors: [
@@ -178,7 +178,7 @@ URLImage(url, processors: [
 
 ### Core Image Filters
 
-(Core Image)[https://developer.apple.com/documentation/coreimage] provides number of useful filters and `URLImage` has built-in support for it with `CoreImageFilterProcessor` processor.
+[Core Image](https://developer.apple.com/documentation/coreimage) provides number of useful filters and `URLImage` has built-in support for it with `CoreImageFilterProcessor` processor.
 
 ```swift
 // Apply sepia filter
@@ -313,7 +313,7 @@ struct ListView : View {
 
 ### Using image processors and Core Image filters
 
-This example demonstrates using filters from this documentation (Processing an Image Using Built-in Filters)[https://developer.apple.com/documentation/coreimage/processing_an_image_using_built-in_filters].
+This example demonstrates using filters from this documentation [Processing an Image Using Built-in Filters](https://developer.apple.com/documentation/coreimage/processing_an_image_using_built-in_filters).
 
 ```swift
 import SwiftUI
