@@ -20,17 +20,17 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let expiryDate: Date?
 
-    let processor: ImageProcessing?
+    let processors: [ImageProcessing]?
 
     let placeholder: (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder
 
     let content: (_ imageProxy: ImageProxy) -> Content
 
-    init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processor: ImageProcessing?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.url = url
         self.delay = delay
         self.incremental = incremental
-        self.processor = processor
+        self.processors = processors
         self.placeholder = placeholder
         self.expiryDate = expiryDate
         self.content = content
@@ -55,7 +55,16 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {
-                self.services.imageLoaderService.subscribe(forURL: self.url, incremental: self.incremental, processor: self.processor, observer)
+                let processor: ImageProcessing?
+
+                if let processors = self.processors {
+                    processor = ImageProcessorGroup(processors: processors)
+                }
+                else {
+                    processor = nil
+                }
+
+                self.services.imageLoaderService.subscribe(forURL: self.url, incremental: self.incremental, processor: processor, observer)
                 self.services.imageLoaderService.load(url: self.url, delay: self.delay, expiryDate: self.expiryDate)
             }
             .onDisappear {
@@ -64,14 +73,14 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Content, Placeholder> {
-        return ImageLoaderView(url, delay: delay, incremental: incremental, expireAfter: expiryDate, processor: processor, services: services, placeholder: placeholder, content: content, onLoad: action)
+        return ImageLoaderView(url, delay: delay, incremental: incremental, expireAfter: expiryDate, processors: processors, services: services, placeholder: placeholder, content: content, onLoad: action)
     }
 
-    private init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processor: ImageProcessing?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ url: URL, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.url = url
         self.delay = delay
         self.incremental = incremental
-        self.processor = processor
+        self.processors = processors
         self.placeholder = placeholder
         self.expiryDate = expiryDate
         self.content = content

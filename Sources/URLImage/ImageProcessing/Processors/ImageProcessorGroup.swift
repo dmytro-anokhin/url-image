@@ -8,15 +8,15 @@
 import CoreGraphics
 
 
-public struct ImageProcessorGroup: ImageProcessing {
+struct ImageProcessorGroup: ImageProcessing {
 
-    public let processors: [ImageProcessing]
+    let processors: [ImageProcessing]
 
-    public init(processors: [ImageProcessing]) {
+    init(processors: [ImageProcessing]) {
         self.processors = processors
     }
 
-    public func process(_ input: CGImage) -> CGImage {
+    func process(_ input: CGImage) -> CGImage {
         var resultImage = input
 
         for processor in processors {

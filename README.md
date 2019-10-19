@@ -12,6 +12,7 @@
 - Download progress indication;
 - Incremental downloading with interlaced images support (interlaced PNG, interlaced GIF, and progressive JPEG);
 - Fully customizable including placeholder, progress indication, and the image view;
+- Image processing and Core Image filters;
 - Control over download delay for better scroll performance in lists;
 - Lower memory consumption when downloading image data directly to disk.
 
@@ -140,9 +141,104 @@ Because cached files are deleted lazily it is a good idea to clean caches time t
 
 - Files cache can be reset by calling `URLImageService.shared.resetFileCache()`.
 
+## Image Processing, Filters, and Resizing
+
+`URLImage` supports image processing and Core Image filters. The `ImageProcessing` encapsulates data and logic to process an image. `URLImage` initializer accepts an array of `ImageProcessing` objects.
+
+```swift
+URLImage(url, processors: [ /* Array of image processors */ ])
+```
+
+Image processing is performed in-order on a background queue. `URLImage` limits maximum number of operations in order not to create thread explosion.
+
+*Note: currently image processing is supported for non-incremental downloads*
+
+### Custom Image Processor
+
+There are two ways to implement custom image processor:
+
+1. Implement `ImageProcessing` protocol. This is the most flexible and reusable approach.
+
+```swift
+protocol ImageProcessing {
+
+    func process(_ input: CGImage) -> CGImage
+}
+```
+
+2. Use `ImageProcessorClosure` and pass image processor as a closure.
+
+```swift
+URLImage(url, processors: [
+    ImageProcessorClosure { input in
+        // return result or input
+    }
+]
+```
+
+### Core Image Filters
+
+(Core Image)[https://developer.apple.com/documentation/coreimage] provides number of useful filters and `URLImage` has built-in support for it with `CoreImageFilterProcessor` processor.
+
+```swift
+// Apply sepia filter
+
+URLImage(url, processors: [
+    CoreImageFilterProcessor(name: "CISepiaTone", parameters: [ kCIInputIntensityKey: 0.9 ])
+])
+```
+
+When applying multiple Core Image filters it is best to reuse `CIContext` object:
+
+```swift
+// Apply sepia and bloom filters
+
+struct MyImageView : View {
+
+    let url: URL
+
+    let ciContext = CIContext()
+
+    var body: some View {
+        URLImage(url,
+            processors: [
+                 CoreImageFilterProcessor(name: "CISepiaTone", parameters: [ kCIInputIntensityKey: 0.9 ], context: self.ciContext),
+                 CoreImageFilterProcessor(name: "CIBloom", parameters: [ kCIInputIntensityKey: 1, kCIInputRadiusKey: 10.0 ], context: self.ciContext)
+            ])
+    }
+}
+```
+
+*Note: Core Image framework is not supported on watchOS*
+
+### Resizing and Performance
+
+For best performance it is important to keep main thread free and graphic operations executed by GPU. You can read more in my post here: [Rendering performance of iOS apps](https://medium.com/@dmytro.anokhin/rendering-performance-of-ios-apps-4d09a9228930).
+
+We want to follow this criteria:
+- Image point size must be the same as the view frame;
+- Image scale must be the same as the screen scale;
+- Image color format must be natively supported.
+
+`URLImage` provides convenient way to resize images preserving color space. Use `Resize` processor the view frame is know in advance.
+
+```swift
+URLImage(url,
+    processors: [ Resize(size: CGSize(width: 100.0, height: 100.0), scale: UIScreen.main.scale) ],
+    content:  {
+        $0.image
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+            .clipped()
+    })
+        .frame(width: 100.0, height: 100.0)
+```
+
+Use `UIScreen` `scale` on iOS and `NSScreen` `backingScaleFactor` on macOS. 
+
 ## Examples
 
-Using in a view:
+### Using in a view
 
 ```swift
 import SwiftUI
@@ -179,7 +275,7 @@ struct DetailView : View {
 }
 ```
 
-Using in a list:
+### Using in a list
 
 ```swift
 import SwiftUI
@@ -194,12 +290,15 @@ struct ListView : View {
             List(urls, id: \.self) { url in
                 NavigationLink(destination: DetailView(url: url)) {
                     HStack {
-                        URLImage(url, delay: 0.25) {
+                        URLImage(url,
+                            delay: 0.25,
+                            processors: [ Resize(size: CGSize(width: 100.0, height: 100.0), scale: UIScreen.main.scale) ],
+                            content:  {
                                 $0.image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .clipped()
-                            }
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .clipped()
+                            })
                                 .frame(width: 100.0, height: 100.0)
 
                         Text("\(url)")
@@ -208,6 +307,59 @@ struct ListView : View {
             }
             .navigationBarTitle(Text("Images"))
         }
+    }
+}
+```
+
+### Using image processors and Core Image filters
+
+This example demonstrates using filters from this documentation (Processing an Image Using Built-in Filters)[https://developer.apple.com/documentation/coreimage/processing_an_image_using_built-in_filters].
+
+```swift
+import SwiftUI
+import URLImage
+import CoreImage
+
+struct DetailView : View {
+
+    let url: URL
+
+    let ciContext = CIContext()
+
+    var body: some View {
+        URLImage(url,
+            processors: [
+                 // Core Image Sepia filter
+                 CoreImageFilterProcessor(name: "CISepiaTone", parameters: [ kCIInputIntensityKey: 0.9 ], context: self.ciContext),
+                 
+                 // Core Image Bloom filter
+                 CoreImageFilterProcessor(name: "CIBloom", parameters: [ kCIInputIntensityKey: 1, kCIInputRadiusKey: 10.0 ], context: self.ciContext),
+
+                 // Core Image Lanczos scale in a closure
+                 ImageProcessorClosure { input in
+                     let scaleFilter = CIFilter(name:"CILanczosScaleTransform")
+
+                     let ciImage = CIImage(cgImage: input)
+                     scaleFilter?.setValue(ciImage, forKey: kCIInputImageKey)
+
+                     let aspectRatio = Double(input.width) / Double(input.height)
+                     scaleFilter?.setValue(aspectRatio, forKey: kCIInputAspectRatioKey)
+
+                     scaleFilter?.setValue(0.5, forKey: kCIInputScaleKey)
+
+                     guard let outputImage = scaleFilter?.outputImage else {
+                         return input
+                     }
+
+                     var bounds = CGRect(x: 0, y: 0, width: input.width, height: input.height)
+                     bounds.origin.x = bounds.width * -0.25
+                     bounds.origin.y = bounds.height * -0.25
+
+                     let resultImage = self.ciContext.createCGImage(outputImage, from: bounds, format: .RGBA8, colorSpace: input.colorSpace)
+
+                     return resultImage ?? input
+                 }
+            ])
     }
 }
 ```
