@@ -369,7 +369,7 @@ struct DetailView : View {
 `URLImage` allows you to configure its parameters using initializer:
 
 ```swift
-init(_ url: URL, delay: TimeInterval, incremental: Bool, expiryDate: Date?)
+init(_ url: URL, delay: TimeInterval, incremental: Bool, processors: [ImageProcessing]?, expiryDate: Date?)
 ```
 
 **`url`**
@@ -383,6 +383,10 @@ Delay before `URLImage` fetches the image from cache or starts to download it. T
 **`incremental`**
 
 Set to use incremental image downloading mode.
+
+**`processors`**
+
+Optional list of image processors to apply.
 
 **`expiryDate`**
 
