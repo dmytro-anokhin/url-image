@@ -34,6 +34,9 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
     let processor: ImageProcessing?
 
     public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processor: ImageProcessing? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+
+        assert(!(incremental && processor != nil), "Using image processing with incremental download is not supported yet")
+
         self.url = url
         self.placeholder = placeholder
         self.content = content
@@ -82,6 +85,9 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 public extension URLImage where Content == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processor: ImageProcessing? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processor != nil), "Using image processing with incremental download is not supported yet")
+
         self.url = url
         self.placeholder = placeholder
         self.content = content
@@ -103,6 +109,9 @@ return Image(nsImage: NSImage())
 return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+
+        assert(!(incremental && processor != nil), "Using image processing with incremental download is not supported yet")
+
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content
@@ -124,6 +133,9 @@ return Image(nsImage: NSImage())
 return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processor != nil), "Using image processing with incremental download is not supported yet")
+
         self.url = url
         self.placeholder = { _ in placeholderImage }
         self.content = content

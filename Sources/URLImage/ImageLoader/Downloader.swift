@@ -41,41 +41,20 @@ class Downloader {
 
             if let localURL = localURL {
                 if let image = createCGImage(fileURL: localURL) {
-                    guard self.transition(to: .finishing) else {
+                    if self.transition(to: .finishing) {
+                        self.notifyObserversAboutCompletion(image)
+
+                        if self.transition(to: .finished) {
+                            self.completionCallback?()
+                        }
+
                         return
                     }
-
-                    self.notifyObserversAboutCompletion(image)
-
-                    guard self.transition(to: .finished) else {
-                        return
-                    }
-
-                    self.completionCallback?()
-
-                    return
                 }
                 else {
                     // Not able to load image from file. This is inconsistent state: URL is still registered in the local cache but the file was removed or corrupted. Remove file from the cache and redownload.
                     try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                 }
-
-//                if let imageWrapper = ImageWrapper(fileURL: localURL) { // Loaded from disk
-//
-//
-//                    guard self.transition(to: .finished) else {
-//                        return
-//                    }
-//
-//                    self.notifyObserversAboutCompletion(imageWrapper)
-//                    self.completionCallback?()
-//
-//                    return
-//                }
-//                else {
-//                    // URL is still registered in the local cache but the file was removed
-//                    try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
-//                }
             }
 
             DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
@@ -192,7 +171,7 @@ final class FileDownloader: Downloader {
             return
         }
 
-        guard let imageWrapper = ImageWrapper(fileURL: localURL) else {
+        guard let image = createCGImage(fileURL: localURL) else {
             // Failed to read the file
             // Remove the file from the cache
             try? remoteFileCache.delete(fileName: localURL.lastPathComponent)
@@ -200,9 +179,7 @@ final class FileDownloader: Downloader {
             return
         }
 
-        DispatchQueue.main.async {
-            self.notifyObserversAboutCompletion(imageWrapper)
-        }
+        self.notifyObserversAboutCompletion(image)
     }
 
     func progress(_ progress: Float?) {
@@ -219,7 +196,7 @@ final class DataDownloader: Downloader {
 
     func append(data: Data) {
         imageWrapper.append(data)
-        
+
         DispatchQueue.main.async {
             self.notifyObserversAboutPartial(self.imageWrapper)
         }
