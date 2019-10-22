@@ -26,6 +26,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     init(remoteFileCache: RemoteFileCacheService, imageProcessingService: ImageProcessingService) {
         let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
         urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
+        urlSessionConfiguration.httpAdditionalHeaders = URLImageService.httpAdditionalHeaders
 
         urlSessionDelegate = URLSessionDelegateWrapper()
         urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)

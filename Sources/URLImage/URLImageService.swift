@@ -10,6 +10,10 @@ import Foundation
 
 public protocol URLImageServiceType {
 
+    static var httpAdditionalHeaders: [AnyHashable : Any]? { get }
+
+    static func setHttpAdditionalHeaders(_ httpAdditionalHeaders: [AnyHashable : Any]?)
+    
     var services: Services { get }
 
     var defaultExpiryTime: TimeInterval { get }
@@ -43,6 +47,12 @@ public final class URLImageService: URLImageServiceType {
     public static let shared: URLImageServiceType = URLImageService()
 
     public let services: Services
+
+    public static private(set) var httpAdditionalHeaders: [AnyHashable : Any]?
+
+    public static func setHttpAdditionalHeaders(_ httpAdditionalHeaders: [AnyHashable : Any]?) {
+        self.httpAdditionalHeaders = httpAdditionalHeaders
+    }
 
     public private(set) var defaultExpiryTime: TimeInterval = 60.0 * 60.0 * 24.0 * 7.0 // 1 week
 
