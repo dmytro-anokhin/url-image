@@ -12,27 +12,21 @@ import CoreData
 /// Used to create `NSAttributeDescription`
 struct CoreDataAttributeDescription {
 
-    let name: String
-
-    let attributeType: NSAttributeType
-
-    let indexed: Bool
-
-    private init(name: String, attributeType: NSAttributeType, indexed: Bool) {
-        self.name = name
-        self.attributeType = attributeType
-        self.indexed = indexed
+    static func attribute(name: String, type: NSAttributeType, isOptional: Bool = false) -> CoreDataAttributeDescription {
+        CoreDataAttributeDescription(name: name, attributeType: type, isOptional: isOptional)
     }
 
-    static func attribute(name: String, type: NSAttributeType, indexed: Bool = false) -> CoreDataAttributeDescription {
-        return CoreDataAttributeDescription(name: name, attributeType: type, indexed: indexed)
-    }
+    var name: String
+
+    var attributeType: NSAttributeType
+
+    var isOptional: Bool
 
     func makeAttribute() -> NSAttributeDescription {
         let attribute = NSAttributeDescription()
         attribute.name = name
         attribute.attributeType = attributeType
-        attribute.isIndexed = indexed
+        attribute.isOptional = isOptional
 
         return attribute
     }

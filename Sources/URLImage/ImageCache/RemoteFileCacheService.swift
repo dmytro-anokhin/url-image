@@ -328,8 +328,7 @@ fileprivate class FileIndex {
                 attributes: [
                     .attribute(
                         name: "urlString",
-                        type: .stringAttributeType,
-                        indexed: true
+                        type: .stringAttributeType
                     ),
                     .attribute(
                         name: "fileName",
@@ -343,6 +342,10 @@ fileprivate class FileIndex {
                         name: "expiryDate",
                         type: .dateAttributeType
                     )
+                ],
+                indexes: [
+                    .index(name: "byURLString", elements: [ .property(name: "urlString") ]),
+                    .index(name: "byFileName", elements: [ .property(name: "fileName") ])
                 ])
         ]
     )

@@ -12,29 +12,21 @@ import CoreData
 /// Used to create `NSEntityDescription`
 struct CoreDataEntityDescription {
 
-    let name: String
-
-    let managedObjectClassName: String
-
-    let attributes: [CoreDataAttributeDescription]
-
-    /// Use `entity` factory function to create `CoreDataEntityDescription` object because it uses `NSManagedObject.Type` for `managedObjectClass` argument.
-    private init(name: String, managedObjectClassName: String, attributes: [CoreDataAttributeDescription]) {
-        self.name = name
-        self.managedObjectClassName = managedObjectClassName
-        self.attributes = attributes
+    static func entity(name: String,
+                              managedObjectClass: NSManagedObject.Type = NSManagedObject.self,
+                              parentEntity: String? = nil,
+                              attributes: [CoreDataAttributeDescription] = [],
+                              indexes: [CoreDataFetchIndexDescription] = []) -> CoreDataEntityDescription {
+        CoreDataEntityDescription(name: name, managedObjectClassName: NSStringFromClass(managedObjectClass), parentEntity: parentEntity, attributes: attributes, indexes: indexes)
     }
 
-    static func entity(name: String, managedObjectClass: NSManagedObject.Type, attributes: [CoreDataAttributeDescription]) -> CoreDataEntityDescription {
-        return CoreDataEntityDescription(name: name, managedObjectClassName: NSStringFromClass(managedObjectClass), attributes: attributes)
-    }
+    var name: String
 
-    func makeEntity() -> NSEntityDescription {
-        let entity = NSEntityDescription()
-        entity.name = name
-        entity.managedObjectClassName = managedObjectClassName
-        entity.properties = attributes.map { $0.makeAttribute() }
+    var managedObjectClassName: String
 
-        return entity
-    }
+    var parentEntity: String?
+
+    var attributes: [CoreDataAttributeDescription]
+
+    var indexes: [CoreDataFetchIndexDescription]
 }
