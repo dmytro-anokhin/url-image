@@ -143,7 +143,7 @@ Because cached files are deleted lazily it is a good idea to clean caches time t
 
 ### Core Data Migration
 
-The local cache uses Core Data to manage its file index. Time to time the structure changes and migration is necessary. Usually Core Data can perform lightweight migration but in cases when the package wasn't updated for some time it may fail. Currently the way to recover is to remove URLImage directory, located in the caches directory. This can also be done by calling `URLImageService.shared.resetFileCache()` on the app launch once (use a breakpoint with debugger command action). Future release will handle migration correctly.
+The local cache uses Core Data to manage its file index. Time to time the structure changes and migration is necessary. Usually Core Data can perform lightweight migration automatically. But in some cases, usually when the package wasn't updated for some time, it may fail. Currently the way to recover is to remove URLImage directory, located in the caches directory. This can also be done by calling `URLImageService.shared.resetFileCache()` on the app launch once (use a breakpoint with debugger command action). Future release will handle migration correctly.
 
 ## Image Processing, Filters, and Resizing
 
