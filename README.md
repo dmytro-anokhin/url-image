@@ -141,6 +141,10 @@ Because cached files are deleted lazily it is a good idea to clean caches time t
 
 - Files cache can be reset by calling `URLImageService.shared.resetFileCache()`.
 
+### Core Data Migration
+
+The local cache uses Core Data to manage its file index. Time to time the structure changes and migration is necessary. Usually Core Data can perform lightweight migration but in cases when the package wasn't updated for some time it may fail. Currently the way to recover is to remove URLImage directory, located in the caches directory. This can also be done by calling `URLImageService.shared.resetFileCache()` on the app launch once (use a breakpoint with debugger command action). Future release will handle migration correctly.
+
 ## Image Processing, Filters, and Resizing
 
 `URLImage` supports image processing and Core Image filters. The `ImageProcessing` encapsulates data and logic to process an image. `URLImage` initializer accepts an array of `ImageProcessing` objects.
