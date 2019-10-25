@@ -13,11 +13,11 @@ import CoreGraphics
 
 protocol ImageLoaderService: AnyObject {
 
-    func subscribe(forURL url: URL, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver)
+    func subscribe(forURLRequest urlRequest: URLRequest, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver)
 
-    func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL)
+    func unsubscribe(_ observer: ImageLoaderObserver, fromURLRequest urlRequest: URLRequest)
 
-    func load(url: URL, delay: TimeInterval, expiryDate: Date?)
+    func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?)
 }
 
 
@@ -33,8 +33,16 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         self.remoteFileCache = remoteFileCache
         self.imageProcessingService = imageProcessingService
 
+        func downloaderForTask(_ task: URLSessionTask) -> Downloader? {
+            guard let urlRequest = task.originalRequest else {
+                return nil
+            }
+
+            return urlRequestToDownloaderMap[urlRequest]
+        }
+
         urlSessionDelegate.finishDownloadingCallback = { task, tmpURL in
-            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? FileDownloader else {
+            guard let downloader = downloaderForTask(task) as? FileDownloader else {
                 return
             }
 
@@ -42,7 +50,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
 
         urlSessionDelegate.writeDataCallback = { task, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite in
-            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? FileDownloader else {
+            guard let downloader = downloaderForTask(task) as? FileDownloader else {
                 return
             }
 
@@ -56,7 +64,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
 
         urlSessionDelegate.receiveDataCallback = { task, data in
-            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] as? DataDownloader else {
+            guard let downloader = downloaderForTask(task) as? DataDownloader else {
                 return
             }
 
@@ -64,7 +72,7 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
 
         urlSessionDelegate.completeCallback = { task, error in
-            guard let url = task.originalRequest?.url, let downloader = self.urlToDownloaderMap[url] else {
+            guard let downloader = downloaderForTask(task) else {
                 return
             }
 
@@ -73,17 +81,17 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
         }
     }
 
-    func subscribe(forURL url: URL, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver) {
+    func subscribe(forURLRequest urlRequest: URLRequest, incremental: Bool, processor: ImageProcessing?, _ observer: ImageLoaderObserver) {
         queue.addOperation {
-            self.createDownloaderIfNeeded(forURL: url, incremental: incremental)
+            self.createDownloaderIfNeeded(forURLRequest: urlRequest, incremental: incremental)
             let handler = ImageLoadHandler(processor: processor, observer: observer)
-            self.urlToDownloaderMap[url]?.addHandler(handler)
+            self.urlRequestToDownloaderMap[urlRequest]?.addHandler(handler)
         }
     }
 
-    func unsubscribe(_ observer: ImageLoaderObserver, fromURL url: URL) {
+    func unsubscribe(_ observer: ImageLoaderObserver, fromURLRequest urlRequest: URLRequest) {
         queue.addOperation {
-            guard let task = self.urlToDownloaderMap[url] else {
+            guard let task = self.urlRequestToDownloaderMap[urlRequest] else {
                 return
             }
 
@@ -94,14 +102,14 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
             }
 
             if task.handlers.isEmpty {
-                self.urlToDownloaderMap[url]?.cancel()
+                self.urlRequestToDownloaderMap[urlRequest]?.cancel()
             }
         }
     }
 
-    func load(url: URL, delay: TimeInterval, expiryDate: Date?) {
+    func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?) {
         queue.addOperation {
-            guard let downloader = self.urlToDownloaderMap[url] else {
+            guard let downloader = self.urlRequestToDownloaderMap[urlRequest] else {
                 assertionFailure("Downloader must be created before calling load")
                 return
             }
@@ -136,42 +144,42 @@ final class ImageLoaderServiceImpl: ImageLoaderService {
     private unowned let remoteFileCache: RemoteFileCacheService
     private unowned let imageProcessingService: ImageProcessingService
 
-    private var _urlToDownloaderMap: [URL: Downloader] = [:]
+    private var _urlRequestToDownloaderMap: [URLRequest: Downloader] = [:]
 
-    private var urlToDownloaderMap: [URL: Downloader] {
+    private var urlRequestToDownloaderMap: [URLRequest: Downloader] {
         get {
             assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
-            return _urlToDownloaderMap
+            return _urlRequestToDownloaderMap
         }
 
         set {
             assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
-            _urlToDownloaderMap = newValue
+            _urlRequestToDownloaderMap = newValue
         }
     }
 
-    private func createDownloaderIfNeeded(forURL url: URL, incremental: Bool) {
-        guard urlToDownloaderMap[url] == nil else {
+    private func createDownloaderIfNeeded(forURLRequest urlRequest: URLRequest, incremental: Bool) {
+        guard urlRequestToDownloaderMap[urlRequest] == nil else {
             return
         }
 
         let downloader: Downloader
 
         if incremental {
-            let task = urlSession.dataTask(with: url)
-            downloader = DataDownloader(url: url, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
+            let task = urlSession.dataTask(with: urlRequest)
+            downloader = DataDownloader(url: urlRequest.url!, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
         }
         else {
-            let task = urlSession.downloadTask(with: url)
-            downloader = FileDownloader(url: url, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
+            let task = urlSession.downloadTask(with: urlRequest)
+            downloader = FileDownloader(url: urlRequest.url!, task: task, remoteFileCache: remoteFileCache, imageProcessingService: imageProcessingService)
         }
 
         downloader.completionCallback = {
             self.queue.addOperation {
-                self.urlToDownloaderMap.removeValue(forKey: url)
+                self.urlRequestToDownloaderMap.removeValue(forKey: urlRequest)
             }
         }
 
-        urlToDownloaderMap[url] = downloader
+        urlRequestToDownloaderMap[urlRequest] = downloader
     }
 }

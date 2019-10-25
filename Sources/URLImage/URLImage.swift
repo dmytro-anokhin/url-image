@@ -23,7 +23,9 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     // MARK: Public
 
-    let url: URL
+    var url: URL { urlRequest.url! }
+
+    let urlRequest: URLRequest
 
     let delay: TimeInterval
 
@@ -37,7 +39,22 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
 
-        self.url = url
+        self.urlRequest = makeRequest(with: url)
+        self.placeholder = placeholder
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+
+    public init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(urlRequest.url != nil)
+        assert(urlRequest.httpMethod == "GET")
+
+        self.urlRequest = urlRequest
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -58,7 +75,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
                 content(imageProxy!)
             }
             else {
-                ImageLoaderView(url, delay: delay, incremental: incremental, expireAfter: expiryDate ?? Date(timeIntervalSinceNow: URLImageService.shared.defaultExpiryTime), processors: processors, services: URLImageService.shared.services, placeholder: placeholder, content: content)
+                ImageLoaderView(urlRequest, delay: delay, incremental: incremental, expireAfter: expiryDate ?? Date(timeIntervalSinceNow: URLImageService.shared.defaultExpiryTime), processors: processors, services: URLImageService.shared.services, placeholder: placeholder, content: content)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url
@@ -88,7 +105,22 @@ public extension URLImage where Content == Image {
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
 
-        self.url = url
+        self.urlRequest = makeRequest(with: url)
+        self.placeholder = placeholder
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+
+    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(urlRequest.url != nil)
+        assert(urlRequest.httpMethod == "GET")
+
+        self.urlRequest = urlRequest
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -112,7 +144,28 @@ return Image(systemName: "photo")
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
 
-        self.url = url
+        self.urlRequest = makeRequest(with: url)
+        self.placeholder = { _ in placeholderImage }
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+
+    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(urlRequest.url != nil)
+        assert(urlRequest.httpMethod == "GET")
+
+        self.urlRequest = urlRequest
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
@@ -136,7 +189,7 @@ return Image(systemName: "photo")
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
 
-        self.url = url
+        self.urlRequest = makeRequest(with: url)
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
@@ -144,4 +197,31 @@ return Image(systemName: "photo")
         self.expiryDate = expiryDate
         self.processors = processors
     }
+
+    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(urlRequest.url != nil)
+        assert(urlRequest.httpMethod == "GET")
+
+        self.urlRequest = urlRequest
+        self.placeholder = { _ in placeholderImage }
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+}
+
+
+@inline(__always)
+fileprivate func makeRequest(with url: URL) -> URLRequest {
+    URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 60.0)
 }
