@@ -5,6 +5,30 @@
 
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL. `URLImage` manages downloading remote image and caching it locally, both in memory and on disk, for you.
 
+# Table of Contents
+- [Features](#features)
+- [Usage](#usage)
+- [Advanced Customization](#advanced-customization)
+- [Progress View](#progress-view)
+- [Incremental Image Loading](#incremental-image-loading)
+- [Local Cache](#local-cache)
+    - [Maintaining Local Cache](#maintaining-local-cache)
+- [Image Processing, Filters, and Resizing](#image-processing-filters-and-resizing)
+    - [Custom Image Processor](#custom-image-processor)
+    - [Core Image Filters](#core-image-filters)
+    - [Resizing and Performance](#resizing-and-performance)
+- [Examples](#examples)
+    - [Using in a view](#using-in-a-view)
+    - [Using in a list](#using-in-a-list)
+    - [Using image processors and Core Image filters](#using-image-processors-and-core-image-filters)
+- [URLImage](#urlimage-1)
+- [Misc](#misc)
+    - [Installation](#installation)
+    - [Reporting a Bug](#reporting-a-bug)
+    - [Requesting a Feature](#requesting-a-feature)
+    - [Contributing](#contributing)
+
+
 ## Features
 - SwiftUI image view for remote images;
 - Asynchronous image loading in the background with cancellation when view disappears;
@@ -18,11 +42,19 @@
 
 ## Usage
 
-`URLImage` must be initialized with `url`:
+`URLImage` can be initialized with `URL`:
  
  ```swift
 URLImage(url)
 ``` 
+
+`URLImage` can also be initialized with `URLRequest` if you need to set additional HTTP headers:
+ 
+ ```swift
+URLImage(urlRequest)
+```
+
+*Note: the package expects GET request with URL*
 
 When using in lists `delay` can be provided to postpone loading and improve scrolling performance:
 
@@ -141,9 +173,6 @@ Because cached files are deleted lazily it is a good idea to clean caches time t
 
 - Files cache can be reset by calling `URLImageService.shared.resetFileCache()`.
 
-### Core Data Migration
-
-The local cache uses Core Data to manage its file index. Time to time the structure changes and migration is necessary. Usually Core Data can perform lightweight migration automatically. But in some cases, usually when the package wasn't updated for some time, it may fail. Currently the way to recover is to remove URLImage directory, located in the caches directory. This can also be done by calling `URLImageService.shared.resetFileCache()` on the app launch once (use a breakpoint with debugger command action). Future release will handle migration correctly.
 
 ## Image Processing, Filters, and Resizing
 
@@ -370,15 +399,20 @@ struct DetailView : View {
 
 ## `URLImage`
 
-`URLImage` allows you to configure its parameters using initializer:
+`URLImage` allows you to configure its parameters using initializers:
 
 ```swift
 init(_ url: URL, delay: TimeInterval, incremental: Bool, processors: [ImageProcessing]?, expiryDate: Date?)
+init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, processors: [ImageProcessing]?, expiryDate: Date?)
 ```
 
 **`url`**
 
 URL of the remote image.
+
+**`urlRequest`**
+
+`URLRequest` for the remote image. The package expects GET request with URL.
 
 **`delay`**
 
@@ -396,9 +430,35 @@ Optional list of image processors to apply.
 
 Date when image considered to be expired and needs to be redownloaded. 
 
-## Installation
+## Misc
+
+### Installation
 
 `URLImage` is a Swift Package and you can install it with Xcode 11:
 - HTTPS `https://github.com/dmytro-anokhin/url-image.git` URL from github;
 - Open **File/Swift Packages/Add Package Dependency...** in Xcode 11;
 - Paste the URL and follow steps.
+
+### Reporting a Bug
+
+Use GitHub issues to report a bug. Include this information when possible:
+- Summary and/or background;
+- OS and what device you are using;
+- What you expected would happen;
+- What actually happens;
+- Additional information:
+ - Screenshots or video demonstrating a bug;
+ - Crash log;
+ - Sample code, try isolating it so it compiles without dependancies;
+ - Test data: if you use public resource provide URLs of the images.
+
+### Requesting a Feature
+
+Use GitHub issues to request a feature.
+
+### Contributing
+
+Contributions are welcome. Please create a GitHub issue before submitting a pull request to plan and discuss implementation.
+
+------
+If you like the package please share it with your network. When you ship an app with URLImage I would love to know about it 🙌
