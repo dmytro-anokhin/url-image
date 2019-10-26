@@ -8,6 +8,7 @@
 # Table of Contents
 - [Features](#features)
 - [Usage](#usage)
+    - [Transition from 0.6.3 to 0.7.0 and later](#transition-from-063-to-070-and-later)
 - [Advanced Customization](#advanced-customization)
 - [Progress View](#progress-view)
 - [Incremental Image Loading](#incremental-image-loading)
