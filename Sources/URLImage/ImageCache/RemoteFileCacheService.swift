@@ -51,8 +51,27 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         directoryURL = baseURL.appendingPathComponent(name, isDirectory: true)
         filesDirectoryURL = directoryURL.appendingPathComponent("files", isDirectory: true)
 
+        // Check previous version and clean if necessary
+        let versionFileURL = directoryURL.appendingPathComponent("filesCacheVersion", isDirectory: false)
+        var cleanFilesCache = true
+
+        if let data = try? Data(contentsOf: versionFileURL), let version = try? JSONDecoder().decode(Version.self, from: data) {
+            cleanFilesCache = version < RemoteFileCacheServiceImpl.minimumCompatibleVersion
+        }
+
+        if cleanFilesCache {
+            // Remove old files cache
+            try? FileManager.default.removeItem(at: directoryURL)
+        }
+
         // Create directory if necessary. Directory must be created before initializing index or adding files.
         try? FileManager.default.createDirectory(at: filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
+
+        let encoder = JSONEncoder()
+
+        if let data = try? encoder.encode(RemoteFileCacheServiceImpl.version) {
+            try? data.write(to: versionFileURL)
+        }
 
         index = FileIndex(directoryURL: directoryURL, fileName: "files", pathExtension: "db")
     }
@@ -138,6 +157,14 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         }
     }
 
+    // MARK: - Private
+
+    /// The current version of the files cache.
+    private static let version = Version(major: 1, minor: 0, patch: 0)
+
+    /// The minimum compatible version of the files cache.
+    private static let minimumCompatibleVersion = Version(major: 1, minor: 0, patch: 0)
+
     /// URL of the directory managed by the `RemoteFileCacheService`. This is the concatenation of the `name` and `baseURL`
     ///
     /// Example: ".../Library/Caches/URLImage/"
@@ -179,223 +206,5 @@ fileprivate extension RemoteFileCacheServiceImpl {
     /// `fileName` must be provided.
     func copy(from sourceURL: URL, to destinationURL: URL) throws {
         try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
-    }
-}
-
-// MARK: - RemoteFileManagedObject
-
-final class RemoteFileManagedObject: NSManagedObject {
-
-    static let entityName = "RemoteFile"
-
-    @NSManaged public var urlString: String?
-
-    @NSManaged public var dateCreated: Date?
-
-    @NSManaged public var expiryDate: Date?
-
-    @NSManaged public var fileName: String?
-}
-
-// MARK: - FileIndex
-
-@available(iOS 10.0, *)
-fileprivate class FileIndex {
-
-    init(directoryURL: URL, fileName: String, pathExtension: String) {
-
-        let model = FileIndex.coreDataModelDescription.makeModel()
-
-        let storeDescription = NSPersistentStoreDescription()
-        storeDescription.url = directoryURL.appendingPathComponent(fileName, isDirectory: false).appendingPathExtension(pathExtension)
-
-        container = NSPersistentContainer(name: "URLImage", managedObjectModel: model)
-        container.persistentStoreDescriptions = [storeDescription]
-        container.load()
-
-        context = container.newBackgroundContext()
-        context.undoManager = nil
-    }
-
-    func shutDown() {
-        let persistentStoreDescriptions = container.persistentStoreDescriptions
-
-        for persistentStoreDescription in persistentStoreDescriptions {
-            guard let url = persistentStoreDescription.url else {
-                continue
-            }
-
-            do {
-                try container.persistentStoreCoordinator.destroyPersistentStore(at: url, ofType: persistentStoreDescription.type, options: nil)
-            }
-            catch {
-                print(error)
-            }
-        }
-    }
-
-    func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated: Date, expiryDate: Date?) {
-        context.perform {
-            let file = NSEntityDescription.insertNewObject(forEntityName: RemoteFileManagedObject.entityName, into: self.context) as! RemoteFileManagedObject
-            file.urlString = remoteURL.absoluteString
-            file.dateCreated = dateCreated
-            file.expiryDate = expiryDate
-            file.fileName = fileName
-
-            do {
-                try self.context.save()
-            }
-            catch {
-                print(error)
-            }
-        }
-    }
-
-    typealias RemoteFileInfo = (urlString: String, dateCreated: Date, expiryDate: Date?, fileName: String)
-
-    func fileInfo(forRemoteURL remoteURL: URL, completion: @escaping (_ fileInfo: RemoteFileInfo?) -> Void) {
-        fetch(urlString: remoteURL.absoluteString) { result in
-            switch result {
-                case .success(let file):
-                    guard let file = file else {
-                        completion(nil)
-                        return
-                    }
-
-                    let result = RemoteFileInfo(urlString: file.urlString!, dateCreated: file.dateCreated!, expiryDate: file.expiryDate, fileName: file.fileName!)
-                    completion(result)
-
-                case .failure(let error):
-                    print(error)
-                    completion(nil)
-            }
-        }
-    }
-
-    func removeFileInfo(forFileName fileName: String) {
-        fetch(fileName: fileName) { result in
-            switch result {
-                case .success(let file):
-                    guard let file = file else {
-                        return
-                    }
-
-                    self.context.delete(file)
-
-
-                case .failure(let error):
-                    print(error)
-                    return
-            }
-        }
-    }
-
-    func removeExpired() {
-        context.perform {
-            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
-            // request.fetchBatchSize = 10
-            let now = Date()
-
-            do {
-                let fetchedObjects = try self.context.fetch(request)
-
-                for object in fetchedObjects {
-                    let expired: Bool
-
-                    if let expiryDate = object.expiryDate {
-                        expired = expiryDate < now
-                    }
-                    else {
-                        expired = true
-                    }
-
-                    if expired {
-                        self.context.delete(object)
-                    }
-                }
-            }
-            catch {
-                print(error)
-            }
-        }
-    }
-
-    private static let coreDataModelDescription = CoreDataModelDescription(
-        entities: [
-            .entity(
-                name: RemoteFileManagedObject.entityName,
-                managedObjectClass: RemoteFileManagedObject.self,
-                attributes: [
-                    .attribute(
-                        name: "urlString",
-                        type: .stringAttributeType
-                    ),
-                    .attribute(
-                        name: "fileName",
-                        type: .stringAttributeType
-                    ),
-                    .attribute(
-                        name: "dateCreated",
-                        type: .dateAttributeType
-                    ),
-                    .attribute(
-                        name: "expiryDate",
-                        type: .dateAttributeType
-                    )
-                ],
-                indexes: [
-                    .index(name: "byURLString", elements: [ .property(name: "urlString") ]),
-                    .index(name: "byFileName", elements: [ .property(name: "fileName") ])
-                ])
-        ]
-    )
-
-    private let container: NSPersistentContainer
-
-    private let context: NSManagedObjectContext
-
-    private typealias FetchCompletion = (_ object: Result<RemoteFileManagedObject?, Error>) -> Void
-
-    private func fetch(urlString: String, action: @escaping FetchCompletion) {
-        context.perform {
-            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
-            request.predicate = NSPredicate(format: "urlString == %@", urlString)
-
-            do {
-                let fetchedObjects = try self.context.fetch(request)
-                action(.success(fetchedObjects.first))
-            }
-            catch {
-                action(.failure(error))
-            }
-        }
-    }
-
-    private func fetch(fileName: String, action: @escaping FetchCompletion) {
-        context.perform {
-            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
-            request.predicate = NSPredicate(format: "fileName == %@", fileName)
-
-            do {
-                let fetchedObjects = try self.context.fetch(request)
-                action(.success(fetchedObjects.first))
-            }
-            catch {
-                action(.failure(error))
-            }
-        }
-    }
-}
-
-fileprivate extension NSPersistentContainer {
-
-    func load() {
-        let semaphore = DispatchSemaphore(value: 1)
-
-        loadPersistentStores { result, error in
-            semaphore.signal()
-        }
-
-        semaphore.wait()
     }
 }
