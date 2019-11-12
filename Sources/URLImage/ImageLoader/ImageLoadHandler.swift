@@ -8,6 +8,7 @@
 import CoreGraphics
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class ImageLoadHandler {
 
     let processor: ImageProcessing?
@@ -21,6 +22,7 @@ final class ImageLoadHandler {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 extension ImageLoadHandler: Equatable {
 
     static func == (lhs: ImageLoadHandler, rhs: ImageLoadHandler) -> Bool {
@@ -29,6 +31,7 @@ extension ImageLoadHandler: Equatable {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 extension ImageLoadHandler: Hashable {
 
     func hash(into hasher: inout Hasher) {

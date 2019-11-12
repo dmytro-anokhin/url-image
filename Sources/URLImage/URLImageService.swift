@@ -8,6 +8,7 @@
 import Foundation
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public protocol URLImageServiceType {
 
     var services: Services { get }
@@ -22,6 +23,7 @@ public protocol URLImageServiceType {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class Services {
 
     init(remoteFileCacheService: RemoteFileCacheService, imageLoaderService: ImageLoaderService, imageProcessingService: ImageProcessingService) {
@@ -38,6 +40,7 @@ public final class Services {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class URLImageService: URLImageServiceType {
 
     public static let shared: URLImageServiceType = URLImageService()

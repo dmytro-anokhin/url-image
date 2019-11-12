@@ -1,13 +1,16 @@
 //
 //  CircleProgressView.swift
+//  URLImage
 //  
 //
 //  Created by Dmytro Anokhin on 21/09/2019.
+//  Copyright © 2019 Dmytro Anokhin. All rights reserved.
 //
 
 import SwiftUI
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public struct CircleProgressView: View {
 
     public init(_ progress: Float) {

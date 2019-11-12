@@ -9,6 +9,7 @@ import Foundation
 import CoreGraphics
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 class Downloader {
 
     let url: URL
@@ -158,6 +159,7 @@ class Downloader {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class FileDownloader: Downloader {
 
     func finishDownloading(with tmpURL: URL) {
@@ -197,6 +199,7 @@ final class FileDownloader: Downloader {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class DataDownloader: Downloader {
 
     private var imageWrapper = IncrementalImageWrapper()

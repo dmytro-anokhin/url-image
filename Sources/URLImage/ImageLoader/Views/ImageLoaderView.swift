@@ -9,7 +9,7 @@ import SwiftUI
 
 
 /// Loads the image using provided URLRequest while displaying the placeholder view or the content view for incremental loading
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeholder : View {
 
     let urlRequest: URLRequest

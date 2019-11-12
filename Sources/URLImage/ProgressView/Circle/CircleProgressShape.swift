@@ -1,13 +1,16 @@
 //
 //  CircleProgressShape.swift
+//  URLImage
 //  
 //
 //  Created by Dmytro Anokhin on 26/09/2019.
+//  Copyright © 2019 Dmytro Anokhin. All rights reserved.
 //
 
 import SwiftUI
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 struct CircleProgressShape: Shape {
 
     struct Geometry {

@@ -1,8 +1,10 @@
 //
 //  ImageProxy.swift
-//  
+//  URLImage
+//
 //
 //  Created by Dmytro Anokhin on 18/09/2019.
+//  Copyright © 2019 Dmytro Anokhin. All rights reserved.
 //
 
 import SwiftUI
@@ -20,6 +22,7 @@ import AppKit
 #endif
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public protocol ImageProxy {
 
 #if canImport(UIKit)
@@ -34,6 +37,7 @@ public protocol ImageProxy {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class ImageWrapper: ImageProxy {
 
     convenience init?(fileURL: URL) {
@@ -85,6 +89,7 @@ final class ImageWrapper: ImageProxy {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class IncrementalImageWrapper: ImageProxy {
 
     init() {

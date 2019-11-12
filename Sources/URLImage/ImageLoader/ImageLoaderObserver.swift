@@ -10,6 +10,7 @@
 import SwiftUI
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class ImageLoaderObserver {
 
     let progress: ImageLoaderProgressCallback
@@ -26,6 +27,7 @@ final class ImageLoaderObserver {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 extension ImageLoaderObserver: Equatable {
 
     static func == (lhs: ImageLoaderObserver, rhs: ImageLoaderObserver) -> Bool {
@@ -34,6 +36,7 @@ extension ImageLoaderObserver: Equatable {
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 extension ImageLoaderObserver: Hashable {
 
     func hash(into hasher: inout Hasher) {

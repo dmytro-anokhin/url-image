@@ -18,7 +18,7 @@ import AppKit
 
     The image is loaded on appearance. Loading operation is cancelled when the view disappears.
  */
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public struct URLImage<Content, Placeholder> : View where Content : View, Placeholder : View {
 
     // MARK: Public
@@ -98,7 +98,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 // MARK: Extensions
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Content == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
@@ -131,7 +131,7 @@ public extension URLImage where Content == Image {
 }
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Placeholder == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
@@ -176,7 +176,7 @@ return Image(systemName: "photo")
 }
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
