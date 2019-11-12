@@ -113,6 +113,10 @@ final class IncrementalImageWrapper: ImageProxy {
         return data.isEmpty
     }
 
+    var imageSourceType: String? {
+        return CGImageSourceGetType(imageSource) as String?
+    }
+
     /// Accumulates data
     private(set) var data = Data()
 

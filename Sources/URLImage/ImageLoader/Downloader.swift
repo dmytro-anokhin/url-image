@@ -165,7 +165,14 @@ final class FileDownloader: Downloader {
             return
         }
 
-        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate) else {
+        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate, preferredFileExtension: {
+
+            guard let uti = imageTypeIdentifier(forItemAtURL: tmpURL) else {
+                return nil
+            }
+
+            return preferredFileExtension(forTypeIdentifier: uti)
+        }()) else {
             // Failed to cache the file
             transition(to: .failed)
             return
@@ -214,7 +221,14 @@ final class DataDownloader: Downloader {
             return
         }
 
-        guard let _ = try? remoteFileCache.createFile(withRemoteURL: url, data: imageWrapper.data, expiryDate: expiryDate) else {
+        guard let _ = try? remoteFileCache.createFile(withRemoteURL: url, data: imageWrapper.data, expiryDate: expiryDate, preferredFileExtension: {
+
+            guard let uti = imageWrapper.imageSourceType else {
+                return nil
+            }
+
+            return preferredFileExtension(forTypeIdentifier: uti)
+        }()) else {
             // Failed to cache the file
             transition(to: .failed)
             return

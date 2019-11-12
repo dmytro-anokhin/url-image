@@ -13,9 +13,9 @@ import CoreData
 
 protocol RemoteFileCacheService: AnyObject {
 
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?) throws -> URL
+    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?) throws -> URL
+    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
 
     func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void)
 
@@ -80,9 +80,10 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Returns URL of the copy. This function generates unique name for the copied file.
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.file"
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?) throws -> URL {
+    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
         return try queue.sync {
-            let fileName = self.fileName(forRemoteURL: remoteURL)
+            let fileName = self.fileName(forRemoteURL: remoteURL, preferredFileExtension: preferredFileExtension())
+
             let destinationURL = fileURL(forFileName: fileName)
 
             try copy(from: sourceURL, to: destinationURL)
@@ -92,9 +93,9 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         }
     }
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?) throws -> URL {
+    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
         return try queue.sync {
-            let fileName = self.fileName(forRemoteURL: remoteURL)
+            let fileName = self.fileName(forRemoteURL: remoteURL, preferredFileExtension: preferredFileExtension())
             let destinationURL = fileURL(forFileName: fileName)
 
             try data.write(to: destinationURL)
@@ -184,9 +185,18 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// If the remote url does not contain path extension the default one is used (.file)
     ///
     /// 01234567-89AB-CDEF-0123-456789ABCDEF.file
-    private func fileName(forRemoteURL remoteURL: URL) -> String {
-        let pathExtension = remoteURL.pathExtension.isEmpty ? "file" : remoteURL.pathExtension
-        return UUID().uuidString + "." + (pathExtension)
+    private func fileName(forRemoteURL remoteURL: URL, preferredFileExtension: @autoclosure () -> String?) -> String {
+        let uuid = UUID().uuidString
+
+        if !remoteURL.pathExtension.isEmpty {
+            return uuid + "." + remoteURL.pathExtension
+        }
+
+        if let preferredFileExtension = preferredFileExtension() {
+            return uuid + "." + preferredFileExtension
+        }
+
+        return uuid + ".file"
     }
 }
 

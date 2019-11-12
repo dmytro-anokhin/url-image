@@ -37,3 +37,12 @@ func createCGImage(data: Data) -> CGImage? {
 
     return CGImageSourceCreateImageAtIndex(imageSource, 0, nil)
 }
+
+
+func imageTypeIdentifier(forItemAtURL url: URL) -> String? {
+    guard let imageSource = CGImageSourceCreateWithURL(url as CFURL, nil) else {
+        return nil
+    }
+
+    return CGImageSourceGetType(imageSource) as String?
+}
