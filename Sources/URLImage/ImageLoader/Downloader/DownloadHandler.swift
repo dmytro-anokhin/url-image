@@ -17,8 +17,10 @@ class DownloadHandler: Hashable {
     func handleDownloadPartial(_ data: Data) {
     }
 
-    func handleDownloadCompletion(_ fileURL: URL) {
+    func handleDownloadCompletion(_ data: Data?, _ fileURL: URL) {
     }
+    
+    var inMemory: Bool { false }
 
     static func == (lhs: DownloadHandler, rhs: DownloadHandler) -> Bool {
         return lhs === rhs

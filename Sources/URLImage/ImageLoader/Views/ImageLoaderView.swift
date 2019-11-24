@@ -42,16 +42,19 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
         let viewModel = ImageLoaderContentView<Content, Placeholder>.Model()
 
-        let observer = ImageLoaderObserver(
-            progress: { progress in
-                viewModel.downloadProgressWrapper.progress = progress
-            },
-            partial: { imageProxy in
-                viewModel.imageProxy = imageProxy
-            },
-            completion: { imageProxy in
-                self.onLoad?(imageProxy)
-            })
+        let progressCallback: ImageDownloadHandler.ProgressCallback = { progress in
+            viewModel.downloadProgressWrapper.progress = progress
+        }
+
+        let partialCallback: ImageDownloadHandler.PartialCallback = { image in
+            viewModel.imageProxy = ImageWrapper(cgImage: image)
+        }
+
+        let completionCallback: ImageDownloadHandler.CompletionCallback = { image in
+            self.onLoad?(ImageWrapper(cgImage: image))
+        }
+
+        let handler = ImageDownloadHandler(incremental: incremental, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {
@@ -64,11 +67,11 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
                     processor = nil
                 }
 
-                self.services.imageLoaderService.subscribe(forURLRequest: self.urlRequest, incremental: self.incremental, processor: processor, observer)
-                self.services.imageLoaderService.load(urlRequest: self.urlRequest, after: self.delay, expiryDate: self.expiryDate)
+                self.services.downloadService.add(handler, forURLRequest: self.urlRequest)
+                self.services.downloadService.load(urlRequest: self.urlRequest, after: self.delay, expiryDate: self.expiryDate)
             }
             .onDisappear {
-                self.services.imageLoaderService.unsubscribe(observer, fromURLRequest: self.urlRequest)
+                self.services.downloadService.remove(handler, fromURLRequest: self.urlRequest)
             }
     }
 

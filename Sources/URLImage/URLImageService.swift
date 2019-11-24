@@ -26,15 +26,15 @@ public protocol URLImageServiceType {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class Services {
 
-    init(remoteFileCacheService: RemoteFileCacheService, imageLoaderService: ImageLoaderService, imageProcessingService: ImageProcessingService) {
+    init(remoteFileCacheService: RemoteFileCacheService, downloadService: DownloadService, imageProcessingService: ImageProcessingService) {
         self.remoteFileCacheService = remoteFileCacheService
-        self.imageLoaderService = imageLoaderService
+        self.downloadService = downloadService
         self.imageProcessingService = imageProcessingService
     }
 
     let remoteFileCacheService: RemoteFileCacheService
 
-    let imageLoaderService: ImageLoaderService
+    let downloadService: DownloadService
 
     let imageProcessingService: ImageProcessingService
 }
@@ -65,8 +65,8 @@ public final class URLImageService: URLImageServiceType {
         let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
         let imageProcessingService = ImageProcessingServiceImpl()
 
-        let imageLoaderService = ImageLoaderServiceImpl(remoteFileCache: remoteFileCacheService, imageProcessingService: imageProcessingService)
+        let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService)
 
-        services = Services(remoteFileCacheService: remoteFileCacheService, imageLoaderService: imageLoaderService, imageProcessingService: imageProcessingService)
+        services = Services(remoteFileCacheService: remoteFileCacheService, downloadService: downloadService, imageProcessingService: imageProcessingService)
     }
 }
