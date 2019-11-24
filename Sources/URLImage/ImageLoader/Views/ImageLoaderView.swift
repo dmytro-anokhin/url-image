@@ -54,19 +54,19 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             self.onLoad?(ImageWrapper(cgImage: image))
         }
 
-        let handler = ImageDownloadHandler(incremental: incremental, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
+        let processor: ImageProcessing?
+
+        if let processors = self.processors {
+            processor = ImageProcessorGroup(processors: processors)
+        }
+        else {
+            processor = nil
+        }
+
+        let handler = ImageDownloadHandler(incremental: incremental, processor: processor, imageProcessingService: services.imageProcessingService, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {
-                let processor: ImageProcessing?
-
-                if let processors = self.processors {
-                    processor = ImageProcessorGroup(processors: processors)
-                }
-                else {
-                    processor = nil
-                }
-
                 self.services.downloadService.add(handler, forURLRequest: self.urlRequest)
                 self.services.downloadService.load(urlRequest: self.urlRequest, after: self.delay, expiryDate: self.expiryDate)
             }

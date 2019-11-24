@@ -26,8 +26,14 @@ class ImageDownloadHandler: DownloadHandler {
 
     let incremental: Bool
 
-    init(incremental: Bool, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
+    let processor: ImageProcessing?
+
+    unowned let imageProcessingService: ImageProcessingService
+
+    init(incremental: Bool, processor: ImageProcessing? = nil, imageProcessingService: ImageProcessingService, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
         self.incremental = incremental
+        self.processor = processor
+        self.imageProcessingService = imageProcessingService
         self.progressCallback = progressCallback
         self.partialCallback = partialCallback
         self.completionCallback = completionCallback
@@ -52,8 +58,17 @@ class ImageDownloadHandler: DownloadHandler {
             return
         }
 
-        DispatchQueue.main.async {
-            self.partialCallback(cgImage)
+        if let processor = processor {
+            imageProcessingService.processImage(cgImage, usingProcessor: processor) { resultImage in
+                DispatchQueue.main.async {
+                    self.partialCallback(resultImage)
+                }
+            }
+        }
+        else {
+            DispatchQueue.main.async {
+                self.partialCallback(cgImage)
+            }
         }
     }
 
@@ -76,8 +91,17 @@ class ImageDownloadHandler: DownloadHandler {
             return
         }
 
-        DispatchQueue.main.async {
-            self.completionCallback(cgImage)
+        if let processor = processor {
+            imageProcessingService.processImage(cgImage, usingProcessor: processor) { resultImage in
+                DispatchQueue.main.async {
+                    self.completionCallback(resultImage)
+                }
+            }
+        }
+        else {
+            DispatchQueue.main.async {
+                self.completionCallback(cgImage)
+            }
         }
     }
 

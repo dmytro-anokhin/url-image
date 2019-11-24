@@ -37,7 +37,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
         self.placeholder = placeholder
@@ -50,7 +50,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     public init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
@@ -103,7 +103,7 @@ public extension URLImage where Content == Image {
 
     init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
         self.placeholder = placeholder
@@ -116,7 +116,7 @@ public extension URLImage where Content == Image {
 
     init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
@@ -142,7 +142,7 @@ return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
         self.placeholder = { _ in placeholderImage }
@@ -161,7 +161,7 @@ return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
@@ -187,7 +187,7 @@ return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
         self.placeholder = { _ in placeholderImage }
@@ -206,7 +206,7 @@ return Image(systemName: "photo")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported yet")
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
