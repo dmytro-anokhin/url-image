@@ -137,52 +137,6 @@ final class ImageDecoder {
         }
     }
 
-/*
-     EncodedDataStatus ImageDecoderCG::encodedDataStatus() const
-     {
-         String uti = this->uti();
-         if (uti.isEmpty())
-             return EncodedDataStatus::Unknown;
-
-         switch (CGImageSourceGetStatus(m_nativeDecoder.get())) {
-         case kCGImageStatusUnknownType:
-             return EncodedDataStatus::Error;
-
-         case kCGImageStatusUnexpectedEOF:
-         case kCGImageStatusInvalidData:
-         case kCGImageStatusReadingHeader:
-             // Ragnaros yells: TOO SOON! You have awakened me TOO SOON, Executus!
-             if (!m_isAllDataReceived)
-                 return EncodedDataStatus::Unknown;
-
-             return EncodedDataStatus::Error;
-
-         case kCGImageStatusIncomplete: {
-             if (!isSupportedImageType(uti))
-                 return EncodedDataStatus::Error;
-
-             RetainPtr<CFDictionaryRef> image0Properties = adoptCF(CGImageSourceCopyPropertiesAtIndex(m_nativeDecoder.get(), 0, imageSourceOptions().get()));
-             if (!image0Properties)
-                 return EncodedDataStatus::TypeAvailable;
-
-             if (!CFDictionaryContainsKey(image0Properties.get(), kCGImagePropertyPixelWidth) || !CFDictionaryContainsKey(image0Properties.get(), kCGImagePropertyPixelHeight))
-                 return EncodedDataStatus::TypeAvailable;
-
-             return EncodedDataStatus::SizeAvailable;
-         }
-
-         case kCGImageStatusComplete:
-             if (!isSupportedImageType(uti))
-                 return EncodedDataStatus::Error;
-
-             return EncodedDataStatus::Complete;
-         }
-
-         ASSERT_NOT_REACHED();
-         return EncodedDataStatus::Unknown;
-     }
-     */
-
     var frameCount: Int {
         CGImageSourceGetCount(imageSource)
     }
