@@ -26,12 +26,15 @@ class ImageDownloadHandler: DownloadHandler {
 
     let incremental: Bool
 
+    let displaySize: CGSize?
+
     let processor: ImageProcessing?
 
     unowned let imageProcessingService: ImageProcessingService
 
-    init(incremental: Bool, processor: ImageProcessing? = nil, imageProcessingService: ImageProcessingService, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
+    init(incremental: Bool, displaySize: CGSize?, processor: ImageProcessing? = nil, imageProcessingService: ImageProcessingService, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
         self.incremental = incremental
+        self.displaySize = displaySize
         self.processor = processor
         self.imageProcessingService = imageProcessingService
         self.progressCallback = progressCallback
@@ -54,7 +57,9 @@ class ImageDownloadHandler: DownloadHandler {
 
         decoder!.setData(data, allDataReceived: false)
 
-        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: ImageDecoder.DecodingOptions(mode: .asynchronous)) else {
+        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: displaySize)
+
+        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
             return
         }
 
@@ -87,7 +92,9 @@ class ImageDownloadHandler: DownloadHandler {
             }
         }
 
-        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: ImageDecoder.DecodingOptions(mode: .asynchronous)) else {
+        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: displaySize)
+
+        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
             return
         }
 
