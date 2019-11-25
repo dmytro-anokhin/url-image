@@ -20,10 +20,10 @@ protocol ImageProcessingService: AnyObject {
 final class ImageProcessingServiceImpl: ImageProcessingService {
 
     func processImage(_ image: CGImage, usingProcessor processor: ImageProcessing, completion: @escaping (_ resultImage: CGImage) -> Void) {
-        //queue.addOperation {
+        queue.addOperation {
             let resultImage = processor.process(image)
             completion(resultImage)
-        //}
+        }
     }
 
     init() {
@@ -32,7 +32,7 @@ final class ImageProcessingServiceImpl: ImageProcessingService {
     private let queue: OperationQueue = {
         let queue = OperationQueue()
         queue.name = "URLImage.ImageProcessingServiceImpl.queue"
-        queue.maxConcurrentOperationCount = 4
+        queue.maxConcurrentOperationCount = 1
 
         return queue
     }()
