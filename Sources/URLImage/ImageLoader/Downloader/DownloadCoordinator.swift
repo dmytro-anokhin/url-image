@@ -39,6 +39,8 @@ class DownloadCoordinator {
             if let localURL = localURL {
                 // TODO: Verify that file can be open
                 if FileManager.default.fileExists(atPath: localURL.path) {
+                    log_debug(self, "Found local file at \"\(localURL)\" for remote url \"\(self.url)\".", detail: log_normal)
+
                     if self.transition(to: .finishing) {
                         self.notifyHandlersAboutCompletion(nil, fileURL: localURL)
 
@@ -50,6 +52,7 @@ class DownloadCoordinator {
                     }
                 }
                 else {
+                    log_error(self, "Local file at \"\(localURL)\" for remote url \"\(self.url)\" was removed.")
                     // This is inconsistent state: URL is still registered in the local cache but the file was removed. Remove file from the cache and redownload.
                     try? self.remoteFileCache.delete(fileName: localURL.lastPathComponent)
                 }
@@ -61,6 +64,7 @@ class DownloadCoordinator {
                     return
                 }
 
+                log_debug(self, "Resume task for url \"\(self.url)\".", detail: log_normal)
                 self.task.resume()
             }
         }
@@ -68,6 +72,8 @@ class DownloadCoordinator {
 
     func cancel() {
         assert(handlers.isEmpty, "Cancelling loading the image at \(url) while some handlers are still attached")
+
+        log_debug(self, "Cancel for url \"\(self.url)\".", detail: log_detailed)
 
         guard transition(to: .cancelling) else {
             return
@@ -87,6 +93,8 @@ class DownloadCoordinator {
     }
 
     func complete(with error: Error?) {
+        log_debug(self, "Complete for url \"\(self.url)\" with error: \(String(describing: error)).", detail: log_detailed)
+
         switch error {
             case .none:
                 transition(to: .finished)
@@ -117,27 +125,35 @@ class DownloadCoordinator {
         }
 
         guard state.canTransition(to: newState) else {
-            // print("Can not transition from \(state) to \(newState)")
+            log_debug(self, "Can not transition from \(state) to \(newState) for \"\(url)\".", detail: log_normal)
             return false
         }
+
+        log_debug(self, "Transition from \(state) to \(newState) for \"\(url)\".", detail: 100)
 
         state = newState
         return true
     }
 
     fileprivate func notifyHandlersAboutProgress(_ progress: Float?) {
+        log_debug(self, "Notify progress for url \"\(self.url)\".", detail: 500)
+
         for handler in handlers {
             handler.handleDownloadProgress(progress)
         }
     }
 
     fileprivate func notifyHandlersAboutPartial(_ data: Data) {
+        log_debug(self, "Notify partial for url \"\(self.url)\".", detail: 500)
+
         for handler in handlers {
             handler.handleDownloadPartial(data)
         }
     }
 
     fileprivate func notifyHandlersAboutCompletion(_ data: Data?, fileURL: URL) {
+        log_debug(self, "Notify completion for url \"\(self.url)\".", detail: 500)
+
         for handler in handlers {
             handler.handleDownloadCompletion(data, fileURL)
         }

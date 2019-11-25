@@ -40,6 +40,10 @@ final class DownloadServiceImpl: DownloadService {
         }
 
         urlSessionDelegate.finishDownloadingCallback = { task, tmpURL in
+            if let url = task.originalRequest?.url {
+                log_debug(self, "Finish downloading \"\(url)\".")
+            }
+
             guard let downloader = downloaderForTask(task) as? FileDownloadCoordinator else {
                 return
             }
@@ -70,6 +74,10 @@ final class DownloadServiceImpl: DownloadService {
         }
 
         urlSessionDelegate.completeCallback = { task, error in
+            if let url = task.originalRequest?.url {
+                log_debug(self, "Complete \"\(url)\".")
+            }
+
             guard let downloader = downloaderForTask(task) else {
                 return
             }
@@ -121,6 +129,10 @@ final class DownloadServiceImpl: DownloadService {
     }
 
     func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?) {
+        if let url = urlRequest.url {
+            log_debug(self, "Load \"\(url)\".")
+        }
+
         queue.addOperation {
             guard let downloader = self.urlRequestToDownloaderMap[urlRequest] else {
                 assertionFailure("Downloader must be created before calling load")
