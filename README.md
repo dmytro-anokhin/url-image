@@ -445,6 +445,7 @@ Date when image considered to be expired and needs to be redownloaded.
 Use GitHub issues to report a bug. Include this information when possible:
 - Summary and/or background;
 - OS and what device you are using;
+- Version of URLImage library;
 - What you expected would happen;
 - What actually happens;
 - Additional information:
