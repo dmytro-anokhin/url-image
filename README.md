@@ -449,10 +449,10 @@ Use GitHub issues to report a bug. Include this information when possible:
 - What you expected would happen;
 - What actually happens;
 - Additional information:
- - Screenshots or video demonstrating a bug;
- - Crash log;
- - Sample code, try isolating it so it compiles without dependancies;
- - Test data: if you use public resource provide URLs of the images.
+    - Screenshots or video demonstrating a bug;
+    - Crash log;
+    - Sample code, try isolating it so it compiles without dependancies;
+    - Test data: if you use public resource provide URLs of the images.
 
 ### Requesting a Feature
 
