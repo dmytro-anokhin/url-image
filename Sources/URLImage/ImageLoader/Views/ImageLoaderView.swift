@@ -14,10 +14,6 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let urlRequest: URLRequest
 
-    let size: CGSize?
-
-    let scale: CGFloat
-
     let delay: TimeInterval
 
     let incremental: Bool
@@ -30,10 +26,8 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let content: (_ imageProxy: ImageProxy) -> Content
 
-    init(_ urlRequest: URLRequest, size: CGSize?, scale: CGFloat, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.urlRequest = urlRequest
-        self.size = size
-        self.scale = scale
         self.delay = delay
         self.incremental = incremental
         self.processors = processors
@@ -69,16 +63,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             processor = nil
         }
 
-        let displaySize: CGSize?
-
-        if let size = size {
-            displaySize = CGSize(width: size.width * scale, height: size.height * scale)
-        }
-        else {
-            displaySize = nil
-        }
-
-        let handler = ImageDownloadHandler(urlRequest: urlRequest, incremental: incremental, displaySize: displaySize, processor: processor, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
+        let handler = ImageDownloadHandler(urlRequest: urlRequest, incremental: incremental, displaySize: nil, processor: processor, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {
@@ -91,13 +76,11 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Content, Placeholder> {
-        return ImageLoaderView(urlRequest, size: size, scale: scale, delay: delay, incremental: incremental, expireAfter: expiryDate, processors: processors, services: services, placeholder: placeholder, content: content, onLoad: action)
+        return ImageLoaderView(urlRequest, delay: delay, incremental: incremental, expireAfter: expiryDate, processors: processors, services: services, placeholder: placeholder, content: content, onLoad: action)
     }
 
-    private init(_ urlRequest: URLRequest, size: CGSize?, scale: CGFloat, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.urlRequest = urlRequest
-        self.size = size
-        self.scale = scale
         self.delay = delay
         self.incremental = incremental
         self.processors = processors
