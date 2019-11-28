@@ -18,6 +18,8 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let incremental: Bool
 
+    let animated: Bool
+
     let expiryDate: Date?
 
     let processors: [ImageProcessing]?
@@ -26,10 +28,11 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     let content: (_ imageProxy: ImageProxy) -> Content
 
-    init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, animated: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
         self.urlRequest = urlRequest
         self.delay = delay
         self.incremental = incremental
+        self.animated = animated
         self.processors = processors
         self.placeholder = placeholder
         self.expiryDate = expiryDate
@@ -46,12 +49,46 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             viewModel.downloadProgressWrapper.progress = progress
         }
 
-        let partialCallback: ImageDownloadHandler.PartialCallback = { image in
-            viewModel.imageProxy = ImageWrapper(cgImage: image)
+        let partialCallback: ImageDownloadHandler.PartialCallback = { imageFrames in
+            assert(!imageFrames.isEmpty)
+
+#if canImport(UIKit)
+            if imageFrames.count == 1 {
+                viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image)
+            }
+            else {
+                let animatedImage = UIImage.animatedImage(
+                    with: imageFrames.map { UIImage(cgImage: $0.image) },
+                    duration: imageFrames.reduce(TimeInterval(0.0), { $0 + ($1.duration ?? 0.0) })
+                )!
+
+                viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
+            }
+#else
+            viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image)
+#endif
         }
 
-        let completionCallback: ImageDownloadHandler.CompletionCallback = { image in
-            self.onLoad?(ImageWrapper(cgImage: image))
+        let completionCallback: ImageDownloadHandler.CompletionCallback = { imageFrames in
+            assert(!imageFrames.isEmpty)
+
+#if canImport(UIKit)
+            if imageFrames.count == 1 {
+                let wrapper = ImageWrapper(cgImage: imageFrames.first!.image)
+                self.onLoad?(wrapper)
+            }
+            else {
+                let animatedImage = UIImage.animatedImage(
+                    with: imageFrames.map { UIImage(cgImage: $0.image) },
+                    duration: imageFrames.reduce(TimeInterval(0.0), { $0 + ($1.duration ?? 0.0) })
+                )!
+
+                viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
+            }
+#else
+            let wrapper = ImageWrapper(cgImage: imageFrames.first!.image)
+            self.onLoad?(wrapper)
+#endif
         }
 
         let processor: ImageProcessing?
@@ -63,7 +100,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             processor = nil
         }
 
-        let handler = ImageDownloadHandler(urlRequest: urlRequest, incremental: incremental, displaySize: nil, processor: processor, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
+        let handler = ImageDownloadHandler(urlRequest: urlRequest, incremental: incremental, animated: animated, displaySize: nil, processor: processor, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {
@@ -76,13 +113,14 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
     }
 
     func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Content, Placeholder> {
-        return ImageLoaderView(urlRequest, delay: delay, incremental: incremental, expireAfter: expiryDate, processors: processors, services: services, placeholder: placeholder, content: content, onLoad: action)
+        return ImageLoaderView(urlRequest, delay: delay, incremental: incremental, animated: animated, expireAfter: expiryDate, processors: processors, services: services, placeholder: placeholder, content: content, onLoad: action)
     }
 
-    private init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(_ urlRequest: URLRequest, delay: TimeInterval, incremental: Bool, animated: Bool, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]?, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
         self.urlRequest = urlRequest
         self.delay = delay
         self.incremental = incremental
+        self.animated = animated
         self.processors = processors
         self.placeholder = placeholder
         self.expiryDate = expiryDate

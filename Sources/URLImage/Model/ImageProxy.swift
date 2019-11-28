@@ -72,3 +72,26 @@ struct ImageWrapper: ImageProxy {
 
     #endif
 }
+
+
+#if canImport(UIKit)
+
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+struct AnimatedImageWrapper: ImageProxy {
+
+    init(uiImage: UIImage) {
+        self.uiImage = uiImage
+    }
+
+    var cgImage: CGImage {
+        uiImage.cgImage!
+    }
+
+    let uiImage: UIImage
+
+    var image: Image {
+        return Image(uiImage: uiImage)
+    }
+}
+
+#endif
