@@ -15,16 +15,20 @@ class DownloadCoordinator {
     let url: URL
 
     let task: URLSessionTask
+    
+    let retryCount: Int
 
-    let remoteFileCache: RemoteFileCacheService
+    unowned let remoteFileCache: RemoteFileCacheService
 
-    init(url: URL, task: URLSessionTask, remoteFileCache: RemoteFileCacheService) {
+    init(url: URL, task: URLSessionTask, retryCount: Int, remoteFileCache: RemoteFileCacheService) {
         self.url = url
         self.task = task
+        self.retryCount = retryCount
         self.remoteFileCache = remoteFileCache
     }
 
-    var completionCallback: (() -> Void)?
+    /// Called when `DownloadCoordinator` is no longer used and can be released.
+    var finilizeCallback: (() -> Void)?
 
     var expiryDate: Date? = nil
 
@@ -45,7 +49,7 @@ class DownloadCoordinator {
                         self.notifyHandlersAboutCompletion(nil, fileURL: localURL)
 
                         if self.transition(to: .finished) {
-                            self.completionCallback?()
+                            self.finalize()
                         }
 
                         return
@@ -73,7 +77,7 @@ class DownloadCoordinator {
     func cancel() {
         assert(handlers.isEmpty, "Cancelling loading the image at \(url) while some handlers are still attached")
 
-        log_debug(self, "Cancel for url \"\(self.url)\".", detail: log_detailed)
+        log_debug(self, "Cancel for url \"\(url)\".", detail: log_detailed)
 
         guard transition(to: .cancelling) else {
             return
@@ -93,30 +97,41 @@ class DownloadCoordinator {
     }
 
     func complete(with error: Error?) {
-        log_debug(self, "Complete for url \"\(self.url)\" with error: \(String(describing: error)).", detail: log_detailed)
+        log_debug(self, "Complete for url \"\(url)\" with error: \(String(describing: error)).", detail: log_detailed)
 
         switch error {
             case .none:
                 transition(to: .finished)
-                completionCallback?()
 
             case .some(let nsError as NSError):
                 if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-                    if transition(to: .cancelled) {
-                        completionCallback?()
-                    }
+                    transition(to: .cancelled)
                 }
                 else {
-                    if transition(to: .failed) {
-                        completionCallback?()
-                    }
+                    // Network error
+                    transition(to: .failed)
                 }
         }
+        
+        finalize()
+    }
+    
+    var isFailed: Bool {
+        state == .failed
     }
 
     // MARK: Private
 
     private var state: LoadingState = .initial
+    
+    fileprivate func finalize() {
+        if finilizeCallback == nil {
+            log_debug(self, "Calling finalize more than once for url: \"\(url)\".", detail: log_detailed)
+        }
+        
+        finilizeCallback?()
+        finilizeCallback = nil
+    }
 
     @discardableResult
     fileprivate func transition(to newState: LoadingState) -> Bool {
@@ -166,24 +181,29 @@ class DownloadCoordinator {
 final class FileDownloadCoordinator: DownloadCoordinator {
 
     func finishDownloading(with tmpURL: URL) {
+        log_debug(self, "Finishing downloading for url \"\(url)\".", detail:log_detailed)
+    
         guard transition(to: .finishing) else {
             return
         }
 
         guard let decoder = ImageDecoder(url: tmpURL) else {
             // Failed to read the file
+            log_debug(self, "Can not read data from tmp file for url \"\(url)\".", detail:log_detailed)
             transition(to: .failed)
             return
         }
 
-        let fileExtension: String?
+        guard let uti = decoder.uti else {
+            // Not an image file
+            log_debug(self, "Can not determine UTI for url \"\(url)\".", detail:log_detailed)
+            transition(to: .failed)
+            return
+        }
+        
+        log_debug(self, "UTI for url \"\(url)\" is \"\(uti)\".", detail:log_detailed)
 
-        if let uti = decoder.uti {
-            fileExtension = preferredFileExtension(forTypeIdentifier: uti)
-        }
-        else {
-            fileExtension = nil
-        }
+        let fileExtension = preferredFileExtension(forTypeIdentifier: uti)
 
         guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
             // Failed to cache the file
@@ -212,23 +232,25 @@ final class DataDownloadCoordinator: DownloadCoordinator {
     }
 
     func finishDownloading() {
+        log_debug(self, "Finishing downloading for url \"\(url)\".", detail:log_detailed)
+        
         guard transition(to: .finishing) else {
             return
         }
 
-        // TODO: Verify that file can be open
-
         let decoder = ImageDecoder()
         decoder.setData(sharedBuffer, allDataReceived: true)
 
-        let fileExtension: String?
+        guard let uti = decoder.uti else {
+            // Not an image data
+            log_debug(self, "Can not determine UTI for url \"\(url)\".", detail:log_detailed)
+            transition(to: .failed)
+            return
+        }
+        
+        log_debug(self, "UTI for url \"\(url)\" is \"\(uti)\".", detail:log_detailed)
 
-        if let uti = decoder.uti {
-            fileExtension = preferredFileExtension(forTypeIdentifier: uti)
-        }
-        else {
-            fileExtension = nil
-        }
+        let fileExtension = preferredFileExtension(forTypeIdentifier: uti)
 
         guard let localURL = try? remoteFileCache.createFile(withRemoteURL: url, data: sharedBuffer, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
             // Failed to cache the file

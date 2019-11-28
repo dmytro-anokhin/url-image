@@ -14,6 +14,8 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
 
     typealias WriteDataCallback = (_ downloadTask: URLSessionDownloadTask, _ bytesWritten: Int64, _ totalBytesWritten: Int64, _ totalBytesExpectedToWrite: Int64) -> Void
 
+    typealias ReceiveResponseCallback = (_ dataTask: URLSessionDataTask, _ response: URLResponse, _ completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) -> Void
+
     typealias ReceiveDataCallback = (_ dataTask: URLSessionDataTask, _ data: Data) -> Void
 
     typealias CompleteCallback = (_ task: URLSessionTask, _ error: Error?) -> Void
@@ -22,10 +24,12 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
 
     var writeDataCallback: WriteDataCallback?
 
+    var receiveResponseCallback: ReceiveResponseCallback?
+
     var receiveDataCallback: ReceiveDataCallback?
 
     var completeCallback: CompleteCallback?
-
+    
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         finishDownloadingCallback?(downloadTask, location)
     }
@@ -36,6 +40,15 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         completeCallback?(task, error)
+    }
+    
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+        if let receiveResponseCallback = receiveResponseCallback {
+            receiveResponseCallback(dataTask, response, completionHandler)
+        }
+        else {
+            completionHandler(.allow)
+        }
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {

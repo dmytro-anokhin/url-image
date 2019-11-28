@@ -78,7 +78,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             displaySize = nil
         }
 
-        let handler = ImageDownloadHandler(incremental: incremental, displaySize: displaySize, processor: processor, imageProcessingService: services.imageProcessingService, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
+        let handler = ImageDownloadHandler(urlRequest: urlRequest, incremental: incremental, displaySize: displaySize, processor: processor, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
 
         return ImageLoaderContentView(model: viewModel, placeholder: placeholder, content: content)
             .onAppear {

@@ -24,19 +24,19 @@ class ImageDownloadHandler: DownloadHandler {
 
     let completionCallback: CompletionCallback
 
+    let urlRequest: URLRequest
+
     let incremental: Bool
 
     let displaySize: CGSize?
 
     let processor: ImageProcessing?
 
-    unowned let imageProcessingService: ImageProcessingService
-
-    init(incremental: Bool, displaySize: CGSize?, processor: ImageProcessing? = nil, imageProcessingService: ImageProcessingService, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
+    init(urlRequest: URLRequest, incremental: Bool, displaySize: CGSize?, processor: ImageProcessing? = nil, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
+        self.urlRequest = urlRequest
         self.incremental = incremental
         self.displaySize = displaySize
         self.processor = processor
-        self.imageProcessingService = imageProcessingService
         self.progressCallback = progressCallback
         self.partialCallback = partialCallback
         self.completionCallback = completionCallback
@@ -51,33 +51,46 @@ class ImageDownloadHandler: DownloadHandler {
     override var inMemory: Bool { incremental }
 
     override func handleDownloadPartial(_ data: Data) {
+        queue.async {
+            self._handleDownloadPartial(data)
+        }
+    }
+
+    private func _handleDownloadPartial(_ data: Data) {
         if decoder == nil {
             decoder = ImageDecoder()
         }
 
         decoder!.setData(data, allDataReceived: false)
 
-        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: displaySize)
-
-        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
+        guard decoder!.frameCount > 0, var cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
             return
         }
 
         if let processor = processor {
-            imageProcessingService.processImage(cgImage, usingProcessor: processor) { resultImage in
-                DispatchQueue.main.async {
-                    self.partialCallback(resultImage)
-                }
-            }
+            cgImage = processor.process(cgImage)
         }
-        else {
-            DispatchQueue.main.async {
-                self.partialCallback(cgImage)
-            }
+
+        DispatchQueue.main.async {
+            self.partialCallback(cgImage)
         }
     }
 
     override func handleDownloadCompletion(_ data: Data?, _ fileURL: URL) {
+        queue.async {
+            self._handleDownloadCompletion(data, fileURL)
+        }
+    }
+
+    private func _handleDownloadCompletion(_ data: Data?, _ fileURL: URL) {
+    
+        if let data = data {
+            log_debug(self, "Handle completion for url: \"\(urlRequest.url!)\" with byte count: \(data.count), and local file: \"\(fileURL)\"", detail: log_detailed)
+        }
+        else {
+            log_debug(self, "Handle completion for url: \"\(urlRequest.url!)\", local file: \"\(fileURL)\"", detail: log_detailed)
+        }
+    
         if decoder == nil {
             guard let dataProvider = CGDataProvider(url: fileURL as CFURL) else {
                 return
@@ -92,27 +105,40 @@ class ImageDownloadHandler: DownloadHandler {
             }
         }
 
-        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: displaySize)
-
-        guard decoder!.frameCount > 0, let cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
+        guard decoder!.frameCount > 0, var cgImage = decoder!.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
+            log_debug(self, "Failed to create frame for \"\(urlRequest.url!)\"", detail: log_detailed)
             return
         }
+        
+        log_debug(self, "Decoded frame for \"\(urlRequest.url!)\"", detail: log_detailed)
 
         if let processor = processor {
-            imageProcessingService.processImage(cgImage, usingProcessor: processor) { resultImage in
-                DispatchQueue.main.async {
-                    self.completionCallback(resultImage)
-                }
-            }
+            cgImage = processor.process(cgImage)
         }
-        else {
-            DispatchQueue.main.async {
-                self.completionCallback(cgImage)
-            }
+
+        DispatchQueue.main.async {
+            self.completionCallback(cgImage)
         }
     }
+
+    private let queue = DispatchQueue(label: "URLImage.ImageDownloadHandler.queue")
 
     // The decoder is created when first partial data received.
     // If the decoder wasn't' created before the completion handler was called we must load data from the local file.
     private var decoder: ImageDecoder?
+
+    private var decodingOptions: ImageDecoder.DecodingOptions {
+        var options = ImageDecoder.DecodingOptions.default
+
+        if inMemory || displaySize != nil {
+            options.mode = .asynchronous
+        }
+        else {
+            options.mode = .synchronous
+        }
+
+        options.sizeForDrawing = displaySize
+
+        return options
+    }
 }

@@ -22,14 +22,17 @@ protocol DownloadService: AnyObject {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class DownloadServiceImpl: DownloadService {
 
-    init(remoteFileCache: RemoteFileCacheService) {
-        let urlSessionConfiguration = URLSessionConfiguration.default.copy() as! URLSessionConfiguration
-        urlSessionConfiguration.httpMaximumConnectionsPerHost = 1
+    init(remoteFileCache: RemoteFileCacheService, retryCount: Int = 3) {
+
+        let configuration = URLSessionConfiguration.default.copy(with: nil) as! URLSessionConfiguration
+        configuration.httpMaximumConnectionsPerHost = 1
 
         urlSessionDelegate = URLSessionDelegateWrapper()
-        urlSession = URLSession(configuration: urlSessionConfiguration, delegate: urlSessionDelegate, delegateQueue: queue)
+        urlSession = URLSession(configuration: configuration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
+        
+        
 
         func downloaderForTask(_ task: URLSessionTask) -> DownloadCoordinator? {
             guard let urlRequest = task.originalRequest else {
@@ -65,6 +68,14 @@ final class DownloadServiceImpl: DownloadService {
             }
         }
 
+        urlSessionDelegate.receiveResponseCallback = { task, response, completion in
+            if let url = task.originalRequest?.url {
+                log_debug(self, "Received response: \(response), for \"\(url)\".", detail: log_detailed)
+            }
+            
+            completion(.allow)
+        }
+
         urlSessionDelegate.receiveDataCallback = { task, data in
             guard let downloader = downloaderForTask(task) as? DataDownloadCoordinator else {
                 return
@@ -84,10 +95,37 @@ final class DownloadServiceImpl: DownloadService {
 
             (downloader as? DataDownloadCoordinator)?.finishDownloading()
             downloader.complete(with: error)
+            
+            let pendingHandlers = downloader.handlers
+            let currentRetryCount = downloader.retryCount + 1
+            
+            guard let request = task.originalRequest,
+                downloader.isFailed && pendingHandlers.count > 0 && currentRetryCount <= retryCount
+            else {
+                return
+            }
+            
+            let expiryDate = downloader.expiryDate
+            
+            DispatchQueue.main.async {
+                if let url = request.url {
+                    log_debug(self, "Retry for: \"\(url)\" with retry count: \(currentRetryCount)", detail: log_detailed)
+                }
+                
+                for handler in pendingHandlers {
+                    self._add(handler, forURLRequest: request, retryCount: currentRetryCount)
+                }
+                
+                self.load(urlRequest: request, after: 0.0, expiryDate: expiryDate)
+            }
         }
     }
 
     func add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest) {
+        _add(handler, forURLRequest: urlRequest, retryCount: 0)
+    }
+    
+    private func _add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest, retryCount: Int) {
         queue.addOperation {
             let downloader: DownloadCoordinator
 
@@ -95,9 +133,9 @@ final class DownloadServiceImpl: DownloadService {
                 downloader = existingDownloader
             }
             else {
-                downloader = self.createDownloader(forURLRequest: urlRequest, inMemory: handler.inMemory)
+                downloader = self.createDownloader(forURLRequest: urlRequest, inMemory: handler.inMemory, retryCount: retryCount)
 
-                downloader.completionCallback = {
+                downloader.finilizeCallback = {
                     self.queue.addOperation {
                         self.urlRequestToDownloaderMap.removeValue(forKey: urlRequest)
                     }
@@ -182,16 +220,16 @@ final class DownloadServiceImpl: DownloadService {
         }
     }
 
-    private func createDownloader(forURLRequest urlRequest: URLRequest, inMemory: Bool) -> DownloadCoordinator {
+    private func createDownloader(forURLRequest urlRequest: URLRequest, inMemory: Bool, retryCount: Int) -> DownloadCoordinator {
         let downloader: DownloadCoordinator
 
         if inMemory {
             let task = urlSession.dataTask(with: urlRequest)
-            downloader = DataDownloadCoordinator(url: urlRequest.url!, task: task, remoteFileCache: remoteFileCache)
+            downloader = DataDownloadCoordinator(url: urlRequest.url!, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
         }
         else {
             let task = urlSession.downloadTask(with: urlRequest)
-            downloader = FileDownloadCoordinator(url: urlRequest.url!, task: task, remoteFileCache: remoteFileCache)
+            downloader = FileDownloadCoordinator(url: urlRequest.url!, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
         }
 
         return downloader
