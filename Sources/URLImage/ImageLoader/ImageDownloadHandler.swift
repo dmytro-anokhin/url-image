@@ -128,17 +128,6 @@ class ImageDownloadHandler: DownloadHandler {
     private var decoder: ImageDecoder?
 
     private var decodingOptions: ImageDecoder.DecodingOptions {
-        var options = ImageDecoder.DecodingOptions.default
-
-        if inMemory || displaySize != nil {
-            options.mode = .asynchronous
-        }
-        else {
-            options.mode = .synchronous
-        }
-
-        options.sizeForDrawing = displaySize
-
-        return options
+        ImageDecoder.DecodingOptions(mode: .synchronous, sizeForDrawing: displaySize)
     }
 }
