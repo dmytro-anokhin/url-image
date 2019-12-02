@@ -36,6 +36,8 @@ public protocol ImageProxy {
 #endif
 
     var image: Image { get }
+
+    var isAnimated: Bool { get }
 }
 
 
@@ -71,6 +73,10 @@ struct ImageWrapper: ImageProxy {
     }
 
     #endif
+
+    var isAnimated: Bool {
+        return false
+    }
 }
 
 
@@ -91,6 +97,10 @@ struct AnimatedImageWrapper: ImageProxy {
 
     var image: Image {
         return Image(uiImage: uiImage)
+    }
+
+    var isAnimated: Bool {
+        return true
     }
 }
 
