@@ -35,10 +35,34 @@ public protocol ImageProxy {
     var nsImage: NSImage { get }
 #endif
 
-    var image: Image { get }
-
     var isAnimated: Bool { get }
 }
+
+
+#if canImport(UIKit)
+@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS, unavailable)
+public extension ImageProxy {
+
+    var image: Image {
+        return Image(uiImage: uiImage)
+    }
+}
+#endif
+
+
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+@available(macOS 10.15, *)
+@available(iOS, unavailable)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
+public extension ImageProxy {
+
+    var image: Image {
+        return Image(nsImage: nsImage)
+    }
+}
+#endif
 
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
@@ -56,20 +80,12 @@ struct ImageWrapper: ImageProxy {
         return UIImage(cgImage: cgImage)
     }
 
-    var image: Image {
-        return Image(uiImage: uiImage)
-    }
-
     #endif
 
     #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 
     var nsImage: NSImage {
         return NSImage(cgImage: cgImage, size: NSZeroSize)
-    }
-
-    var image: Image {
-        return Image(nsImage: nsImage)
     }
 
     #endif
@@ -94,10 +110,6 @@ struct AnimatedImageWrapper: ImageProxy {
     }
 
     let uiImage: UIImage
-
-    var image: Image {
-        return Image(uiImage: uiImage)
-    }
 
     var isAnimated: Bool {
         return true
