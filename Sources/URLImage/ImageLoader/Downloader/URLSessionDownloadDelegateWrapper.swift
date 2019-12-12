@@ -55,3 +55,32 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
         receiveDataCallback?(dataTask, data)
     }
 }
+
+extension URLSessionDelegateWrapper {
+    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, 
+                           completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+        if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
+            if (challenge.protectionSpace.host.isIpAddress()) {
+                let credential = URLCredential(trust: challenge.protectionSpace.serverTrust!)
+                completionHandler(URLSession.AuthChallengeDisposition.useCredential, credential)
+                return
+            }
+        }
+        completionHandler(.performDefaultHandling, nil)
+    }
+}
+
+extension String {
+    func isIPv4() -> Bool {
+        var sin = sockaddr_in()
+        return self.withCString({ cstring in inet_pton(AF_INET, cstring, &sin.sin_addr) }) == 1
+    }
+
+    func isIPv6() -> Bool {
+        var sin6 = sockaddr_in6()
+        return self.withCString({ cstring in inet_pton(AF_INET6, cstring, &sin6.sin6_addr) }) == 1
+    }
+
+    func isIpAddress() -> Bool { return self.isIPv6() || self.isIPv4() }
+}
+
