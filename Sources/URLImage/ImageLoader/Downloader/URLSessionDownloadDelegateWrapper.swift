@@ -56,7 +56,12 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
     }
     
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-        customSessionCredentialsDelegate?.urlSession?(session, didReceive: challenge, completionHandler: completionHandler)
+        if let customSessionCredentialsDelegate = customSessionCredentialsDelegate {
+            customSessionCredentialsDelegate.urlSession?(session, didReceive: challenge, completionHandler: completionHandler)
+        }
+        else {
+            completionHandler(.performDefaultHandling, nil)
+        }
     }
     
     func setCustomSessionCredentialsDelegate(_ customSessionCredentialsDelegate: URLSessionDelegate?) {
