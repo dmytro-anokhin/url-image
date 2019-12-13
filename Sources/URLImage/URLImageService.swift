@@ -7,7 +7,6 @@
 
 import Foundation
 
-
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public protocol URLImageServiceType {
 
@@ -20,6 +19,8 @@ public protocol URLImageServiceType {
     func resetFileCache()
 
     func cleanFileCache()
+    
+    func setCustomSessionDelegate(customSessionDelegate: CustomURLSessionDelegate)
 }
 
 
@@ -45,6 +46,8 @@ public final class URLImageService: URLImageServiceType {
     public let services: Services
 
     public private(set) var defaultExpiryTime: TimeInterval = 60.0 * 60.0 * 24.0 * 7.0 // 1 week
+    
+    public private(set) var customSessionDelegate: CustomURLSessionDelegate = CustomURLSessionDelegate()
 
     public func setDefaultExpiryTime(_ defaultExpiryTime: TimeInterval) {
         self.defaultExpiryTime = defaultExpiryTime
@@ -58,9 +61,13 @@ public final class URLImageService: URLImageServiceType {
         services.remoteFileCacheService.clean()
     }
 
+    public func setCustomSessionDelegate(customSessionDelegate: CustomURLSessionDelegate) {
+        services.downloadService.setSessionDelegate(sessionDelegate: customSessionDelegate)
+    }
+    
     private init() {
         let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
-        let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService)
+        let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService, customSessionDelegate: customSessionDelegate)
 
         services = Services(remoteFileCacheService: remoteFileCacheService, downloadService: downloadService)
     }

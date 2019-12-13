@@ -8,7 +8,7 @@
 import Foundation
 
 
-final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate {
+open class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSessionDownloadDelegate {
 
     typealias FinishDownloadingCallback = (_ downloadTask: URLSessionDownloadTask, _ location: URL) -> Void
 
@@ -30,19 +30,19 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
 
     var completeCallback: CompleteCallback?
     
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         finishDownloadingCallback?(downloadTask, location)
     }
 
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+    public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         writeDataCallback?(downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
     }
 
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         completeCallback?(task, error)
     }
     
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         if let receiveResponseCallback = receiveResponseCallback {
             receiveResponseCallback(dataTask, response, completionHandler)
         }
@@ -51,13 +51,13 @@ final class URLSessionDelegateWrapper: NSObject, URLSessionDataDelegate, URLSess
         }
     }
 
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         receiveDataCallback?(dataTask, data)
     }
 }
 
-extension URLSessionDelegateWrapper {
-    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, 
+public class CustomURLSessionDelegate : URLSessionDelegateWrapper {
+    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge,
                            completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         if (challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust) {
             if (challenge.protectionSpace.host.isIpAddress()) {
