@@ -16,8 +16,9 @@ protocol DownloadService: AnyObject {
     func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest)
 
     func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?)
+    
+    func setCustomSessionCredentialsDelegate(_ customSessionCredentialsDelegate: URLSessionDelegate?)
 }
-
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class DownloadServiceImpl: DownloadService {
@@ -189,6 +190,10 @@ final class DownloadServiceImpl: DownloadService {
 
             downloader.resume(after: delay)
         }
+    }
+    
+    func setCustomSessionCredentialsDelegate(_ customSessionCredentialsDelegate: URLSessionDelegate?) {
+        urlSessionDelegate.setCustomSessionCredentialsDelegate(customSessionCredentialsDelegate)
     }
 
     // MARK: Private

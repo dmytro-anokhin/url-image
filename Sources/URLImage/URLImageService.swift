@@ -20,6 +20,8 @@ public protocol URLImageServiceType {
     func resetFileCache()
 
     func cleanFileCache()
+    
+    func setCustomSessionCredentialsDelegate(_ customSessionCredentialsDelegate: URLSessionDelegate?)
 }
 
 
@@ -58,6 +60,10 @@ public final class URLImageService: URLImageServiceType {
         services.remoteFileCacheService.clean()
     }
 
+    public func setCustomSessionCredentialsDelegate(_ customSessionCredentialsDelegate: URLSessionDelegate?) {
+        services.downloadService.setCustomSessionCredentialsDelegate(customSessionCredentialsDelegate)
+    }
+    
     private init() {
         let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
         let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService)
