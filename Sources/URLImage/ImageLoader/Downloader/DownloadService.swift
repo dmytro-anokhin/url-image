@@ -16,35 +16,24 @@ protocol DownloadService: AnyObject {
     func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest)
 
     func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?)
-    
-    func setSessionDelegate(sessionDelegate: CustomURLSessionDelegate)
 }
 
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class DownloadServiceImpl: DownloadService {
 
-    init(remoteFileCache: RemoteFileCacheService, customSessionDelegate: CustomURLSessionDelegate, retryCount: Int = 3) {
+    init(remoteFileCache: RemoteFileCacheService, retryCount: Int = 3) {
 
         let configuration = URLSessionConfiguration.default.copy(with: nil) as! URLSessionConfiguration
         configuration.httpMaximumConnectionsPerHost = 1
 
-        urlSessionDelegate = customSessionDelegate
+        urlSessionDelegate = URLSessionDelegateWrapper()
         urlSession = URLSession(configuration: configuration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
-        self.retryCount = retryCount
         
-        defineDelegateCallbacks()
-    }
-    
-    func setSessionDelegate(sessionDelegate: CustomURLSessionDelegate) {
-        urlSessionDelegate = sessionDelegate
         
-        defineDelegateCallbacks()
-    }
-    
-    func defineDelegateCallbacks()  {
+
         func downloaderForTask(_ task: URLSessionTask) -> DownloadCoordinator? {
             guard let urlRequest = task.originalRequest else {
                 return nil
@@ -111,7 +100,7 @@ final class DownloadServiceImpl: DownloadService {
             let currentRetryCount = downloader.retryCount + 1
             
             guard let request = task.originalRequest,
-                downloader.isFailed && pendingHandlers.count > 0 && currentRetryCount <= self.retryCount
+                downloader.isFailed && pendingHandlers.count > 0 && currentRetryCount <= retryCount
             else {
                 return
             }
@@ -201,7 +190,7 @@ final class DownloadServiceImpl: DownloadService {
             downloader.resume(after: delay)
         }
     }
-    
+
     // MARK: Private
 
     private let queue: OperationQueue = {
@@ -213,8 +202,7 @@ final class DownloadServiceImpl: DownloadService {
     }()
 
     private let urlSession: URLSession
-    private var urlSessionDelegate: URLSessionDelegateWrapper
-    private var retryCount: Int
+    private let urlSessionDelegate: URLSessionDelegateWrapper
 
     private unowned let remoteFileCache: RemoteFileCacheService
 
