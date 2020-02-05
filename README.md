@@ -7,7 +7,7 @@
 
 # Table of Contents
 - [Features](#features)
-- [Installation] (#installation)
+- [Installation](#installation)
 - [Usage](#usage)
     - [Transition from 0.6.3 to 0.7.0 and later](#transition-from-063-to-070-and-later)
 - [Advanced Customization](#advanced-customization)
