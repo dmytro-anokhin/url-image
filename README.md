@@ -7,6 +7,7 @@
 
 # Table of Contents
 - [Features](#features)
+- [Installation] (#installation)
 - [Usage](#usage)
     - [Transition from 0.6.3 to 0.7.0 and later](#transition-from-063-to-070-and-later)
 - [Advanced Customization](#advanced-customization)
@@ -40,6 +41,14 @@
 - Image processing and Core Image filters;
 - Control over download delay for better scroll performance in lists;
 - Lower memory consumption when downloading image data directly to disk.
+
+## Installation
+
+`URLImage` can be installed using Swift Package Manager or CocoaPods.
+
+To install `URLImage` using Swift Package Manager look for https://github.com/dmytro-anokhin/url-image.git in Xcode (*File/Swift Packages/Add Package Dependency...*). See [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) for details.
+
+To install `URLImage` using CocoaPods add `pod 'URLImage'` to your Podfile.
 
 ## Usage
 
