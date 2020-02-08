@@ -9,8 +9,10 @@
 import Foundation
 import CoreGraphics
 import ImageIO
-import MobileCoreServices
 
+#if !os(macOS)
+import MobileCoreServices
+#endif
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 fileprivate extension CGContext {
