@@ -26,7 +26,7 @@ public struct CoreImageFilterProcessor: ImageProcessing {
 
     public func process(_ input: CGImage) -> CGImage {
         guard let filter = CIFilter(name: name, parameters: parameters) else {
-            print("Can not create Core Image filter: '\(name)'")
+            log_error(self, "Can not create Core Image filter: '\(name)'")
             return input
         }
 
@@ -34,13 +34,13 @@ public struct CoreImageFilterProcessor: ImageProcessing {
         filter.setValue(ciImage, forKey: kCIInputImageKey)
 
         guard let outputImage = filter.outputImage else {
-            print("Failed to create output image with Core Image filter: '\(name)'")
+            log_error(self, "Failed to create output image with Core Image filter: '\(name)'")
             return input
         }
 
         let bounds = CGRect(x: 0, y: 0, width: input.width, height: input.height)
         guard let resultImage = self.context.createCGImage(outputImage, from: bounds, format: .RGBA8, colorSpace: input.colorSpace) else {
-            print("Failed to render final image with Core Image filter: '\(name)'")
+            log_error(self, "Failed to render final image with Core Image filter: '\(name)'")
             return input
         }
 

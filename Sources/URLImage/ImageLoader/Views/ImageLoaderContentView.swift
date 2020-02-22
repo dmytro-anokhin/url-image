@@ -6,24 +6,12 @@
 //
 
 import SwiftUI
+import Combine
 
 
 /// Displays the placeholder or the content view for incremental loading
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 struct ImageLoaderContentView<Content, Placeholder> : View where Content : View, Placeholder : View {
-
-    class Model: ObservableObject {
-
-        /// Image for incremental loading
-        @Published var imageProxy: ImageProxy?
-
-        let downloadProgressWrapper: DownloadProgressWrapper
-
-        init() {
-            imageProxy = nil
-            downloadProgressWrapper = DownloadProgressWrapper()
-        }
-    }
 
     let placeholder: (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder
 
@@ -36,13 +24,22 @@ struct ImageLoaderContentView<Content, Placeholder> : View where Content : View,
     }
 
     var body: some View {
-        ZStack {
+
+        log_debug(self, "Content view render for: \(model.urlRequest.url!)", detail: log_extreme)
+
+        return ZStack {
             if model.imageProxy == nil {
                 placeholder(model.downloadProgressWrapper)
             }
             else {
                 content(model.imageProxy!)
             }
+        }
+        .onAppear {
+            self.model.load()
+        }
+        .onDisappear {
+            self.model.cancel()
         }
     }
 

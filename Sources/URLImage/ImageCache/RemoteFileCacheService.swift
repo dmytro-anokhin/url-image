@@ -218,3 +218,30 @@ fileprivate extension RemoteFileCacheServiceImpl {
         try FileManager.default.copyItem(at: sourceURL, to: destinationURL)
     }
 }
+
+
+@available(iOS 10.0, *)
+extension RemoteFileCacheServiceImpl: FileService {
+
+    func file(forRemoteURL remoteURL: URL) -> URL? {
+        queue.sync {
+            guard let fileInfo = self.index.fileInfo(forRemoteURL: remoteURL) else {
+                return nil
+            }
+
+            // Check if expired
+            if let expiryDate = fileInfo.expiryDate {
+                guard expiryDate > Date() else {
+                    try? self.delete(fileName: fileInfo.fileName)
+                    return nil
+                }
+            }
+
+            return self.fileURL(forFileName: fileInfo.fileName)
+        }
+    }
+
+    func moveFile(withRemoteURL remoteURL: URL, sourceURL: URL) throws -> URL {
+        try addFile(withRemoteURL: remoteURL, sourceURL: sourceURL, expiryDate: Date(timeIntervalSinceNow: 5.0 * 60.0), preferredFileExtension: nil)
+    }
+}

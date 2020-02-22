@@ -11,9 +11,10 @@ let log_none = Int.min
 let log_default = 1
 let log_normal = 2
 let log_detailed = 3
+let log_extreme = Int.max - 1
 let log_all = Int.max
 
-fileprivate let log_detail = log_none
+fileprivate let log_detail = log_detailed
 
 
 @inline(__always)
@@ -34,7 +35,7 @@ func log_info(_ object: Any?, _ message: String) {
 
 @inline(__always)
 func log_debug(_ object: Any?, _ message: String, detail: Int = log_default) {
-    guard detail < log_detail else {
+    guard detail <= log_detail else {
         return
     }
 

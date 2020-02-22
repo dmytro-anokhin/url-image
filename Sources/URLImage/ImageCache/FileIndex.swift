@@ -43,7 +43,7 @@ final class FileIndex {
                 try container.persistentStoreCoordinator.destroyPersistentStore(at: url, ofType: persistentStoreDescription.type, options: nil)
             }
             catch {
-                print(error)
+                log_error(self, "\(error)")
             }
         }
     }
@@ -60,7 +60,7 @@ final class FileIndex {
                 try self.context.save()
             }
             catch {
-                print(error)
+                log_error(self, "\(error)")
             }
         }
     }
@@ -80,9 +80,26 @@ final class FileIndex {
                     completion(result)
 
                 case .failure(let error):
-                    print(error)
+                    log_error(self, "\(error)")
                     completion(nil)
             }
+        }
+    }
+
+    func fileInfo(forRemoteURL remoteURL: URL) -> RemoteFileInfo? {
+        let result = fetchAndWait(urlString: remoteURL.absoluteString)
+
+        switch result {
+            case .success(let file):
+                guard let file = file else {
+                    return nil
+                }
+
+                return RemoteFileInfo(urlString: file.urlString!, dateCreated: file.dateCreated!, expiryDate: file.expiryDate, fileName: file.fileName!)
+
+            case .failure(let error):
+                log_error(self, "\(error)")
+                return nil
         }
     }
 
@@ -98,7 +115,7 @@ final class FileIndex {
 
 
                 case .failure(let error):
-                    print(error)
+                    log_error(self, "\(error)")
                     return
             }
         }
@@ -129,7 +146,7 @@ final class FileIndex {
                 }
             }
             catch {
-                print(error)
+                log_error(self, "\(error)")
             }
         }
     }
@@ -183,6 +200,25 @@ final class FileIndex {
                 action(.failure(error))
             }
         }
+    }
+
+    private func fetchAndWait(urlString: String) -> Result<RemoteFileManagedObject?, Error> {
+        var result: Result<RemoteFileManagedObject?, Error>? = nil
+
+        context.performAndWait {
+            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
+            request.predicate = NSPredicate(format: "urlString == %@", urlString)
+
+            do {
+                let fetchedObjects = try self.context.fetch(request)
+                result = .success(fetchedObjects.first)
+            }
+            catch {
+                result = .failure(error)
+            }
+        }
+
+        return result!
     }
 
     private func fetch(fileName: String, action: @escaping FetchCompletion) {
