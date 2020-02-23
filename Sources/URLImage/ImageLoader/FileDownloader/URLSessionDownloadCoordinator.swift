@@ -50,9 +50,10 @@ final class URLSessionDownloadCoordinator : NSObject {
 
     typealias DownloadCompletion = (Result<URL, Error>) -> Void
 
-//    func downloadFile(with url: URL, completion: @escaping DownloadCompletion) {
-//        downloadFile(with: URLRequest(url: url), completion: completion)
-//    }
+    func downloadFile(with url: URL, completion: @escaping DownloadCompletion) {
+        let request = requestBuilder.buildRequestForURL(url)
+        downloadFile(with: request, completion: completion)
+    }
 
     func downloadFile(with request: URLRequest, completion: @escaping DownloadCompletion) {
         withTaskWrapperAsync(for: request) { wrapper in
@@ -69,15 +70,10 @@ final class URLSessionDownloadCoordinator : NSObject {
         }
     }
 
-//    func downloadFilePublisher(with url: URL) -> AnyPublisher<Result<URL, Error>, Never> {
-//        withTaskWrapperSync(for: url) { wrapper in
-//            NotificationCenter.default.publisher(for: DownloadTaskWrapper.Notification.didComplete, object: wrapper)
-//                .map { notification -> Result<URL, Error> in
-//                    notification.userInfo![DownloadTaskWrapper.Notification.result] as! Result<URL, Error>
-//                }
-//                .eraseToAnyPublisher()
-//        }
-//    }
+    func downloadFilePublisher(with url: URL) -> AnyPublisher<Result<URL, Error>, Never> {
+        let request = requestBuilder.buildRequestForURL(url)
+        return downloadFilePublisher(with: request)
+    }
 
     func downloadFilePublisher(with request: URLRequest) -> AnyPublisher<Result<URL, Error>, Never> {
         let notificationPublisher = withTaskWrapperSync(for: request) { wrapper in

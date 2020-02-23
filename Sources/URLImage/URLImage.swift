@@ -16,7 +16,7 @@ import AppKit
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public struct URLImage<Content, Placeholder> : View where Content : View, Placeholder : View {
 
-    public var url: URL { urlRequest.url! }
+    public let url: URL
 
     public let expiryDate: Date?
 
@@ -29,14 +29,13 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
                 placeholder: @escaping () -> Placeholder,
                 content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        urlRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 60.0)
-
+        self.url = url
         self.expiryDate = expiryDate
 
         self.placeholder = placeholder
         self.content = content
 
-        model = DownloadModel(urlRequest, URLImageService.shared.services.fileDownloadService) { resultURL in
+        model = DownloadModel(url, URLImageService.shared.services.fileDownloadService) { resultURL in
             if let decoder = ImageDecoder(url: resultURL), let cgImage = decoder.createFrameImage(at: 0) {
                 return ImageWrapper(cgImage: cgImage)
             }
@@ -49,7 +48,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     public var body: some View {
         ZStack {
-            if model.downloaded {
+            if model.object != nil {
                 content(model.object!)
             }
             else {
@@ -71,8 +70,6 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
     private let content: (_ imageProxy: ImageProxy) -> Content
 
     @ObservedObject private var model: DownloadModel<ImageProxy>
-
-    private let urlRequest: URLRequest
 }
 
 
@@ -94,14 +91,13 @@ public extension URLImage where Placeholder == Image {
         }(),
          content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        urlRequest = URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 60.0)
-
+        self.url = url
         self.expiryDate = expiryDate
 
         self.placeholder = { placeholder }
         self.content = content
 
-        model = DownloadModel(urlRequest, URLImageService.shared.services.fileDownloadService) { resultURL in
+        model = DownloadModel(url, URLImageService.shared.services.fileDownloadService) { resultURL in
             if let decoder = ImageDecoder(url: resultURL), let cgImage = decoder.createFrameImage(at: 0) {
                 return ImageWrapper(cgImage: cgImage)
             }
