@@ -26,15 +26,12 @@ public protocol URLImageServiceType {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class Services {
 
-    init(remoteFileCacheService: RemoteFileCacheService, downloadService: DownloadService, fileDownloadService: URLSessionDownloadCoordinator) {
+    init(remoteFileCacheService: RemoteFileCacheService, fileDownloadService: URLSessionDownloadCoordinator) {
         self.remoteFileCacheService = remoteFileCacheService
-        self.downloadService = downloadService
         self.fileDownloadService = fileDownloadService
     }
 
     let remoteFileCacheService: RemoteFileCacheService
-
-    let downloadService: DownloadService
 
     let fileDownloadService: URLSessionDownloadCoordinator
 }
@@ -63,9 +60,10 @@ public final class URLImageService: URLImageServiceType {
 
     private init() {
         let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
-        let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService)
-        let fileDownloadService = URLSessionDownloadCoordinator(fileService: remoteFileCacheService)
 
-        services = Services(remoteFileCacheService: remoteFileCacheService, downloadService: downloadService, fileDownloadService: fileDownloadService)
+        let requestBuilder = DefaultRequestBuilder()
+        let fileDownloadService = URLSessionDownloadCoordinator(fileService: remoteFileCacheService, requestBuilder: requestBuilder)
+
+        services = Services(remoteFileCacheService: remoteFileCacheService, fileDownloadService: fileDownloadService)
     }
 }

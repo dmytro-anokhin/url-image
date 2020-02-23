@@ -18,15 +18,32 @@ protocol FileService {
 }
 
 
+protocol RequestBuilder {
+
+    func buildRequestForURL(_ url: URL) -> URLRequest
+}
+
+
+struct DefaultRequestBuilder: RequestBuilder {
+
+    func buildRequestForURL(_ url: URL) -> URLRequest {
+        URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 60.0)
+    }
+}
+
+
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 final class URLSessionDownloadCoordinator : NSObject {
 
     let fileService: FileService
 
+    let requestBuilder: RequestBuilder
+
     private var urlSession: URLSession!
 
-    init(fileService: FileService, configuration: URLSessionConfiguration = .default) {
+    init(fileService: FileService, requestBuilder: RequestBuilder, configuration: URLSessionConfiguration = .default) {
         self.fileService = fileService
+        self.requestBuilder = requestBuilder
         super.init()
         urlSession = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
     }
