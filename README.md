@@ -175,6 +175,12 @@ Change default `expiryDate`:
 URLImageService.shared.setDefaultExpiryTime(3600.0) // Expire after an hour
 ```
 
+Cached images can be removed by URL:
+
+```swift
+URLImageService.shared.removeCachedImage(with: url)
+```
+
 ### Maintaining Local Cache
 
 Because cached files are deleted lazily it is a good idea to clean caches time to time:

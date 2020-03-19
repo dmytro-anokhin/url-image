@@ -20,6 +20,8 @@ public protocol URLImageServiceType {
     func resetFileCache()
 
     func cleanFileCache()
+
+    func removeCachedImage(with url: URL)
 }
 
 
@@ -56,6 +58,10 @@ public final class URLImageService: URLImageServiceType {
 
     public func cleanFileCache() {
         services.remoteFileCacheService.clean()
+    }
+
+    public func removeCachedImage(with url: URL) {
+        services.remoteFileCacheService.delete(withRemoteURL: url)
     }
 
     private init() {

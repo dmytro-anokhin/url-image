@@ -21,6 +21,8 @@ protocol RemoteFileCacheService: AnyObject {
 
     func delete(fileName: String) throws
 
+    func delete(withRemoteURL remoteURL: URL)
+
     func reset()
 
     func clean()
@@ -131,12 +133,19 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Removes the file from the directory managed by the `RemoteFileCacheService` instance.
     func delete(fileName: String) throws {
         try queue.sync {
-            defer {
-                index.removeFileInfo(forFileName: fileName)
-            }
+            try performDelete(fileName: fileName)
+        }
+    }
 
-            let localFileURL = fileURL(forFileName: fileName)
-            try FileManager.default.removeItem(at: localFileURL)
+    func delete(withRemoteURL remoteURL: URL) {
+        queue.sync(flags: .barrier) {
+            self.index.fileInfo(forRemoteURL: remoteURL) { fileInfo in
+                guard let fileInfo = fileInfo else {
+                    return
+                }
+
+                try? self.performDelete(fileName: fileInfo.fileName)
+            }
         }
     }
 
@@ -197,6 +206,15 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
         }
 
         return uuid + ".file"
+    }
+
+    private func performDelete(fileName: String) throws {
+       defer {
+           index.removeFileInfo(forFileName: fileName)
+       }
+
+       let localFileURL = fileURL(forFileName: fileName)
+       try FileManager.default.removeItem(at: localFileURL)
     }
 }
 
