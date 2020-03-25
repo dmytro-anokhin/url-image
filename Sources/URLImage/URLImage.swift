@@ -184,6 +184,53 @@ return Image(systemName: "photo")
 }
 
 
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+public extension URLImage where Content == Image, Placeholder == Image {
+
+    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
+
+        self.urlRequest = makeRequest(with: url)
+        self.placeholder = { _ in placeholderImage }
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.animated = animated
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+
+    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
+return Image(nsImage: NSImage())
+#else
+return Image(systemName: "photo")
+#endif
+    }(), content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+
+        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
+        assert(urlRequest.url != nil)
+        assert(urlRequest.httpMethod == "GET")
+
+        self.urlRequest = urlRequest
+        self.placeholder = { _ in placeholderImage }
+        self.content = content
+        self.delay = delay
+        self.incremental = incremental
+        self.animated = animated
+        self.expiryDate = expiryDate
+        self.processors = processors
+    }
+}
+
+
 @inline(__always)
 fileprivate func makeRequest(with url: URL) -> URLRequest {
     URLRequest(url: url, cachePolicy: .reloadIgnoringCacheData, timeoutInterval: 60.0)
