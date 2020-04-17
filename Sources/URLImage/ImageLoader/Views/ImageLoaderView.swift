@@ -54,7 +54,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
 #if canImport(UIKit)
             if imageFrames.count == 1 {
-                viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image)
+                viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
             }
             else {
                 let animatedImage = UIImage.animatedImage(
@@ -65,7 +65,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
                 viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
             }
 #else
-            viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image)
+            viewModel.imageProxy = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
 #endif
         }
 
@@ -74,7 +74,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
 #if canImport(UIKit)
             if imageFrames.count == 1 {
-                let wrapper = ImageWrapper(cgImage: imageFrames.first!.image)
+                let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
                 self.onLoad?(wrapper)
             }
             else {
@@ -86,7 +86,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
                 viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
             }
 #else
-            let wrapper = ImageWrapper(cgImage: imageFrames.first!.image)
+            let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
             self.onLoad?(wrapper)
 #endif
         }

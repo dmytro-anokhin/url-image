@@ -6,10 +6,11 @@
 //
 
 import Foundation
+import ImageIO
 import CoreGraphics
 
 
-typealias ImageFrame = (image: CGImage, duration: TimeInterval?)
+typealias ImageFrame = (image: CGImage, orientation: CGImagePropertyOrientation?, duration: TimeInterval?)
 
 
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
@@ -84,11 +85,11 @@ class ImageDownloadHandler: DownloadHandler {
             }
 
             if let processor = processor {
-                cgImage = processor.process(cgImage)
+                cgImage.0 = processor.process(cgImage.0)
             }
 
             DispatchQueue.main.async {
-                self.partialCallback([(cgImage, nil)])
+                self.partialCallback([(cgImage.0, cgImage.1, nil)])
             }
         }
     }
@@ -136,11 +137,11 @@ class ImageDownloadHandler: DownloadHandler {
             }
 
             if let processor = processor {
-                cgImage = processor.process(cgImage)
+                cgImage.0 = processor.process(cgImage.0)
             }
 
             DispatchQueue.main.async {
-                self.completionCallback([(cgImage, nil)])
+                self.completionCallback([(cgImage.0, cgImage.1, nil)])
             }
         }
     }
@@ -155,7 +156,8 @@ class ImageDownloadHandler: DownloadHandler {
         ImageDecoder.DecodingOptions(mode: .synchronous, sizeForDrawing: displaySize)
     }
 
-    private func makeCGImage() -> CGImage? {
+    /// Image and orientation for display
+    private func makeCGImage() -> (CGImage, CGImagePropertyOrientation?)? {
         guard let decoder = decoder else {
             return nil
         }
@@ -172,7 +174,13 @@ class ImageDownloadHandler: DownloadHandler {
 
         log_debug(self, "Decoded frame for \"\(urlRequest.url!)\"", detail: log_detailed)
 
-        return cgImage
+        if let orientation = decoder.frameOrientation(at: 0) {
+            return (cgImage, orientation)
+        }
+        else {
+            log_debug(self, "Frame orienation information missing for \"\(urlRequest.url!)\"", detail: log_detailed)
+            return (cgImage, nil)
+        }
     }
 
     private func makeImageFrames() -> [ImageFrame]? {
@@ -196,7 +204,9 @@ class ImageDownloadHandler: DownloadHandler {
                 continue
             }
 
-            imageFrames.append((cgImage, duration))
+            let orientation = decoder.frameOrientation(at: i)
+
+            imageFrames.append((cgImage, orientation, duration))
         }
 
         return imageFrames

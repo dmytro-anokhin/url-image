@@ -26,6 +26,8 @@ import AppKit
 public protocol ImageProxy {
     
     var cgImage: CGImage { get }
+
+    var cgOrientation: CGImagePropertyOrientation? { get }
     
 #if canImport(UIKit)
     var uiImage: UIImage { get }
@@ -45,7 +47,11 @@ public protocol ImageProxy {
 public extension ImageProxy {
 
     var image: Image {
-        return Image(uiImage: uiImage)
+        guard let cgOrientation = cgOrientation else {
+            return Image(uiImage: uiImage)
+        }
+
+        return Image(decorative: cgImage, scale: 1.0, orientation: Image.Orientation(cgOrientation))
     }
 }
 #endif
@@ -68,11 +74,14 @@ public extension ImageProxy {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 struct ImageWrapper: ImageProxy {
 
-    init(cgImage: CGImage) {
+    init(cgImage: CGImage, cgOrientation: CGImagePropertyOrientation?) {
         self.cgImage = cgImage
+        self.cgOrientation = cgOrientation
     }
 
     let cgImage: CGImage
+
+    let cgOrientation: CGImagePropertyOrientation?
 
     #if canImport(UIKit)
 
@@ -109,6 +118,8 @@ struct AnimatedImageWrapper: ImageProxy {
         uiImage.cgImage!
     }
 
+    var cgOrientation: CGImagePropertyOrientation? { nil }
+
     let uiImage: UIImage
 
     var isAnimated: Bool {
@@ -117,3 +128,21 @@ struct AnimatedImageWrapper: ImageProxy {
 }
 
 #endif
+
+
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+fileprivate extension Image.Orientation {
+
+    init(_ cgOrientation: CGImagePropertyOrientation) {
+        switch cgOrientation {
+            case .up: self = .up
+            case .upMirrored: self = .upMirrored
+            case .down: self = .down
+            case .downMirrored: self = .downMirrored
+            case .left: self = .left
+            case .leftMirrored: self = .leftMirrored
+            case .right: self = .right
+            case .rightMirrored: self = .rightMirrored
+        }
+    }
+}

@@ -238,6 +238,22 @@ final class ImageDecoder {
         return CGImageSourceGetStatusAtIndex(imageSource, index) == .statusComplete
     }
 
+    func frameOrientation(at index: Int) -> CGImagePropertyOrientation? {
+        guard index < frameCount else {
+            return nil
+        }
+
+        guard let frameProperties = CGImageSourceCopyPropertiesAtIndex(imageSource, index, imageSourceOptions()) as? [CFString: Any] else {
+            return nil
+        }
+
+        guard let orientation = frameProperties[kCGImagePropertyOrientation] as? UInt32 else {
+            return nil
+        }
+
+        return CGImagePropertyOrientation(rawValue: orientation)
+    }
+
     // MARK: - Private
 
     private static let imageSourceOptions: [CFString: Any] = [
