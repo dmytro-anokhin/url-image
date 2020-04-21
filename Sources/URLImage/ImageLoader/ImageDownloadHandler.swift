@@ -28,22 +28,23 @@ class ImageDownloadHandler: DownloadHandler {
 
     let completionCallback: CompletionCallback
 
-    let urlRequest: URLRequest
+    struct Properties {
 
-    let incremental: Bool
+        let urlRequest: URLRequest
 
-    let animated: Bool
+        let incremental: Bool
 
-    let displaySize: CGSize?
+        let animated: Bool
 
-    let processor: ImageProcessing?
+        let displaySize: CGSize?
 
-    init(urlRequest: URLRequest, incremental: Bool, animated: Bool, displaySize: CGSize?, processor: ImageProcessing? = nil, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
-        self.urlRequest = urlRequest
-        self.incremental = incremental
-        self.animated = animated
-        self.displaySize = displaySize
-        self.processor = processor
+        let processor: ImageProcessing?
+    }
+
+    let properties: Properties
+
+    init(properties: Properties, progressCallback: @escaping ProgressCallback, partialCallback: @escaping PartialCallback, completionCallback: @escaping CompletionCallback) {
+        self.properties = properties
         self.progressCallback = progressCallback
         self.partialCallback = partialCallback
         self.completionCallback = completionCallback
@@ -55,7 +56,7 @@ class ImageDownloadHandler: DownloadHandler {
         }
     }
 
-    override var inMemory: Bool { incremental }
+    override var inMemory: Bool { properties.incremental }
 
     override func handleDownloadPartial(_ data: Data) {
         queue.async {
@@ -70,7 +71,7 @@ class ImageDownloadHandler: DownloadHandler {
 
         decoder!.setData(data, allDataReceived: false)
 
-        if animated {
+        if properties.animated {
             guard let imageFrames = makeImageFrames(), !imageFrames.isEmpty else {
                 return
             }
@@ -84,7 +85,7 @@ class ImageDownloadHandler: DownloadHandler {
                 return
             }
 
-            if let processor = processor {
+            if let processor = properties.processor {
                 cgImage.0 = processor.process(cgImage.0)
             }
 
@@ -102,10 +103,10 @@ class ImageDownloadHandler: DownloadHandler {
 
     private func _handleDownloadCompletion(_ data: Data?, _ fileURL: URL) {
         if let data = data {
-            log_debug(self, "Handle completion for url: \"\(urlRequest.url!)\" with byte count: \(data.count), and local file: \"\(fileURL)\"", detail: log_detailed)
+            log_debug(self, "Handle completion for url: \"\(properties.urlRequest.url!)\" with byte count: \(data.count), and local file: \"\(fileURL)\"", detail: log_detailed)
         }
         else {
-            log_debug(self, "Handle completion for url: \"\(urlRequest.url!)\", local file: \"\(fileURL)\"", detail: log_detailed)
+            log_debug(self, "Handle completion for url: \"\(properties.urlRequest.url!)\", local file: \"\(fileURL)\"", detail: log_detailed)
         }
     
         if decoder == nil {
@@ -122,7 +123,7 @@ class ImageDownloadHandler: DownloadHandler {
             }
         }
 
-        if animated {
+        if properties.animated {
             guard let imageFrames = makeImageFrames(), !imageFrames.isEmpty else {
                 return
             }
@@ -136,7 +137,7 @@ class ImageDownloadHandler: DownloadHandler {
                 return
             }
 
-            if let processor = processor {
+            if let processor = properties.processor {
                 cgImage.0 = processor.process(cgImage.0)
             }
 
@@ -153,7 +154,7 @@ class ImageDownloadHandler: DownloadHandler {
     private var decoder: ImageDecoder?
 
     private var decodingOptions: ImageDecoder.DecodingOptions {
-        ImageDecoder.DecodingOptions(mode: .synchronous, sizeForDrawing: displaySize)
+        ImageDecoder.DecodingOptions(mode: .synchronous, sizeForDrawing: properties.displaySize)
     }
 
     /// Image and orientation for display
@@ -163,22 +164,22 @@ class ImageDownloadHandler: DownloadHandler {
         }
 
         guard decoder.frameCount > 0 else {
-            log_debug(self, "No frames to decode for \"\(urlRequest.url!)\"", detail: log_detailed)
+            log_debug(self, "No frames to decode for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
             return nil
         }
 
         guard let cgImage = decoder.createFrameImage(at: 0, decodingOptions: decodingOptions) else {
-            log_debug(self, "Failed to create frame for \"\(urlRequest.url!)\"", detail: log_detailed)
+            log_debug(self, "Failed to create frame for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
             return nil
         }
 
-        log_debug(self, "Decoded frame for \"\(urlRequest.url!)\"", detail: log_detailed)
+        log_debug(self, "Decoded frame for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
 
         if let orientation = decoder.frameOrientation(at: 0) {
             return (cgImage, orientation)
         }
         else {
-            log_debug(self, "Frame orienation information missing for \"\(urlRequest.url!)\"", detail: log_detailed)
+            log_debug(self, "Frame orienation information missing for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
             return (cgImage, nil)
         }
     }
@@ -191,7 +192,7 @@ class ImageDownloadHandler: DownloadHandler {
         let frameCount = decoder.frameCount
 
         guard frameCount > 0 else {
-            log_debug(self, "No frames to decode for \"\(urlRequest.url!)\"", detail: log_detailed)
+            log_debug(self, "No frames to decode for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
             return nil
         }
 
@@ -200,7 +201,7 @@ class ImageDownloadHandler: DownloadHandler {
         for i in 0..<frameCount {
             guard let cgImage = decoder.createFrameImage(at: i, decodingOptions: decodingOptions),
                 let duration = decoder.frameDuration(at: i) else {
-                log_debug(self, "Failed to create frame at \(i) for \"\(urlRequest.url!)\"", detail: log_detailed)
+                log_debug(self, "Failed to create frame at \(i) for \"\(properties.urlRequest.url!)\"", detail: log_detailed)
                 continue
             }
 

@@ -430,6 +430,9 @@ URL of the remote image.
 
 `URLRequest` for the remote image. The package expects GET request with URL.
 
+**`fileIdentifier`**
+String uniquely identifying image file. By default this is URL (when the value is not provided). Should be used when the same image can have multiple URLs.
+
 **`delay`**
 
 Delay before `URLImage` fetches the image from cache or starts to download it. This is useful to optimize scrolling when displaying  `URLImage` in a `List` view.  Default is `0.0`.

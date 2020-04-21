@@ -13,11 +13,11 @@ import CoreData
 
 protocol RemoteFileCacheService: AnyObject {
 
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
+    func addFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
+    func createFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
 
-    func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void)
+    func getFile(withFileIdentifier fileIdentifier: String, completion: @escaping (_ localFileURL: URL?) -> Void)
 
     func delete(fileName: String) throws
 
@@ -82,34 +82,34 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     /// Returns URL of the copy. This function generates unique name for the copied file.
     ///
     /// Example: ".../Library/Caches/URLImage/files/01234567-89AB-CDEF-0123-456789ABCDEF.file"
-    func addFile(withRemoteURL remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
+    func addFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
         return try queue.sync {
             let fileName = self.fileName(forRemoteURL: remoteURL, preferredFileExtension: preferredFileExtension())
 
             let destinationURL = fileURL(forFileName: fileName)
 
             try copy(from: sourceURL, to: destinationURL)
-            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
+            index.insertOrUpdate(fileIdentifier: fileIdentifier, remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
 
             return destinationURL
         }
     }
 
-    func createFile(withRemoteURL remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
+    func createFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
         return try queue.sync {
             let fileName = self.fileName(forRemoteURL: remoteURL, preferredFileExtension: preferredFileExtension())
             let destinationURL = fileURL(forFileName: fileName)
 
             try data.write(to: destinationURL)
-            index.insertOrUpdate(remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
+            index.insertOrUpdate(fileIdentifier: fileIdentifier, remoteURL: remoteURL, fileName: fileName, dateCreated: Date(), expiryDate: expiryDate)
 
             return destinationURL
         }
     }
 
-    func getFile(withRemoteURL remoteURL: URL, completion: @escaping (_ localFileURL: URL?) -> Void) {
+    func getFile(withFileIdentifier fileIdentifier: String, completion: @escaping (_ localFileURL: URL?) -> Void) {
         queue.async {
-            self.index.fileInfo(forRemoteURL: remoteURL) { fileInfo in
+            self.index.fileInfo(withFileIdentifier: fileIdentifier) { fileInfo in
                 guard let fileInfo = fileInfo else {
                     completion(nil)
                     return
@@ -170,10 +170,10 @@ final class RemoteFileCacheServiceImpl: RemoteFileCacheService {
     // MARK: - Private
 
     /// The current version of the files cache.
-    private static let version = Version(major: 1, minor: 0, patch: 0)
+    private static let version = Version(major: 1, minor: 1, patch: 0)
 
     /// The minimum compatible version of the files cache.
-    private static let minimumCompatibleVersion = Version(major: 1, minor: 0, patch: 0)
+    private static let minimumCompatibleVersion = Version(major: 1, minor: 1, patch: 0)
 
     /// URL of the directory managed by the `RemoteFileCacheService`. This is the concatenation of the `name` and `baseURL`
     ///

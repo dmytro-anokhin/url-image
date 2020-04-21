@@ -11,11 +11,11 @@ import Foundation
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 protocol DownloadService: AnyObject {
 
-    func add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest)
+    func add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest, withFileIdentifier fileIdentifier: String)
 
-    func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest)
+    func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest, withFileIdentifier fileIdentifier: String)
 
-    func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?)
+    func load(urlRequest: URLRequest, withFileIdentifier fileIdentifier: String, after delay: TimeInterval, expiryDate: Date?)
 }
 
 
@@ -31,15 +31,13 @@ final class DownloadServiceImpl: DownloadService {
         urlSession = URLSession(configuration: configuration, delegate: urlSessionDelegate, delegateQueue: queue)
 
         self.remoteFileCache = remoteFileCache
-        
-        
 
         func downloaderForTask(_ task: URLSessionTask) -> DownloadCoordinator? {
-            guard let urlRequest = task.originalRequest else {
+            guard let fileIdentifier = task.taskDescription else {
                 return nil
             }
 
-            return urlRequestToDownloaderMap[urlRequest]
+            return fileIdentifierToDownloaderMap[fileIdentifier]
         }
 
         urlSessionDelegate.finishDownloadingCallback = { task, tmpURL in
@@ -104,7 +102,9 @@ final class DownloadServiceImpl: DownloadService {
             else {
                 return
             }
-            
+
+            let fileIdentifier = downloader.fileIdentifier
+
             let expiryDate = downloader.expiryDate
             
             DispatchQueue.main.async {
@@ -113,44 +113,44 @@ final class DownloadServiceImpl: DownloadService {
                 }
                 
                 for handler in pendingHandlers {
-                    self._add(handler, forURLRequest: request, retryCount: currentRetryCount)
+                    self._add(handler, forURLRequest: request, withFileIdentifier: fileIdentifier, retryCount: currentRetryCount)
                 }
                 
-                self.load(urlRequest: request, after: 0.0, expiryDate: expiryDate)
+                self.load(urlRequest: request, withFileIdentifier: fileIdentifier, after: 0.0, expiryDate: expiryDate)
             }
         }
     }
 
-    func add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest) {
-        _add(handler, forURLRequest: urlRequest, retryCount: 0)
+    func add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest, withFileIdentifier fileIdentifier: String) {
+        _add(handler, forURLRequest: urlRequest, withFileIdentifier: fileIdentifier, retryCount: 0)
     }
     
-    private func _add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest, retryCount: Int) {
+    private func _add(_ handler: DownloadHandler, forURLRequest urlRequest: URLRequest, withFileIdentifier fileIdentifier: String, retryCount: Int) {
         queue.addOperation {
             let downloader: DownloadCoordinator
 
-            if let existingDownloader = self.urlRequestToDownloaderMap[urlRequest] {
+            if let existingDownloader = self.fileIdentifierToDownloaderMap[fileIdentifier] {
                 downloader = existingDownloader
             }
             else {
-                downloader = self.createDownloader(forURLRequest: urlRequest, inMemory: handler.inMemory, retryCount: retryCount)
+                downloader = self.createDownloader(forURLRequest: urlRequest, fileIdentifier: fileIdentifier, inMemory: handler.inMemory, retryCount: retryCount)
 
                 downloader.finilizeCallback = {
                     self.queue.addOperation {
-                        self.urlRequestToDownloaderMap.removeValue(forKey: urlRequest)
+                        self.fileIdentifierToDownloaderMap.removeValue(forKey: fileIdentifier)
                     }
                 }
 
-                self.urlRequestToDownloaderMap[urlRequest] = downloader
+                self.fileIdentifierToDownloaderMap[fileIdentifier] = downloader
             }
 
             downloader.addHandler(handler)
         }
     }
 
-    func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest) {
+    func remove(_ handler: DownloadHandler, fromURLRequest urlRequest: URLRequest, withFileIdentifier fileIdentifier: String) {
         queue.addOperation {
-            guard let downloader = self.urlRequestToDownloaderMap[urlRequest] else {
+            guard let downloader = self.fileIdentifierToDownloaderMap[fileIdentifier] else {
                 return
             }
 
@@ -161,18 +161,18 @@ final class DownloadServiceImpl: DownloadService {
             }
 
             if downloader.handlers.isEmpty {
-                self.urlRequestToDownloaderMap[urlRequest]?.cancel()
+                self.fileIdentifierToDownloaderMap[fileIdentifier]?.cancel()
             }
         }
     }
 
-    func load(urlRequest: URLRequest, after delay: TimeInterval, expiryDate: Date?) {
+    func load(urlRequest: URLRequest, withFileIdentifier fileIdentifier: String, after delay: TimeInterval, expiryDate: Date?) {
         if let url = urlRequest.url {
             log_debug(self, "Load \"\(url)\".")
         }
 
         queue.addOperation {
-            guard let downloader = self.urlRequestToDownloaderMap[urlRequest] else {
+            guard let downloader = self.fileIdentifierToDownloaderMap[fileIdentifier] else {
                 assertionFailure("Downloader must be created before calling load")
                 return
             }
@@ -206,30 +206,32 @@ final class DownloadServiceImpl: DownloadService {
 
     private unowned let remoteFileCache: RemoteFileCacheService
 
-    private var _urlRequestToDownloaderMap: [URLRequest: DownloadCoordinator] = [:]
+    private var _fileIdentifierToDownloaderMap: [String: DownloadCoordinator] = [:]
 
-    private var urlRequestToDownloaderMap: [URLRequest: DownloadCoordinator] {
+    private var fileIdentifierToDownloaderMap: [String: DownloadCoordinator] {
         get {
             assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
-            return _urlRequestToDownloaderMap
+            return _fileIdentifierToDownloaderMap
         }
 
         set {
             assert(OperationQueue.current === queue, "Must only be accessed on the designated queue: '\(queue.name!)'")
-            _urlRequestToDownloaderMap = newValue
+            _fileIdentifierToDownloaderMap = newValue
         }
     }
 
-    private func createDownloader(forURLRequest urlRequest: URLRequest, inMemory: Bool, retryCount: Int) -> DownloadCoordinator {
+    private func createDownloader(forURLRequest urlRequest: URLRequest, fileIdentifier: String, inMemory: Bool, retryCount: Int) -> DownloadCoordinator {
         let downloader: DownloadCoordinator
 
         if inMemory {
             let task = urlSession.dataTask(with: urlRequest)
-            downloader = DataDownloadCoordinator(url: urlRequest.url!, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
+            task.taskDescription = fileIdentifier
+            downloader = DataDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
         }
         else {
             let task = urlSession.downloadTask(with: urlRequest)
-            downloader = FileDownloadCoordinator(url: urlRequest.url!, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
+            task.taskDescription = fileIdentifier
+            downloader = FileDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
         }
 
         return downloader

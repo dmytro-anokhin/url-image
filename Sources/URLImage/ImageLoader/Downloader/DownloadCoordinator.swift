@@ -14,14 +14,17 @@ class DownloadCoordinator {
 
     let url: URL
 
+    let fileIdentifier: String
+
     let task: URLSessionTask
     
     let retryCount: Int
 
     unowned let remoteFileCache: RemoteFileCacheService
 
-    init(url: URL, task: URLSessionTask, retryCount: Int, remoteFileCache: RemoteFileCacheService) {
+    init(url: URL, fileIdentifier: String, task: URLSessionTask, retryCount: Int, remoteFileCache: RemoteFileCacheService) {
         self.url = url
+        self.fileIdentifier = fileIdentifier
         self.task = task
         self.retryCount = retryCount
         self.remoteFileCache = remoteFileCache
@@ -39,7 +42,7 @@ class DownloadCoordinator {
             return
         }
 
-        remoteFileCache.getFile(withRemoteURL: url) { localURL in
+        remoteFileCache.getFile(withFileIdentifier: fileIdentifier) { localURL in
             if let localURL = localURL {
                 // TODO: Verify that file can be open
                 if FileManager.default.fileExists(atPath: localURL.path) {
@@ -205,7 +208,7 @@ final class FileDownloadCoordinator: DownloadCoordinator {
 
         let fileExtension = preferredFileExtension(forTypeIdentifier: uti)
 
-        guard let localURL = try? remoteFileCache.addFile(withRemoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
+        guard let localURL = try? remoteFileCache.addFile(withFileIdentifier: fileIdentifier, remoteURL: url, sourceURL: tmpURL, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
             // Failed to cache the file
             transition(to: .failed)
             return
@@ -252,7 +255,7 @@ final class DataDownloadCoordinator: DownloadCoordinator {
 
         let fileExtension = preferredFileExtension(forTypeIdentifier: uti)
 
-        guard let localURL = try? remoteFileCache.createFile(withRemoteURL: url, data: sharedBuffer, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
+        guard let localURL = try? remoteFileCache.createFile(withFileIdentifier: fileIdentifier, remoteURL: url, data: sharedBuffer, expiryDate: expiryDate, preferredFileExtension: fileExtension) else {
             // Failed to cache the file
             transition(to: .failed)
             return

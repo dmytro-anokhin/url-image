@@ -27,6 +27,8 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let urlRequest: URLRequest
 
+    let fileIdentifier: String
+
     let delay: TimeInterval
 
     let incremental: Bool
@@ -37,11 +39,12 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     let processors: [ImageProcessing]?
 
-    public init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    public init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
+        self.fileIdentifier = fileIdentifier ?? url.absoluteString
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -51,13 +54,14 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
         self.processors = processors
     }
 
-    public init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
+    public init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
         self.urlRequest = urlRequest
+        self.fileIdentifier = fileIdentifier ?? urlRequest.url!.absoluteString
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -79,7 +83,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
                 content(imageProxy!)
             }
             else {
-                ImageLoaderView(urlRequest, delay: delay, incremental: incremental, animated: animated, expireAfter: expiryDate ?? Date(timeIntervalSinceNow: URLImageService.shared.defaultExpiryTime), processors: processors, services: URLImageService.shared.services, placeholder: placeholder, content: content)
+                ImageLoaderView(properties: .init(urlRequest: urlRequest, fileIdentifier: fileIdentifier, delay: delay, incremental: incremental, animated: animated, expiryDate: expiryDate ?? Date(timeIntervalSinceNow: URLImageService.shared.defaultExpiryTime), processors: processors), services: URLImageService.shared.services, placeholder: placeholder, content: content)
                 .onLoad { imageProxy in
                     self.imageProxy = imageProxy
                     self.previousURL = self.url
@@ -105,11 +109,12 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Content == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
+        self.fileIdentifier = fileIdentifier ?? url.absoluteString
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -119,13 +124,14 @@ public extension URLImage where Content == Image {
         self.processors = processors
     }
 
-    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
+    init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content = { $0.image }) {
 
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
         assert(urlRequest.url != nil)
         assert(urlRequest.httpMethod == "GET")
 
         self.urlRequest = urlRequest
+        self.fileIdentifier = fileIdentifier ?? urlRequest.url!.absoluteString
         self.placeholder = placeholder
         self.content = content
         self.delay = delay
@@ -140,7 +146,7 @@ public extension URLImage where Content == Image {
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+    init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -151,6 +157,7 @@ return Image(systemName: "photo")
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
+        self.fileIdentifier = fileIdentifier ?? url.absoluteString
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
@@ -160,7 +167,7 @@ return Image(systemName: "photo")
         self.processors = processors
     }
 
-    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+    init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -173,6 +180,7 @@ return Image(systemName: "photo")
         assert(urlRequest.httpMethod == "GET")
 
         self.urlRequest = urlRequest
+        self.fileIdentifier = fileIdentifier ?? urlRequest.url!.absoluteString
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
@@ -187,7 +195,7 @@ return Image(systemName: "photo")
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public extension URLImage where Content == Image, Placeholder == Image {
 
-    init(_ url: URL, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+    init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -198,6 +206,7 @@ return Image(systemName: "photo")
         assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
 
         self.urlRequest = makeRequest(with: url)
+        self.fileIdentifier = fileIdentifier ?? url.absoluteString
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay
@@ -207,7 +216,7 @@ return Image(systemName: "photo")
         self.processors = processors
     }
 
-    init(_ urlRequest: URLRequest, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
+    init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -220,6 +229,7 @@ return Image(systemName: "photo")
         assert(urlRequest.httpMethod == "GET")
 
         self.urlRequest = urlRequest
+        self.fileIdentifier = fileIdentifier ?? urlRequest.url!.absoluteString
         self.placeholder = { _ in placeholderImage }
         self.content = content
         self.delay = delay

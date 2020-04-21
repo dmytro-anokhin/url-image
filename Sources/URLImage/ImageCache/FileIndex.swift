@@ -48,9 +48,10 @@ final class FileIndex {
         }
     }
 
-    func insertOrUpdate(remoteURL: URL, fileName: String, dateCreated: Date, expiryDate: Date?) {
+    func insertOrUpdate(fileIdentifier: String?, remoteURL: URL, fileName: String, dateCreated: Date, expiryDate: Date?) {
         context.perform {
             let file = NSEntityDescription.insertNewObject(forEntityName: RemoteFileManagedObject.entityName, into: self.context) as! RemoteFileManagedObject
+            file.fileIdentifier = fileIdentifier
             file.urlString = remoteURL.absoluteString
             file.dateCreated = dateCreated
             file.expiryDate = expiryDate
@@ -66,6 +67,25 @@ final class FileIndex {
     }
 
     typealias RemoteFileInfo = (urlString: String, dateCreated: Date, expiryDate: Date?, fileName: String)
+
+    func fileInfo(withFileIdentifier fileIdentifier: String, completion: @escaping (_ fileInfo: RemoteFileInfo?) -> Void) {
+        fetch(fileIdentifier: fileIdentifier) { result in
+            switch result {
+                case .success(let file):
+                    guard let file = file else {
+                        completion(nil)
+                        return
+                    }
+
+                    let result = RemoteFileInfo(urlString: file.urlString!, dateCreated: file.dateCreated!, expiryDate: file.expiryDate, fileName: file.fileName!)
+                    completion(result)
+
+                case .failure(let error):
+                    print(error)
+                    completion(nil)
+            }
+        }
+    }
 
     func fileInfo(forRemoteURL remoteURL: URL, completion: @escaping (_ fileInfo: RemoteFileInfo?) -> Void) {
         fetch(urlString: remoteURL.absoluteString) { result in
@@ -141,6 +161,10 @@ final class FileIndex {
                 managedObjectClass: RemoteFileManagedObject.self,
                 attributes: [
                     .attribute(
+                        name: "fileIdentifier",
+                        type: .stringAttributeType
+                    ),
+                    .attribute(
                         name: "urlString",
                         type: .stringAttributeType
                     ),
@@ -158,6 +182,7 @@ final class FileIndex {
                     )
                 ],
                 indexes: [
+                    .index(name: "byFileIdentifier", elements: [ .property(name: "fileIdentifier") ]),
                     .index(name: "byURLString", elements: [ .property(name: "urlString") ]),
                     .index(name: "byFileName", elements: [ .property(name: "fileName") ])
                 ])
@@ -169,6 +194,21 @@ final class FileIndex {
     private let context: NSManagedObjectContext
 
     private typealias FetchCompletion = (_ object: Result<RemoteFileManagedObject?, Error>) -> Void
+
+    private func fetch(fileIdentifier: String, action: @escaping FetchCompletion) {
+        context.perform {
+            let request = NSFetchRequest<RemoteFileManagedObject>(entityName: RemoteFileManagedObject.entityName)
+            request.predicate = NSPredicate(format: "fileIdentifier == %@", fileIdentifier)
+
+            do {
+                let fetchedObjects = try self.context.fetch(request)
+                action(.success(fetchedObjects.first))
+            }
+            catch {
+                action(.failure(error))
+            }
+        }
+    }
 
     private func fetch(urlString: String, action: @escaping FetchCompletion) {
         context.perform {
@@ -223,6 +263,9 @@ fileprivate extension NSPersistentContainer {
 fileprivate final class RemoteFileManagedObject: NSManagedObject {
 
     static let entityName = "RemoteFile"
+
+    /// Unique identifier. Typically this field is the remote URL of a file. It can be different for cases when one file has multiple URLs or URL is dynamic.
+    @NSManaged public var fileIdentifier: String?
 
     @NSManaged public var urlString: String?
 
