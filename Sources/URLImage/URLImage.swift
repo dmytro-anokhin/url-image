@@ -41,17 +41,7 @@ public struct URLImage<Content, Placeholder> : View where Content : View, Placeh
 
     public init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        assert(!(incremental && processors != nil), "Using image processing with incremental download is not supported")
-
-        self.urlRequest = makeRequest(with: url)
-        self.fileIdentifier = fileIdentifier ?? url.absoluteString
-        self.placeholder = placeholder
-        self.content = content
-        self.delay = delay
-        self.incremental = incremental
-        self.animated = animated
-        self.expiryDate = expiryDate
-        self.processors = processors
+        self.init(makeRequest(with: url), fileIdentifier: fileIdentifier, delay: delay, incremental: incremental, animated: animated, expireAfter: expiryDate, processors: processors, placeholder: placeholder, content: content)
     }
 
     public init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content) {
