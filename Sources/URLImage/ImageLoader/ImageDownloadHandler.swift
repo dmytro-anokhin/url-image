@@ -20,7 +20,7 @@ class ImageDownloadHandler: DownloadHandler {
 
     typealias PartialCallback = (_ imageFrames: [ImageFrame]) -> Void
 
-    typealias CompletionCallback = (_ imageFrames: [ImageFrame]) -> Void
+    typealias CompletionCallback = (_ result: Result<[ImageFrame], Error>) -> Void
 
     let progressCallback: ProgressCallback
 
@@ -129,7 +129,7 @@ class ImageDownloadHandler: DownloadHandler {
             }
 
             DispatchQueue.main.async {
-                self.completionCallback(imageFrames)
+                self.completionCallback(.success(imageFrames))
             }
         }
         else {
@@ -142,8 +142,14 @@ class ImageDownloadHandler: DownloadHandler {
             }
 
             DispatchQueue.main.async {
-                self.completionCallback([(cgImage.0, cgImage.1, nil)])
+                self.completionCallback(.success([(cgImage.0, cgImage.1, nil)]))
             }
+        }
+    }
+
+    override func handleDownloadFailure(_ error: Error) {
+        DispatchQueue.main.async {
+            self.completionCallback(.failure(error))
         }
     }
 

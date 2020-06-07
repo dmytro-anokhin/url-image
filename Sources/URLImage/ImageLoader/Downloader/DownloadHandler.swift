@@ -19,6 +19,9 @@ class DownloadHandler: Hashable {
 
     func handleDownloadCompletion(_ data: Data?, _ fileURL: URL) {
     }
+
+    func handleDownloadFailure(_ error: Error) {
+    }
     
     var inMemory: Bool { false }
 

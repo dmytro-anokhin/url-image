@@ -102,21 +102,24 @@ class DownloadCoordinator {
     func complete(with error: Error?) {
         log_debug(self, "Complete for url \"\(url)\" with error: \(String(describing: error)).", detail: log_detailed)
 
-        switch error {
-            case .none:
-                transition(to: .finished)
-
-            case .some(let nsError as NSError):
-                if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-                    transition(to: .cancelled)
-                }
-                else {
-                    // Network error
-                    transition(to: .failed)
-                }
+        defer {
+            finalize()
         }
-        
-        finalize()
+
+        guard let error = error else {
+            transition(to: .finished)
+            return
+        }
+
+        if (error as NSError).domain == NSURLErrorDomain && (error as NSError).code == NSURLErrorCancelled {
+            // Request was cancelled
+            transition(to: .cancelled)
+        }
+        else {
+            // Network error
+            transition(to: .failed, error: error)
+            notifyHandlersAboutFailure(error)
+        }
     }
     
     var isFailed: Bool {
@@ -137,9 +140,9 @@ class DownloadCoordinator {
     }
 
     @discardableResult
-    fileprivate func transition(to newState: LoadingState) -> Bool {
+    fileprivate func transition(to newState: LoadingState, error: Error? = nil) -> Bool {
         if newState == .failed {
-            log_error(self, "Download failed for: \"\(url)\". Set breakpoint in \(#function) to investigate.")
+            log_error(self, "Download failed for: \"\(url)\" with error: \(error). Set breakpoint in \(#function) to investigate.")
         }
 
         guard state.canTransition(to: newState) else {
@@ -174,6 +177,14 @@ class DownloadCoordinator {
 
         for handler in handlers {
             handler.handleDownloadCompletion(data, fileURL)
+        }
+    }
+
+    fileprivate func notifyHandlersAboutFailure(_ error: Error) {
+        log_debug(self, "Notify failuer for url \"\(self.url)\" with error: \(error).", detail: 500)
+
+        for handler in handlers {
+            handler.handleDownloadFailure(error)
         }
     }
 }

@@ -84,26 +84,33 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 #endif
         }
 
-        let completionCallback: ImageDownloadHandler.CompletionCallback = { imageFrames in
-            assert(!imageFrames.isEmpty)
+        let completionCallback: ImageDownloadHandler.CompletionCallback = { result in
+            switch result {
+                case .success(let imageFrames):
+                    assert(!imageFrames.isEmpty)
 
-#if canImport(UIKit)
-            if imageFrames.count == 1 {
-                let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
-                self.onLoad?(wrapper)
-            }
-            else {
-                let animatedImage = UIImage.animatedImage(
-                    with: imageFrames.map { UIImage(cgImage: $0.image) },
-                    duration: imageFrames.reduce(TimeInterval(0.0), { $0 + ($1.duration ?? 0.0) })
-                )!
+                    #if canImport(UIKit)
+                        if imageFrames.count == 1 {
+                            let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
+                            self.onLoad?(.success(wrapper))
+                        }
+                        else {
+                            let animatedImage = UIImage.animatedImage(
+                                with: imageFrames.map { UIImage(cgImage: $0.image) },
+                                duration: imageFrames.reduce(TimeInterval(0.0), { $0 + ($1.duration ?? 0.0) })
+                            )!
 
-                viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
+                            viewModel.imageProxy = AnimatedImageWrapper(uiImage: animatedImage)
+                        }
+                    #else
+                        let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
+                        self.onLoad?(.success(wrapper))
+                    #endif
+
+                case .failure(let error):
+                    self.onLoad?(.failure(error))
+
             }
-#else
-            let wrapper = ImageWrapper(cgImage: imageFrames.first!.image, cgOrientation: imageFrames.first!.orientation)
-            self.onLoad?(wrapper)
-#endif
         }
 
         let handler = ImageDownloadHandler(properties: properties.imageDownloadHandlerProperties, progressCallback: progressCallback, partialCallback: partialCallback, completionCallback: completionCallback)
@@ -118,11 +125,11 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
             }
     }
 
-    func onLoad(perform action: ((_ imageProxy: ImageProxy) -> Void)? = nil) -> ImageLoaderView<Content, Placeholder> {
+    func onLoad(perform action: OnLoadClosure? = nil) -> ImageLoaderView<Content, Placeholder> {
         return ImageLoaderView(properties: properties, services: services, placeholder: placeholder, content: content, onLoad: action)
     }
 
-    private init(properties: Properties, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: ((_ imageProxy: ImageProxy) -> Void)?) {
+    private init(properties: Properties, services: Services, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, content: @escaping (_ imageProxy: ImageProxy) -> Content, onLoad: OnLoadClosure?) {
         self.properties = properties
         self.placeholder = placeholder
         self.content = content
@@ -132,5 +139,7 @@ struct ImageLoaderView<Content, Placeholder> : View where Content : View, Placeh
 
     private let services: Services
 
-    private let onLoad: ((_ imageProxy: ImageProxy) -> Void)?
+    typealias OnLoadClosure = (_ result: Result<ImageProxy, Error>) -> Void
+
+    private let onLoad: OnLoadClosure?
 }
