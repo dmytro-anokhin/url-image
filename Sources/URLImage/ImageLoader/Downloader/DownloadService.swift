@@ -173,7 +173,7 @@ final class DownloadServiceImpl: DownloadService {
 
         queue.addOperation {
             guard let downloader = self.fileIdentifierToDownloaderMap[fileIdentifier] else {
-                assertionFailure("Downloader must be created before calling load")
+                // Downloaded could've been removed at this moment
                 return
             }
 
