@@ -191,7 +191,7 @@ public extension URLImage where Failure == Image {
 
     // MARK: Failure == Image
 
-    init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Placeholder, failure: Image = {
+    init(_ url: URL, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, failure: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -199,10 +199,10 @@ return Image(systemName: "exclamationmark.triangle")
 #endif
     }(), content: @escaping (_ imageProxy: ImageProxy) -> Content) {
 
-        self.init(makeRequest(with: url), fileIdentifier: fileIdentifier, delay: delay, incremental: incremental, animated: animated, expireAfter: expiryDate, processors: processors, placeholder: placeholderImage, failure: failure, content: content)
+        self.init(makeRequest(with: url), fileIdentifier: fileIdentifier, delay: delay, incremental: incremental, animated: animated, expireAfter: expiryDate, processors: processors, placeholder: placeholder, failure: failure, content: content)
     }
 
-    init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder placeholderImage: Placeholder, failure: Image = {
+    init(_ urlRequest: URLRequest, fileIdentifier: String? = nil, delay: TimeInterval = 0.0, incremental: Bool = false, animated: Bool = false, expireAfter expiryDate: Date? = nil, processors: [ImageProcessing]? = nil, placeholder: @escaping (_ downloadProgressWrapper: DownloadProgressWrapper) -> Placeholder, failure: Image = {
 #if canImport(AppKit) && !targetEnvironment(macCatalyst)
 return Image(nsImage: NSImage())
 #else
@@ -216,7 +216,7 @@ return Image(systemName: "exclamationmark.triangle")
 
         self.urlRequest = urlRequest
         self.fileIdentifier = fileIdentifier ?? urlRequest.url!.absoluteString
-        self.placeholder = { _ in placeholderImage }
+        self.placeholder = placeholder
         self.failure = { _ in failure }
         self.content = content
         self.delay = delay
