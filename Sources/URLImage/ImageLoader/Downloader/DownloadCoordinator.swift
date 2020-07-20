@@ -8,6 +8,24 @@
 import Foundation
 
 
+protocol RemoteFileCacheServiceProxy: AnyObject {
+
+    func addFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
+
+    func createFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL
+
+    func getFile(withFileIdentifier fileIdentifier: String, completion: @escaping (_ localFileURL: URL?) -> Void)
+
+    func delete(fileName: String) throws
+}
+
+
+protocol DelayedDispatcher: AnyObject {
+
+    func dispatch(after delay: TimeInterval, closure: @escaping () -> Void)
+}
+
+
 /// Coordinates abstract download process between URLSessionTask and a set of handler objects.
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 class DownloadCoordinator {
@@ -17,17 +35,20 @@ class DownloadCoordinator {
     let fileIdentifier: String
 
     let task: URLSessionTask
-    
+
     let retryCount: Int
 
-    unowned let remoteFileCache: RemoteFileCacheService
+    unowned let remoteFileCache: RemoteFileCacheServiceProxy
 
-    init(url: URL, fileIdentifier: String, task: URLSessionTask, retryCount: Int, remoteFileCache: RemoteFileCacheService) {
+    unowned let delayedDispatcher: DelayedDispatcher
+
+    init(url: URL, fileIdentifier: String, task: URLSessionTask, retryCount: Int, remoteFileCache: RemoteFileCacheServiceProxy, delayedDispatcher: DelayedDispatcher) {
         self.url = url
         self.fileIdentifier = fileIdentifier
         self.task = task
         self.retryCount = retryCount
         self.remoteFileCache = remoteFileCache
+        self.delayedDispatcher = delayedDispatcher
     }
 
     /// Called when `DownloadCoordinator` is no longer used and can be released.
@@ -65,7 +86,7 @@ class DownloadCoordinator {
                 }
             }
 
-            DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
+            self.delayedDispatcher.dispatch(after: delay) {
                 // Load from network
                 guard self.transition(to: .loading) else {
                     return
@@ -121,7 +142,7 @@ class DownloadCoordinator {
             notifyHandlersAboutFailure(error)
         }
     }
-    
+
     var isFailed: Bool {
         state == .failed
     }
@@ -129,12 +150,12 @@ class DownloadCoordinator {
     // MARK: Private
 
     private var state: LoadingState = .initial
-    
+
     fileprivate func finalize() {
         if finilizeCallback == nil {
             log_debug(self, "Calling finalize more than once for url: \"\(url)\".", detail: log_detailed)
         }
-        
+
         finilizeCallback?()
         finilizeCallback = nil
     }
@@ -196,7 +217,7 @@ final class FileDownloadCoordinator: DownloadCoordinator {
 
     func finishDownloading(with tmpURL: URL) {
         log_debug(self, "Finishing downloading for url \"\(url)\".", detail:log_detailed)
-    
+
         guard transition(to: .finishing) else {
             return
         }
@@ -214,7 +235,7 @@ final class FileDownloadCoordinator: DownloadCoordinator {
             transition(to: .failed)
             return
         }
-        
+
         log_debug(self, "UTI for url \"\(url)\" is \"\(uti)\".", detail:log_detailed)
 
         let fileExtension = preferredFileExtension(forTypeIdentifier: uti)
@@ -247,7 +268,7 @@ final class DataDownloadCoordinator: DownloadCoordinator {
 
     func finishDownloading() {
         log_debug(self, "Finishing downloading for url \"\(url)\".", detail:log_detailed)
-        
+
         guard transition(to: .finishing) else {
             return
         }
@@ -261,7 +282,7 @@ final class DataDownloadCoordinator: DownloadCoordinator {
             transition(to: .failed)
             return
         }
-        
+
         log_debug(self, "UTI for url \"\(url)\" is \"\(uti)\".", detail:log_detailed)
 
         let fileExtension = preferredFileExtension(forTypeIdentifier: uti)

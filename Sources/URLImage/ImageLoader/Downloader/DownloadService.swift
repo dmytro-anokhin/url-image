@@ -204,7 +204,7 @@ final class DownloadServiceImpl: DownloadService {
     private let urlSession: URLSession
     private let urlSessionDelegate: URLSessionDelegateWrapper
 
-    private unowned let remoteFileCache: RemoteFileCacheService
+    fileprivate unowned let remoteFileCache: RemoteFileCacheService
 
     private var _fileIdentifierToDownloaderMap: [String: DownloadCoordinator] = [:]
 
@@ -226,15 +226,52 @@ final class DownloadServiceImpl: DownloadService {
         if inMemory {
             let task = urlSession.dataTask(with: urlRequest)
             task.taskDescription = fileIdentifier
-            downloader = DataDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
+            downloader = DataDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: self, delayedDispatcher: self)
         }
         else {
             let task = urlSession.downloadTask(with: urlRequest)
             task.taskDescription = fileIdentifier
-            downloader = FileDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: remoteFileCache)
+            downloader = FileDownloadCoordinator(url: urlRequest.url!, fileIdentifier: fileIdentifier, task: task, retryCount: retryCount, remoteFileCache: self, delayedDispatcher: self)
         }
 
         return downloader
     }
 }
 
+
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+extension DownloadServiceImpl : RemoteFileCacheServiceProxy {
+
+    func addFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, sourceURL: URL, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
+        try remoteFileCache.addFile(withFileIdentifier: fileIdentifier, remoteURL: remoteURL, sourceURL: sourceURL, expiryDate: expiryDate, preferredFileExtension: preferredFileExtension())
+    }
+
+    func createFile(withFileIdentifier fileIdentifier: String, remoteURL: URL, data: Data, expiryDate: Date?, preferredFileExtension: @autoclosure () -> String?) throws -> URL {
+        try remoteFileCache.createFile(withFileIdentifier: fileIdentifier, remoteURL: remoteURL, data: data, expiryDate: expiryDate, preferredFileExtension: preferredFileExtension())
+    }
+
+    func getFile(withFileIdentifier fileIdentifier: String, completion: @escaping (_ localFileURL: URL?) -> Void) {
+        remoteFileCache.getFile(withFileIdentifier: fileIdentifier) { url in
+            self.queue.addOperation {
+                completion(url)
+            }
+        }
+    }
+
+    func delete(fileName: String) throws {
+        try remoteFileCache.delete(fileName: fileName)
+    }
+}
+
+
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+extension DownloadServiceImpl : DelayedDispatcher {
+
+    func dispatch(after delay: TimeInterval, closure: @escaping () -> Void) {
+        DispatchQueue.global().asyncAfter(deadline: .now() + delay) {
+            self.queue.addOperation {
+                closure()
+            }
+        }
+    }
+}
