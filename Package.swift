@@ -22,7 +22,6 @@ let package = Package(
         // .package(url: /* package url */, from: "1.0.0"),
         .package(path: "Dependencies/RemoteContentView"),
         .package(path: "Dependencies/DownloadManager"),
-        .package(path: "Dependencies/ImageDecoder"),
         .package(path: "Dependencies/FileIndex")
     ],
     targets: [
@@ -31,8 +30,13 @@ let package = Package(
         .target(
             name: "URLImage",
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder" ]),
+        .target(
+            name: "ImageDecoder"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
+        .testTarget(
+            name: "ImageDecoderTests",
+            dependencies: ["ImageDecoder"]),
     ]
 )
