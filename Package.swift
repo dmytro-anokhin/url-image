@@ -20,7 +20,6 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(path: "Dependencies/RemoteContentView"),
         .package(path: "Dependencies/DownloadManager"),
         .package(path: "Dependencies/FileIndex")
     ],
@@ -32,6 +31,8 @@ let package = Package(
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder" ]),
         .target(
             name: "ImageDecoder"),
+        .target(
+            name: "RemoteContentView"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
