@@ -55,15 +55,19 @@ public struct ActivityIndicator: View {
     public init() {
     }
 
+    #if canImport(UIKit)
     public var body: some View {
-        #if canImport(UIKit)
-            ActivityIndicatorUIKit()
-        #elseif canImport(AppKit)
-            ActivityIndicatorAppKit()
-        #else
-            EmptyView()
-        #endif
+        ActivityIndicatorUIKit()
     }
+    #elseif canImport(AppKit)
+    public var body: some View {
+        ActivityIndicatorAppKit()
+    }
+    #else
+    public var body: some View {
+        EmptyView()
+    }
+    #endif
 }
 
 
