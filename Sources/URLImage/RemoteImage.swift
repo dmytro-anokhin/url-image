@@ -48,50 +48,11 @@ public final class RemoteImage : RemoteContent {
 
         loadingState = .inProgress(nil)
 
-        typealias DecodeResult = (image: CGImage, orientation: CGImagePropertyOrientation?)
-
         cancellable = downloadManager.publisher(for: download)
-            .tryMap { result -> DecodeResult in
-                // Decode backing image
-                print("Decode backing image")
-
-                switch result {
-                    case .data(let data):
-                        print("Decode image from data")
-                        let decoder = ImageDecoder()
-                        decoder.setData(data, allDataReceived: true)
-
-                        guard let image = decoder.createFrameImage(at: 0) else {
-                            print("Fail")
-                            throw Error.decode
-                        }
-
-                        print("Success")
-                        let orientation = decoder.frameOrientation(at: 0)
-
-                        return (image, orientation)
-
-                    case .file:
-                        fatalError("Not implemented")
-                }
-            }
+            .tryMap(decode)
             .receive(on: RunLoop.main)
-            .map {
-                // Instantiate `Image` object
-                let image: Image
-
-                if let cgOrientation = $0.orientation {
-                    let orientation = Image.Orientation(cgOrientation)
-                    image = Image(decorative: $0.image, scale: 1.0, orientation: orientation)
-                }
-                else {
-                    image = Image(decorative: $0.image, scale: 1.0)
-                }
-
-                return .success(image)
-            }
+            .map(createImage)
             .catch {
-                // Process error
                 Just(.failure($0))
             }
             .assign(to: \.loadingState, on: self)
@@ -111,4 +72,49 @@ public final class RemoteImage : RemoteContent {
     }
 
     private var cancellable: AnyCancellable?
+}
+
+
+fileprivate typealias DecodeResult = (image: CGImage, orientation: CGImagePropertyOrientation?)
+
+
+fileprivate func decode(_ downloadResult: DownloadResult) throws -> DecodeResult {
+    // Decode backing image
+    print("Decode backing image")
+
+    switch downloadResult {
+        case .data(let data):
+            print("Decode image from data")
+            let decoder = ImageDecoder()
+            decoder.setData(data, allDataReceived: true)
+
+            guard let image = decoder.createFrameImage(at: 0) else {
+                print("Fail")
+                throw RemoteImage.Error.decode
+            }
+
+            print("Success")
+            let orientation = decoder.frameOrientation(at: 0)
+
+            return (image, orientation)
+
+        case .file:
+            fatalError("Not implemented")
+    }
+}
+
+
+fileprivate func createImage(_ decodeResut: DecodeResult) -> RemoteContentLoadingState<Image, Float?> {
+    // Instantiate `Image` object
+    let image: Image
+
+    if let cgOrientation = decodeResut.orientation {
+        let orientation = Image.Orientation(cgOrientation)
+        image = Image(decorative: decodeResut.image, scale: 1.0, orientation: orientation)
+    }
+    else {
+        image = Image(decorative: decodeResut.image, scale: 1.0)
+    }
+
+    return .success(image)
 }
