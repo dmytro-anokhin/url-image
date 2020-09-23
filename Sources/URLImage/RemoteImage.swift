@@ -49,9 +49,11 @@ public final class RemoteImage : RemoteContent {
         loadingState = .inProgress(nil)
 
         cancellable = downloadManager.publisher(for: download)
-            .tryMap(decode)
+            .tryMap(TransientImage.decode)
             .receive(on: RunLoop.main)
-            .map(createImage)
+            .map {
+                .success($0.image)
+            }
             .catch {
                 Just(.failure($0))
             }
@@ -71,50 +73,41 @@ public final class RemoteImage : RemoteContent {
         cancellable = nil
     }
 
-    private var cancellable: AnyCancellable?
-}
+    private struct TransientImage {
 
+        static func decode(_ downloadResult: DownloadResult) throws -> TransientImage {
 
-fileprivate typealias DecodeResult = (image: CGImage, orientation: CGImagePropertyOrientation?)
+            switch downloadResult {
+                case .data(let data):
+                    let decoder = ImageDecoder()
+                    decoder.setData(data, allDataReceived: true)
 
+                    guard let image = decoder.createFrameImage(at: 0) else {
+                        throw RemoteImage.Error.decode
+                    }
 
-fileprivate func decode(_ downloadResult: DownloadResult) throws -> DecodeResult {
-    // Decode backing image
-    print("Decode backing image")
+                    return TransientImage(cgImage: image,
+                                        cgOrientation: decoder.frameOrientation(at: 0))
 
-    switch downloadResult {
-        case .data(let data):
-            print("Decode image from data")
-            let decoder = ImageDecoder()
-            decoder.setData(data, allDataReceived: true)
-
-            guard let image = decoder.createFrameImage(at: 0) else {
-                print("Fail")
-                throw RemoteImage.Error.decode
+                case .file:
+                    fatalError("Not implemented")
             }
+        }
 
-            print("Success")
-            let orientation = decoder.frameOrientation(at: 0)
+        var cgImage: CGImage
 
-            return (image, orientation)
+        var cgOrientation: CGImagePropertyOrientation?
 
-        case .file:
-            fatalError("Not implemented")
-    }
-}
-
-
-fileprivate func createImage(_ decodeResut: DecodeResult) -> RemoteContentLoadingState<Image, Float?> {
-    // Instantiate `Image` object
-    let image: Image
-
-    if let cgOrientation = decodeResut.orientation {
-        let orientation = Image.Orientation(cgOrientation)
-        image = Image(decorative: decodeResut.image, scale: 1.0, orientation: orientation)
-    }
-    else {
-        image = Image(decorative: decodeResut.image, scale: 1.0)
+        var image: Image {
+            if let cgOrientation = cgOrientation {
+                let orientation = Image.Orientation(cgOrientation)
+                return Image(decorative: cgImage, scale: 1.0, orientation: orientation)
+            }
+            else {
+                return Image(decorative: cgImage, scale: 1.0)
+            }
+        }
     }
 
-    return .success(image)
+    private var cancellable: AnyCancellable?
 }
