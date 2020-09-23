@@ -52,7 +52,7 @@ public final class RemoteImage : RemoteContent {
             .tryMap(TransientImage.decode)
             .receive(on: RunLoop.main)
             .map {
-                .success($0.image)
+                .success(Image(transientImage: $0))
             }
             .catch {
                 Just(.failure($0))
@@ -73,41 +73,46 @@ public final class RemoteImage : RemoteContent {
         cancellable = nil
     }
 
-    private struct TransientImage {
+    private var cancellable: AnyCancellable?
+}
 
-        static func decode(_ downloadResult: DownloadResult) throws -> TransientImage {
 
-            switch downloadResult {
-                case .data(let data):
-                    let decoder = ImageDecoder()
-                    decoder.setData(data, allDataReceived: true)
+fileprivate struct TransientImage {
 
-                    guard let image = decoder.createFrameImage(at: 0) else {
-                        throw RemoteImage.Error.decode
-                    }
+    static func decode(_ downloadResult: DownloadResult) throws -> TransientImage {
 
-                    return TransientImage(cgImage: image,
-                                        cgOrientation: decoder.frameOrientation(at: 0))
+        switch downloadResult {
+            case .data(let data):
+                let decoder = ImageDecoder()
+                decoder.setData(data, allDataReceived: true)
 
-                case .file:
-                    fatalError("Not implemented")
-            }
-        }
+                guard let image = decoder.createFrameImage(at: 0) else {
+                    throw RemoteImage.Error.decode
+                }
 
-        var cgImage: CGImage
+                return TransientImage(cgImage: image,
+                                    cgOrientation: decoder.frameOrientation(at: 0))
 
-        var cgOrientation: CGImagePropertyOrientation?
-
-        var image: Image {
-            if let cgOrientation = cgOrientation {
-                let orientation = Image.Orientation(cgOrientation)
-                return Image(decorative: cgImage, scale: 1.0, orientation: orientation)
-            }
-            else {
-                return Image(decorative: cgImage, scale: 1.0)
-            }
+            case .file:
+                fatalError("Not implemented")
         }
     }
 
-    private var cancellable: AnyCancellable?
+    var cgImage: CGImage
+
+    var cgOrientation: CGImagePropertyOrientation?
+}
+
+
+fileprivate extension Image {
+
+    init(transientImage: TransientImage) {
+        if let cgOrientation = transientImage.cgOrientation {
+            let orientation = Image.Orientation(cgOrientation)
+            self.init(decorative: transientImage.cgImage, scale: 1.0, orientation: orientation)
+        }
+        else {
+            self.init(decorative: transientImage.cgImage, scale: 1.0)
+        }
+    }
 }
