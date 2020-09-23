@@ -46,10 +46,38 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
+        let url = download.url
+
+        if let file = URLImageService.shared.fileIndex.get(url).first,
+           let transientImage = try? TransientImage.decode(file.location) {
+            loadingState = .success(Image(transientImage: transientImage))
+            return
+        }
+
         loadingState = .inProgress(nil)
 
         cancellable = downloadManager.publisher(for: download)
-            .tryMap(TransientImage.decode)
+            .tryMap { downloadResult in
+
+                switch downloadResult {
+                    case .data(let data):
+
+                        _ = try? URLImageService.shared.fileIndex.write(data, originalURL: url)
+
+                        let decoder = ImageDecoder()
+                        decoder.setData(data, allDataReceived: true)
+
+                        guard let image = decoder.createFrameImage(at: 0) else {
+                            throw RemoteImage.Error.decode
+                        }
+
+                        return TransientImage(cgImage: image,
+                                            cgOrientation: decoder.frameOrientation(at: 0))
+
+                    case .file:
+                        fatalError("Not implemented")
+                }
+            }
             .receive(on: RunLoop.main)
             .map {
                 .success(Image(transientImage: $0))
@@ -79,23 +107,18 @@ public final class RemoteImage : RemoteContent {
 
 fileprivate struct TransientImage {
 
-    static func decode(_ downloadResult: DownloadResult) throws -> TransientImage {
+    static func decode(_ location: URL) throws -> TransientImage {
 
-        switch downloadResult {
-            case .data(let data):
-                let decoder = ImageDecoder()
-                decoder.setData(data, allDataReceived: true)
-
-                guard let image = decoder.createFrameImage(at: 0) else {
-                    throw RemoteImage.Error.decode
-                }
-
-                return TransientImage(cgImage: image,
-                                    cgOrientation: decoder.frameOrientation(at: 0))
-
-            case .file:
-                fatalError("Not implemented")
+        guard let decoder = ImageDecoder(url: location) else {
+            throw RemoteImage.Error.decode
         }
+
+        guard let image = decoder.createFrameImage(at: 0) else {
+            throw RemoteImage.Error.decode
+        }
+
+        return TransientImage(cgImage: image,
+                              cgOrientation: decoder.frameOrientation(at: 0))
     }
 
     var cgImage: CGImage

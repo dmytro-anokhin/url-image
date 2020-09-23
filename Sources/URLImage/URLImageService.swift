@@ -15,5 +15,7 @@ final class URLImageService {
 
     let downloadManager = DownloadManager()
 
-    // let fileIndex = FileIndex()
+    let fileIndex = FileIndex(configuration: .init(name: "URLImage",
+                                                   filesDirectoryName: "images",
+                                                   baseDirectoryName: "URLImage"))
 }
