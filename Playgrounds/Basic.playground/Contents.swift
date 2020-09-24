@@ -9,6 +9,7 @@ struct PlaygroundView : View {
 
     var body: some View {
         URLImage(url: url,
+                 configuration: URLImage.Configuration(isImmediate: true),
                  empty: { EmptyView() },
                  inProgress: { _ in Text("Loading") },
                  failure: { error, _ in
