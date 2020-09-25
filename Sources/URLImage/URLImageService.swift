@@ -9,13 +9,13 @@ import DownloadManager
 import FileIndex
 
 
-final class URLImageService {
+public final class URLImageService {
 
-    static let shared = URLImageService()
+    public static let shared = URLImageService()
 
-    let downloadManager = DownloadManager()
+    public let downloadManager = DownloadManager()
 
-    let fileIndex = FileIndex(configuration: .init(name: "URLImage",
-                                                   filesDirectoryName: "images",
-                                                   baseDirectoryName: "URLImage"))
+    public let fileIndex = FileIndex(configuration: .init(name: "URLImage",
+                                                          filesDirectoryName: "images",
+                                                          baseDirectoryName: "URLImage"))
 }
