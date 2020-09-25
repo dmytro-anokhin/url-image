@@ -55,7 +55,11 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
         coordinator.startDownload(download,
             receiveData: { _, _ in
             },
-            completion: { [unowned self] _, result in
+            completion: { [weak self] _, result in
+                guard let self = self else {
+                    return
+                }
+                
                 switch result {
                     case .success(let data):
                         let _ = self.subscriber?.receive(data)
