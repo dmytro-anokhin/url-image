@@ -32,14 +32,10 @@ public final class RemoteImage : RemoteContent {
     /// Otherwise cache lookup performed asynchronosly as a part of loading step.
     let isImmediate: Bool
 
-    init(downloadManager: DownloadManager, download: Download, isImmediate: Bool = false) {
+    public init(downloadManager: DownloadManager, download: Download, isImmediate: Bool = false) {
         self.downloadManager = downloadManager
         self.download = download
         self.isImmediate = isImmediate
-    }
-
-    deinit {
-        print("deinit \(self)")
     }
 
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
@@ -54,6 +50,10 @@ public final class RemoteImage : RemoteContent {
     private var loadCancellable: AnyCancellable?
 
     public func load() {
+        guard !isLoading else {
+            return
+        }
+
         if !isImmediate {
             loadingState = .inProgress(nil)
         }
@@ -80,6 +80,10 @@ public final class RemoteImage : RemoteContent {
     }
 
     public func cancel() {
+        guard isLoading else {
+            return
+        }
+
         // Reset loading state
         loadingState = .initial
 
@@ -89,6 +93,10 @@ public final class RemoteImage : RemoteContent {
 
         loadCancellable?.cancel()
         loadCancellable = nil
+    }
+
+    private var isLoading: Bool {
+        loadCancellable != nil || cacheCancellable != nil
     }
 
     private func startDownload() {
