@@ -21,7 +21,6 @@ let package = Package(
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
         .package(path: "Dependencies/DownloadManager"),
-        .package(path: "Dependencies/FileIndex"),
     ],
     targets: [
         // Targets are the basic building blocks of a package. A target can define a module or a test suite.
@@ -29,11 +28,19 @@ let package = Package(
         .target(
             name: "URLImage",
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex" ]),
+
         .target(
             name: "RemoteContentView"),
         .target(
             name: "ImageDecoder",
             dependencies: []),
+        .target(
+            name: "FileIndex",
+            dependencies: [ "PlainDatabase" ]),
+        .target(
+            name: "PlainDatabase",
+            dependencies: []),
+
         .testTarget(
             name: "ImageDecoderTests",
             dependencies: ["ImageDecoder"],
@@ -44,6 +51,12 @@ let package = Package(
                          .copy("Resources/gif-loop-count.gif"),
                          .copy("Resources/quicksort.gif")
             ]),
+        .testTarget(
+            name: "FileIndexTests",
+            dependencies: ["FileIndex"]),
+        .testTarget(
+            name: "PlainDatabaseTests",
+            dependencies: ["PlainDatabase"]),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
