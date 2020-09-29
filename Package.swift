@@ -28,27 +28,29 @@ let package = Package(
             name: "URLImage",
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex" ]),
         .target(
-            name: "RemoteContentView"),
+            name: "RemoteContentView",
+            path: "Dependencies/Sources/RemoteContentView"),
         .target(
             name: "ImageDecoder",
-            dependencies: []),
+            path: "Dependencies/Sources/ImageDecoder"),
         .target(
             name: "FileIndex",
             dependencies: [ "PlainDatabase" ],
-            path: "Sources/Cache/FileIndex"),
+            path: "Dependencies/Sources/FileIndex"),
         .target(
             name: "PlainDatabase",
             dependencies: [],
-            path: "Sources/Cache/PlainDatabase"),
+            path: "Dependencies/Sources/PlainDatabase"),
         .target(
             name: "DownloadManager",
-            dependencies: []),
+            path: "Dependencies/Sources/DownloadManager"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
         .testTarget(
             name: "ImageDecoderTests",
             dependencies: ["ImageDecoder"],
+            path: "Dependencies/Tests/ImageDecoderTests",
             resources: [ .copy("Resources/TestImages.json"),
                          .copy("Resources/lenna.jpg"),
                          .copy("Resources/lenna.png"),
@@ -58,9 +60,11 @@ let package = Package(
             ]),
         .testTarget(
             name: "FileIndexTests",
-            dependencies: ["FileIndex"]),
+            dependencies: ["FileIndex"],
+            path: "Dependencies/Tests/FileIndexTests"),
         .testTarget(
             name: "PlainDatabaseTests",
-            dependencies: ["PlainDatabase"]),
+            dependencies: ["PlainDatabase"],
+            path: "Dependencies/Tests/PlainDatabaseTests"),
     ]
 )
