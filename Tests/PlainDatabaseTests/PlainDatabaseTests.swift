@@ -1,4 +1,12 @@
+//
+//  PlainDatabaseTests.swift
+//
+//
+//  Created by Dmytro Anokhin on 08/09/2020.
+//
+
 import XCTest
+import CoreData
 @testable import PlainDatabase
 
 final class PlainDatabaseTests: XCTestCase {

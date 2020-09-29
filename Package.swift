@@ -27,7 +27,6 @@ let package = Package(
         .target(
             name: "URLImage",
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex" ]),
-
         .target(
             name: "RemoteContentView"),
         .target(
@@ -35,14 +34,18 @@ let package = Package(
             dependencies: []),
         .target(
             name: "FileIndex",
-            dependencies: [ "PlainDatabase" ]),
+            dependencies: [ "PlainDatabase" ],
+            path: "Sources/Cache/FileIndex"),
         .target(
             name: "PlainDatabase",
-            dependencies: []),
+            dependencies: [],
+            path: "Sources/Cache/PlainDatabase"),
         .target(
             name: "DownloadManager",
             dependencies: []),
-
+        .testTarget(
+            name: "URLImageTests",
+            dependencies: ["URLImage"]),
         .testTarget(
             name: "ImageDecoderTests",
             dependencies: ["ImageDecoder"],
@@ -59,8 +62,5 @@ let package = Package(
         .testTarget(
             name: "PlainDatabaseTests",
             dependencies: ["PlainDatabase"]),
-        .testTarget(
-            name: "URLImageTests",
-            dependencies: ["URLImage"]),
     ]
 )
