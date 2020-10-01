@@ -22,16 +22,19 @@ public struct File : Identifiable {
 
     public var originalURL: URL
 
-    public var location: URL
+    public var fileName: String
+
+    public var fileExtension: String?
 
     public var urlResponse: URLResponse?
 
-    public init(id: String, dateCreated: Date, expiryInterval: TimeInterval?, originalURL: URL, location: URL, urlResponse: URLResponse?) {
+    public init(id: String, dateCreated: Date, expiryInterval: TimeInterval?, originalURL: URL, fileName: String, fileExtension: String?, urlResponse: URLResponse?) {
         self.id = id
         self.dateCreated = dateCreated
         self.expiryInterval = expiryInterval
         self.originalURL = originalURL
-        self.location = location
+        self.fileName = fileName
+        self.fileExtension = fileExtension
         self.urlResponse = urlResponse
     }
 }
@@ -45,7 +48,8 @@ extension File : Equatable {
             && lhs.dateCreated == rhs.dateCreated
             && lhs.expiryInterval == rhs.expiryInterval
             && lhs.originalURL == rhs.originalURL
-            && lhs.location == rhs.location
+            && lhs.fileName == rhs.fileName
+            && lhs.fileExtension == rhs.fileExtension
     }
 }
 
@@ -57,12 +61,13 @@ extension File : ManagedObjectCodable {
         guard let id = managedObject.value(forKey: "identifier") as? String,
               let dateCreated = managedObject.value(forKey: "dateCreated") as? Date,
               let originalURL = managedObject.value(forKey: "originalURL") as? URL,
-              let location = managedObject.value(forKey: "location") as? URL
+              let fileName = managedObject.value(forKey: "fileName") as? String
         else {
             return nil
         }
 
         let expiryInterval = managedObject.value(forKey: "expiryInterval") as? TimeInterval
+        let fileExtension = managedObject.value(forKey: "fileExtension") as? String
 
         let urlResponse: URLResponse?
 
@@ -73,7 +78,7 @@ extension File : ManagedObjectCodable {
             urlResponse = nil
         }
 
-        self.init(id: id, dateCreated: dateCreated, expiryInterval: expiryInterval, originalURL: originalURL, location: location, urlResponse: urlResponse)
+        self.init(id: id, dateCreated: dateCreated, expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: urlResponse)
     }
 
     public func encode(to object: NSManagedObject) {
@@ -81,7 +86,8 @@ extension File : ManagedObjectCodable {
         object.setValue(dateCreated, forKey: "dateCreated")
         object.setValue(expiryInterval, forKey: "expiryInterval")
         object.setValue(originalURL, forKey: "originalURL")
-        object.setValue(location, forKey: "location")
+        object.setValue(fileName, forKey: "fileName")
+        object.setValue(fileExtension, forKey: "fileExtension")
 
         if let urlResponse = urlResponse {
             object.setValue(urlResponse.encode(), forKey: "urlResponse")

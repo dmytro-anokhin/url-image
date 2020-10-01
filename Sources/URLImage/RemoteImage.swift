@@ -74,6 +74,7 @@ public final class RemoteImage : RemoteContent {
                 }
                 else {
                     // Download image
+                    self.loadingState = .inProgress(nil)
                     self.startDownload()
                 }
             }
@@ -100,8 +101,6 @@ public final class RemoteImage : RemoteContent {
     }
 
     private func startDownload() {
-        loadingState = .inProgress(nil)
-
         loadCancellable = downloadPublisher()
             .receive(on: RunLoop.main)
             .map {
@@ -152,7 +151,8 @@ public final class RemoteImage : RemoteContent {
                 }
 
                 do {
-                    let transientImage = try TransientImage.decode(file.location)
+                    let location = URLImageService.shared.fileIndex.location(of: file)
+                    let transientImage = try TransientImage.decode(location)
                     promise(.success(transientImage))
                 }
                 catch {
@@ -168,40 +168,31 @@ public final class RemoteImage : RemoteContent {
             }
         }.eraseToAnyPublisher()
     }
-}
 
-
-fileprivate struct TransientImage {
-
-    static func decode(_ location: URL) throws -> TransientImage {
-
-        guard let decoder = ImageDecoder(url: location) else {
-            throw RemoteImage.Error.decode
+    private func getFromCacheSync() throws -> TransientImage? {
+        guard let file = URLImageService.shared.fileIndex.get(download.url).first else {
+            return nil
         }
 
-        guard let image = decoder.createFrameImage(at: 0) else {
-            throw RemoteImage.Error.decode
-        }
+        let location = URLImageService.shared.fileIndex.location(of: file)
+        print("Get cached file for: \(download.url) at location: \(location)")
 
-        return TransientImage(cgImage: image,
-                              cgOrientation: decoder.frameOrientation(at: 0))
+        return try TransientImage.decode(location)
     }
 
-    var cgImage: CGImage
+    private func getFromCacheAsync(_ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else {
+                return
+            }
 
-    var cgOrientation: CGImagePropertyOrientation?
-}
-
-
-fileprivate extension Image {
-
-    init(transientImage: TransientImage) {
-        if let cgOrientation = transientImage.cgOrientation {
-            let orientation = Image.Orientation(cgOrientation)
-            self.init(decorative: transientImage.cgImage, scale: 1.0, orientation: orientation)
-        }
-        else {
-            self.init(decorative: transientImage.cgImage, scale: 1.0)
+            do {
+                let transientImage = try self.getFromCacheSync()
+                completion(.success(transientImage))
+            }
+            catch {
+                completion(.failure(error))
+            }
         }
     }
 }

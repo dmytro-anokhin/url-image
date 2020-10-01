@@ -18,8 +18,8 @@ final class FileIndexTests: XCTestCase {
 
         // Copy file
         let file = try index.copy(tmpLocation, originalURL: originalURL)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.location.path))
-        XCTAssertEqual(try contentsOf(file.location), "This is a test")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertEqual(try contentsOf(index.location(of: file)), "This is a test")
 
         // Get using original url
         let files1 = index.get(originalURL)
@@ -34,7 +34,7 @@ final class FileIndexTests: XCTestCase {
         // Delete file
         index.delete(file)
         let files3 = index.get(file.id)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: file.location.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertTrue(files3.isEmpty)
     }
 
@@ -44,8 +44,8 @@ final class FileIndexTests: XCTestCase {
 
         // Write file
         let file = try index.write("This is a test".data(using: .utf8)!, originalURL: originalURL, urlResponse: urlResponse)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.location.path))
-        XCTAssertEqual(try contentsOf(file.location), "This is a test")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertEqual(try contentsOf(file), "This is a test")
 
         // Get using original url
         let files1 = index.get(originalURL)
@@ -62,7 +62,7 @@ final class FileIndexTests: XCTestCase {
         // Delete file
         index.delete(file)
         let files3 = index.get(file.id)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: file.location.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertTrue(files3.isEmpty)
     }
 
@@ -72,15 +72,15 @@ final class FileIndexTests: XCTestCase {
 
         // Copy file
         let file = try index.copy(tmpLocation, originalURL: originalURL, expireAfter: 0.1)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.location.path))
-        XCTAssertEqual(try contentsOf(file.location), "This is a test")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertEqual(try contentsOf(file), "This is a test")
 
         Thread.sleep(forTimeInterval: 0.1)
 
         // File was deleted
         let files = index.get(originalURL)
         XCTAssertTrue(files.isEmpty)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: file.location.path))
+        XCTAssertFalse(FileManager.default.fileExists(atPath: index.location(of: file).path))
     }
 
     func testNotExpired() throws {
@@ -89,8 +89,8 @@ final class FileIndexTests: XCTestCase {
 
         // Copy file
         let file = try index.copy(tmpLocation, originalURL: originalURL, expireAfter: 1.0)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.location.path))
-        XCTAssertEqual(try contentsOf(file.location), "This is a test")
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertEqual(try contentsOf(file), "This is a test")
 
         Thread.sleep(forTimeInterval: 0.1)
 
@@ -98,7 +98,7 @@ final class FileIndexTests: XCTestCase {
         let files = index.get(originalURL)
         XCTAssertEqual(files.count, 1)
         XCTAssertEqual(files.first, file)
-        XCTAssertTrue(FileManager.default.fileExists(atPath: file.location.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
     }
 
     private var index: FileIndex!
@@ -131,6 +131,10 @@ final class FileIndexTests: XCTestCase {
 
     private func contentsOf(_ location: URL) throws -> String {
         try String(contentsOf: location, encoding: .utf8)
+    }
+
+    private func contentsOf(_ file: File) throws -> String {
+        try contentsOf(index.location(of: file))
     }
 
     /// Compare some fields of URLResponse to determine equality for test purposes

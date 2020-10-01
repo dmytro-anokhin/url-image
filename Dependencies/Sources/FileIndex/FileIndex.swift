@@ -43,7 +43,8 @@ public class FileIndex {
                             .attribute(name: "dateCreated", type: .dateAttributeType),
                             .attribute(name: "expiryInterval", type: .doubleAttributeType, isOptional: true),
                             .attribute(name: "originalURL", type: .URIAttributeType),
-                            .attribute(name: "location", type: .URIAttributeType),
+                            .attribute(name: "fileName", type: .stringAttributeType),
+                            .attribute(name: "fileExtension", type: .stringAttributeType, isOptional: true),
                             .attribute(name: "urlResponse", type: .binaryDataAttributeType, isOptional: true)
                           ],
                           indexes: [
@@ -74,19 +75,28 @@ public class FileIndex {
         database = PlainDatabase(configuration: configuration.databaseConfiguration, modelDescription: configuration.modelDescription)
     }
 
+    public func location(of file: File) -> URL {
+        var location = configuration.filesDirectoryURL.appendingPathComponent(file.fileName)
+
+        if let fileExtension = file.fileExtension {
+            location.appendPathExtension(fileExtension)
+        }
+
+        return location
+    }
+    
     // MARK: - Actions
 
     /// Copy downloaded file to index directory and record it in the database
     @discardableResult
     public func copy(_ sourceLocation: URL, originalURL: URL, identifier: String? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
         let id = identifier ?? UUID().uuidString
-        let location = configuration.filesDirectoryURL
-            .appendingPathComponent(id)
-            .appendingPathExtension(originalURL.pathExtension)
+        let fileName = id
+        let fileExtension = originalURL.pathExtension
 
-        try FileManager.default.copyItem(at: sourceLocation, to: location)
+        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: nil)
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, location: location, urlResponse: nil)
+        try FileManager.default.copyItem(at: sourceLocation, to: location(of: file))
         database.create(file)
 
         return file
@@ -96,13 +106,12 @@ public class FileIndex {
     @discardableResult
     public func write(_ data: Data, originalURL: URL, identifier: String? = nil, urlResponse: URLResponse? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
         let id = identifier ?? UUID().uuidString
-        let location = configuration.filesDirectoryURL
-            .appendingPathComponent(id)
-            .appendingPathExtension(originalURL.pathExtension)
+        let fileName = id
+        let fileExtension = originalURL.pathExtension
 
-        try data.write(to: location)
+        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: urlResponse)
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, location: location, urlResponse: urlResponse)
+        try data.write(to: location(of: file))
         database.create(file)
 
         return file
@@ -122,7 +131,7 @@ public class FileIndex {
         database.delete(where: "identifier", is: .equalTo, value: file.id)
 
         do {
-            try FileManager.default.removeItem(at: file.location)
+            try FileManager.default.removeItem(at: location(of: file))
         }
         catch {
             print(error)
@@ -155,7 +164,7 @@ public class FileIndex {
                 context.delete(object)
 
                 do {
-                    try FileManager.default.removeItem(at: file.location)
+                    try FileManager.default.removeItem(at: location(of: file))
                 }
                 catch {
                     print(error)
