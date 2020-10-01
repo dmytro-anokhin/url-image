@@ -11,10 +11,10 @@ import DownloadManager
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct URLImage<Empty, Progress, Failure, Content> : View where Empty : View,
-                                                                       Progress : View,
-                                                                       Failure : View,
-                                                                       Content : View
+public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
+                                                                         InProgress : View,
+                                                                         Failure : View,
+                                                                         Content : View
 {
     public struct Configuration {
 
@@ -31,7 +31,7 @@ public struct URLImage<Empty, Progress, Failure, Content> : View where Empty : V
 
     let empty: () -> Empty
 
-    let inProgress: (_ progress: Float?) -> Progress
+    let inProgress: (_ progress: Float?) -> InProgress
 
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
 
@@ -40,7 +40,7 @@ public struct URLImage<Empty, Progress, Failure, Content> : View where Empty : V
     public init(url: URL,
                 configuration: Configuration = Configuration(),
                 empty: @escaping () -> Empty,
-                inProgress: @escaping (_ progress: Float?) -> Progress,
+                inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
                 content: @escaping (_ image: Image) -> Content)
     {
@@ -57,6 +57,24 @@ public struct URLImage<Empty, Progress, Failure, Content> : View where Empty : V
         let remoteImage = RemoteImage(downloadManager: URLImageService.shared.downloadManager, download: download, isImmediate: configuration.isImmediate)
 
         return RemoteContentView(remoteContent: remoteImage, empty: empty, inProgress: inProgress, failure: failure, content: content)
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage where Empty == EmptyView, InProgress == ActivityIndicator {
+
+    init(url: URL,
+         configuration: Configuration = Configuration(),
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ image: Image) -> Content)
+    {
+        self.init(url: url,
+                  configuration: configuration,
+                  empty: { EmptyView() },
+                  inProgress: { _ in ActivityIndicator() },
+                  failure: failure,
+                  content: content)
     }
 }
 
