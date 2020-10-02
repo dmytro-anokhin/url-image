@@ -14,11 +14,11 @@ public final class URLImageService {
 
     public static let shared = URLImageService()
 
-    let downloadManager = DownloadManager()
+    public let downloadManager = DownloadManager()
 
-    let diskCache = DiskCache()
+    public let diskCache = DiskCache()
 
-    let inMemoryCache = InMemoryCache()
+    public let inMemoryCache = InMemoryCache()
 
     init() {
     }

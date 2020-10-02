@@ -9,7 +9,7 @@ import SwiftUI
 import ImageDecoder
 
 
-struct TransientImage {
+public struct TransientImage {
 
     static func decode(_ location: URL) throws -> TransientImage {
 
@@ -25,21 +25,21 @@ struct TransientImage {
                               cgOrientation: decoder.frameOrientation(at: 0))
     }
 
-    var cgImage: CGImage
+    public var cgImage: CGImage
 
-    var cgOrientation: CGImagePropertyOrientation?
+    public var cgOrientation: CGImagePropertyOrientation?
 }
 
 
-extension Image {
+public extension TransientImage {
 
-    init(transientImage: TransientImage) {
-        if let cgOrientation = transientImage.cgOrientation {
+    var image: Image {
+        if let cgOrientation = cgOrientation {
             let orientation = Image.Orientation(cgOrientation)
-            self.init(decorative: transientImage.cgImage, scale: 1.0, orientation: orientation)
+            return Image(decorative: cgImage, scale: 1.0, orientation: orientation)
         }
         else {
-            self.init(decorative: transientImage.cgImage, scale: 1.0)
+            return Image(decorative: cgImage, scale: 1.0)
         }
     }
 }

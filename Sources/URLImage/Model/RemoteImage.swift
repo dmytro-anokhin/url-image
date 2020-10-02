@@ -113,7 +113,7 @@ public final class RemoteImage : RemoteContent {
         loadCancellable = downloadManager.transientImagePublisher(for: download)
             .receive(on: RunLoop.main)
             .map {
-                .success(Image(transientImage: $0))
+                .success($0.image)
             }
             .catch {
                 Just(.failure($0))
@@ -126,6 +126,6 @@ public final class RemoteImage : RemoteContent {
 fileprivate extension RemoteContentLoadingState where Value == Image {
 
     static func success(_ transientImage: TransientImage) -> RemoteContentLoadingState<Value, Progress> {
-        .success(Image(transientImage: transientImage))
+        .success(transientImage.image)
     }
 }

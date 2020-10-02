@@ -8,7 +8,7 @@
 import Foundation
 
 
-final class InMemoryCache {
+final public class InMemoryCache {
 
     private final class TransientImageWrapper {
 
@@ -24,7 +24,7 @@ final class InMemoryCache {
     init() {
     }
 
-    func image(with url: URL) -> TransientImage? {
+    public func image(with url: URL) -> TransientImage? {
         nsCache.object(forKey: url as NSURL)?.transientImage
     }
 

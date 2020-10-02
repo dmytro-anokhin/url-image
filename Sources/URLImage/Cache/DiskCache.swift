@@ -10,7 +10,7 @@ import Combine
 import FileIndex
 
 
-final class DiskCache {
+final public class DiskCache {
 
     let fileIndex: FileIndex
 
@@ -26,7 +26,7 @@ final class DiskCache {
         self.init(fileIndex: fileIndex)
     }
 
-    func image(with url: URL) throws -> TransientImage? {
+    public func image(with url: URL) throws -> TransientImage? {
         guard let file = fileIndex.get(url).first else {
             return nil
         }
@@ -36,7 +36,7 @@ final class DiskCache {
         return try TransientImage.decode(location)
     }
 
-    func image(with url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
+    public func image(with url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
         DispatchQueue.global().async { [weak self] in
             guard let self = self else {
                 return
@@ -52,7 +52,7 @@ final class DiskCache {
         }
     }
 
-    func imagePublisher(with url: URL) -> AnyPublisher<TransientImage?, Swift.Error> {
+    public func imagePublisher(with url: URL) -> AnyPublisher<TransientImage?, Swift.Error> {
         return Future<TransientImage?, Swift.Error> { [weak self] promise in
             guard let self = self else {
                 return
