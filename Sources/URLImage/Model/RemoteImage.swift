@@ -15,11 +15,6 @@ import ImageDecoder
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class RemoteImage : RemoteContent {
 
-    public enum Error : Swift.Error {
-
-        case decode
-    }
-
     /// Reference to the download manager used to download the image.
     unowned let downloadManager: DownloadManager
 
@@ -107,7 +102,7 @@ public final class RemoteImage : RemoteContent {
     }
 
     private func startDownload() {
-        loadCancellable = downloadPublisher()
+        loadCancellable = downloadManager.transientImagePublisher(for: download)
             .receive(on: RunLoop.main)
             .map {
                 .success(Image(transientImage: $0))
@@ -116,33 +111,6 @@ public final class RemoteImage : RemoteContent {
                 Just(.failure($0))
             }
             .assign(to: \.loadingState, on: self)
-    }
-
-    private func downloadPublisher() -> AnyPublisher<TransientImage, Swift.Error> {
-        let url = download.url
-
-        return downloadManager.publisher(for: download)
-            .tryMap { downloadResult -> TransientImage in
-
-                switch downloadResult {
-                    case .data(let data):
-
-                        URLImageService.shared.cache.cacheImageData(data, for: url)
-
-                        let decoder = ImageDecoder()
-                        decoder.setData(data, allDataReceived: true)
-
-                        guard let image = decoder.createFrameImage(at: 0) else {
-                            throw RemoteImage.Error.decode
-                        }
-
-                        return TransientImage(cgImage: image,
-                                            cgOrientation: decoder.frameOrientation(at: 0))
-
-                    case .file:
-                        fatalError("Not implemented")
-                }
-            }.eraseToAnyPublisher()
     }
 }
 

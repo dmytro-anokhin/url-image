@@ -14,11 +14,11 @@ struct TransientImage {
     static func decode(_ location: URL) throws -> TransientImage {
 
         guard let decoder = ImageDecoder(url: location) else {
-            throw RemoteImage.Error.decode
+            throw URLImageError.decode
         }
 
         guard let image = decoder.createFrameImage(at: 0) else {
-            throw RemoteImage.Error.decode
+            throw URLImageError.decode
         }
 
         return TransientImage(cgImage: image,
