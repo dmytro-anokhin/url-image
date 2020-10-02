@@ -16,18 +16,9 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                                                                          Failure : View,
                                                                          Content : View
 {
-    public struct Configuration {
-
-        public var isImmediate: Bool
-
-        public init(isImmediate: Bool = false) {
-            self.isImmediate = isImmediate
-        }
-    }
-
     let url: URL
 
-    let configuration: Configuration
+    let configuration: URLImageConfiguration
 
     let empty: () -> Empty
 
@@ -38,7 +29,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let content: (_ image: Image) -> Content
 
     public init(url: URL,
-                configuration: Configuration = Configuration(),
+                configuration: URLImageConfiguration = URLImageConfiguration(),
                 empty: @escaping () -> Empty,
                 inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -71,7 +62,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage where Empty == EmptyView, InProgress == ActivityIndicator {
 
     init(url: URL,
-         configuration: Configuration = Configuration(),
+         configuration: URLImageConfiguration = URLImageConfiguration(),
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content)
     {

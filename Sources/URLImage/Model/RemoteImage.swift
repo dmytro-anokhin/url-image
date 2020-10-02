@@ -9,7 +9,6 @@ import Combine
 import SwiftUI
 import DownloadManager
 import RemoteContentView
-import ImageDecoder
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -31,6 +30,13 @@ public final class RemoteImage : RemoteContent {
         self.downloadManager = downloadManager
         self.download = download
         self.isImmediate = isImmediate
+
+        if isImmediate {
+            if let transientImage = URLImageService.shared.inMemoryCache.image(with: download.url) {
+                // Set image retrieved from cache
+                self.loadingState = .success(transientImage)
+            }
+        }
     }
 
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
@@ -46,7 +52,9 @@ public final class RemoteImage : RemoteContent {
         }
 
         if isImmediate {
-            if let transientImage = try? URLImageService.shared.cache.image(with: download.url) {
+            if let transientImage = try? URLImageService.shared.diskCache.image(with: download.url) {
+                // Move to in memory cache
+                URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage, for: download.url)
                 // Set image retrieved from cache
                 self.loadingState = .success(transientImage)
             }
@@ -59,7 +67,7 @@ public final class RemoteImage : RemoteContent {
         else {
             self.loadingState = .inProgress(nil)
 
-            cacheCancellable = URLImageService.shared.cache.imagePublisher(with: download.url)
+            cacheCancellable = URLImageService.shared.diskCache.imagePublisher(with: download.url)
                 .receive(on: RunLoop.main)
                 .catch { _ in
                     Just(nil)

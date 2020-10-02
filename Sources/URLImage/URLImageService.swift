@@ -16,5 +16,10 @@ public final class URLImageService {
 
     let downloadManager = DownloadManager()
 
-    let cache = Cache()
+    let diskCache = DiskCache()
+
+    let inMemoryCache = InMemoryCache()
+
+    init() {
+    }
 }

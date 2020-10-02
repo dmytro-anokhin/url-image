@@ -1,5 +1,5 @@
 //
-//  Cache.swift
+//  DiskCache.swift
 //  
 //
 //  Created by Dmytro Anokhin on 02/10/2020.
@@ -10,7 +10,7 @@ import Combine
 import FileIndex
 
 
-final class Cache {
+final class DiskCache {
 
     let fileIndex: FileIndex
 
