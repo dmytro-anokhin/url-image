@@ -40,11 +40,7 @@ public final class RemoteImage : RemoteContent {
 
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
 
-    @Published public private(set) var loadingState: LoadingState = .initial {
-        didSet {
-            print("Loading state did change from: \(oldValue), to: \(loadingState)")
-        }
-    }
+    @Published public private(set) var loadingState: LoadingState = .initial
 
     private var cacheCancellable: AnyCancellable?
     private var loadCancellable: AnyCancellable?
@@ -67,7 +63,7 @@ public final class RemoteImage : RemoteContent {
         }
         else {
             self.loadingState = .inProgress(nil)
-            
+
             cacheCancellable = URLImageService.shared.cache.imagePublisher(with: download.url)
                 .receive(on: RunLoop.main)
                 .catch { _ in
