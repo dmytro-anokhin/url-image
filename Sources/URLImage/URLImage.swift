@@ -54,9 +54,15 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     public var body: some View {
         let download = Download(url: url)
-        let remoteImage = RemoteImage(downloadManager: URLImageService.shared.downloadManager, download: download, isImmediate: configuration.isImmediate)
+        let remoteImage = RemoteImage(downloadManager: URLImageService.shared.downloadManager,
+                                      download: download,
+                                      isImmediate: configuration.isImmediate)
 
-        return RemoteContentView(remoteContent: remoteImage, empty: empty, inProgress: inProgress, failure: failure, content: content)
+        return RemoteContentView(remoteContent: remoteImage,
+                                 empty: empty,
+                                 inProgress: inProgress,
+                                 failure: failure,
+                                 content: content)
     }
 }
 
