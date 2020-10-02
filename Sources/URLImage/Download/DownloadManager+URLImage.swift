@@ -39,9 +39,6 @@ extension DownloadManager {
                         fatalError("Not implemented")
                 }
             }
-            .mapError {
-                $0 as! URLImageError
-            }
             .eraseToAnyPublisher()
     }
 }
