@@ -7,18 +7,14 @@
 
 import Foundation
 import Combine
-
 import DownloadManager
-import FileIndex
 
 
 public final class URLImageService {
 
     public static let shared = URLImageService()
 
-    public let downloadManager = DownloadManager()
+    let downloadManager = DownloadManager()
 
-    public let fileIndex = FileIndex(configuration: .init(name: "URLImage",
-                                                          filesDirectoryName: "images",
-                                                          baseDirectoryName: "URLImage"))
+    let cache = Cache()
 }

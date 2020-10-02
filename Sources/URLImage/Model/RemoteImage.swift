@@ -54,30 +54,40 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
-        if !isImmediate {
-            loadingState = .inProgress(nil)
+        if isImmediate {
+            if let transientImage = try? URLImageService.shared.cache.image(with: download.url) {
+                // Set image retrieved from cache
+                self.loadingState = .success(transientImage)
+            }
+            else {
+                // Download image
+                self.loadingState = .inProgress(nil)
+                self.startDownload()
+            }
         }
+        else {
+            self.loadingState = .inProgress(nil)
+            
+            cacheCancellable = URLImageService.shared.cache.imagePublisher(with: download.url)
+                .receive(on: RunLoop.main)
+                .catch { _ in
+                    Just(nil)
+                }
+                .sink { [weak self] in
+                    guard let self = self else {
+                        return
+                    }
 
-        cacheCancellable = getFromCachePublisher()
-            .receive(on: RunLoop.main)
-            .catch { _ in
-                Just(nil)
-            }
-            .sink { [weak self] in
-                guard let self = self else {
-                    return
+                    if let transientImage = $0 {
+                        // Set image retrieved from cache
+                        self.loadingState = .success(transientImage)
+                    }
+                    else {
+                        // Download image
+                        self.startDownload()
+                    }
                 }
-
-                if let transientImage = $0 {
-                    // Set image retrieved from cache
-                    self.loadingState = .success(transientImage)
-                }
-                else {
-                    // Download image
-                    self.loadingState = .inProgress(nil)
-                    self.startDownload()
-                }
-            }
+        }
     }
 
     public func cancel() {
@@ -121,7 +131,7 @@ public final class RemoteImage : RemoteContent {
                 switch downloadResult {
                     case .data(let data):
 
-                        _ = try? URLImageService.shared.fileIndex.write(data, originalURL: url)
+                        URLImageService.shared.cache.cacheImageData(data, for: url)
 
                         let decoder = ImageDecoder()
                         decoder.setData(data, allDataReceived: true)
@@ -137,63 +147,6 @@ public final class RemoteImage : RemoteContent {
                         fatalError("Not implemented")
                 }
             }.eraseToAnyPublisher()
-    }
-
-    private func getFromCachePublisher() -> AnyPublisher<TransientImage?, Swift.Error> {
-        let url = download.url
-        let isSync = isImmediate
-
-        return Future<TransientImage?, Swift.Error> { promise in
-            let work: () -> Void = {
-                guard let file = URLImageService.shared.fileIndex.get(url).first else {
-                    promise(.success(nil))
-                    return
-                }
-
-                do {
-                    let location = URLImageService.shared.fileIndex.location(of: file)
-                    let transientImage = try TransientImage.decode(location)
-                    promise(.success(transientImage))
-                }
-                catch {
-                    promise(.failure(error))
-                }
-            }
-
-            if isSync {
-                work()
-            }
-            else {
-                DispatchQueue.global().async(execute: work)
-            }
-        }.eraseToAnyPublisher()
-    }
-
-    private func getFromCacheSync() throws -> TransientImage? {
-        guard let file = URLImageService.shared.fileIndex.get(download.url).first else {
-            return nil
-        }
-
-        let location = URLImageService.shared.fileIndex.location(of: file)
-        print("Get cached file for: \(download.url) at location: \(location)")
-
-        return try TransientImage.decode(location)
-    }
-
-    private func getFromCacheAsync(_ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            do {
-                let transientImage = try self.getFromCacheSync()
-                completion(.success(transientImage))
-            }
-            catch {
-                completion(.failure(error))
-            }
-        }
     }
 }
 
