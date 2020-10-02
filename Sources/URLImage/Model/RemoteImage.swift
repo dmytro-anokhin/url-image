@@ -20,22 +20,17 @@ public final class RemoteImage : RemoteContent {
     /// Download object describes how the image should be downloaded.
     let download: Download
 
-    /// Read value synchronously from cache.
-    ///
-    /// When this flag is `true` remote image performs cache lookup synchronously. This allows to return cached image immediately, skipping loading step.
-    /// Otherwise cache lookup performed asynchronosly as a part of loading step.
-    let isImmediate: Bool
+    let configuration: URLImageConfiguration
 
-    public init(downloadManager: DownloadManager, download: Download, isImmediate: Bool = false) {
+    public init(downloadManager: DownloadManager, download: Download, configuration: URLImageConfiguration) {
         self.downloadManager = downloadManager
         self.download = download
-        self.isImmediate = isImmediate
+        self.configuration = configuration
 
-        if isImmediate {
-            if let transientImage = URLImageService.shared.inMemoryCache.image(with: download.url) {
-                // Set image retrieved from cache
-                self.loadingState = .success(transientImage)
-            }
+        if configuration.cachePolicy.isReturnCache,
+           let transientImage = URLImageService.shared.inMemoryCache.image(with: download.url) {
+            // Set image retrieved from cache
+            self.loadingState = .success(transientImage)
         }
     }
 
@@ -51,41 +46,29 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
-        if isImmediate {
-            if let transientImage = try? URLImageService.shared.diskCache.image(with: download.url) {
-                // Move to in memory cache
-                URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage, for: download.url)
-                // Set image retrieved from cache
-                self.loadingState = .success(transientImage)
-            }
-            else {
-                // Download image
-                self.loadingState = .inProgress(nil)
-                self.startDownload()
-            }
-        }
-        else {
-            self.loadingState = .inProgress(nil)
+        switch configuration.cachePolicy {
+            case .returnCacheElseLoad:
+                if !isLoadedSuccessfully {
+                    returnCached { [weak self] success in
+                        guard let self = self else { return }
 
-            cacheCancellable = URLImageService.shared.diskCache.imagePublisher(with: download.url)
-                .receive(on: RunLoop.main)
-                .catch { _ in
-                    Just(nil)
-                }
-                .sink { [weak self] in
-                    guard let self = self else {
-                        return
-                    }
-
-                    if let transientImage = $0 {
-                        // Set image retrieved from cache
-                        self.loadingState = .success(transientImage)
-                    }
-                    else {
-                        // Download image
-                        self.startDownload()
+                        if !success {
+                            self.startDownload()
+                        }
                     }
                 }
+
+            case .returnCacheDontLoad:
+                return
+
+            case .returnCacheReload:
+                returnCached { [weak self] success in
+                    guard let self = self else { return }
+                    self.startDownload()
+                }
+
+            case .ignoreCache:
+                startDownload()
         }
     }
 
@@ -109,7 +92,18 @@ public final class RemoteImage : RemoteContent {
         loadCancellable != nil || cacheCancellable != nil
     }
 
+    private var isLoadedSuccessfully: Bool {
+        switch loadingState {
+            case .success:
+                return true
+            default:
+                return false
+        }
+    }
+
     private func startDownload() {
+        loadingState = .inProgress(nil)
+
         loadCancellable = downloadManager.transientImagePublisher(for: download)
             .receive(on: RunLoop.main)
             .map {
@@ -119,6 +113,30 @@ public final class RemoteImage : RemoteContent {
                 Just(.failure($0))
             }
             .assign(to: \.loadingState, on: self)
+    }
+
+    private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
+        loadingState = .inProgress(nil)
+
+        cacheCancellable = URLImageService.shared.diskCache.imagePublisher(with: download.url)
+            .receive(on: RunLoop.main)
+            .catch { _ in
+                Just(nil)
+            }
+            .sink { [weak self] in
+                guard let self = self else {
+                    return
+                }
+
+                if let transientImage = $0 {
+                    // Set image retrieved from cache
+                    self.loadingState = .success(transientImage)
+                    completion(true)
+                }
+                else {
+                    completion(false)
+                }
+            }
     }
 }
 

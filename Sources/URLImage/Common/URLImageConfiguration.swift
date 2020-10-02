@@ -17,11 +17,20 @@ public struct URLImageConfiguration {
         case returnCacheReload
 
         case ignoreCache
+
+        var isReturnCache: Bool {
+            switch self {
+                case .returnCacheElseLoad, .returnCacheDontLoad, .returnCacheReload:
+                    return true
+                default:
+                    return false
+            }
+        }
     }
 
-    public var isImmediate: Bool
+    public var cachePolicy: CachePolicy
 
-    public init(isImmediate: Bool = false) {
-        self.isImmediate = isImmediate
+    public init(cachePolicy: CachePolicy = .returnCacheElseLoad) {
+        self.cachePolicy = cachePolicy
     }
 }
