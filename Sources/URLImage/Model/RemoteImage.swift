@@ -59,7 +59,10 @@ public final class RemoteImage : RemoteContent {
                 }
 
             case .returnCacheDontLoad:
-                return
+                if !isLoadedSuccessfully {
+                    returnCached {_ in
+                    }
+                }
 
             case .returnCacheReload:
                 returnCached { [weak self] success in
