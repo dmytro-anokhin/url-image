@@ -13,12 +13,18 @@ final class InMemoryCache {
     init() {
     }
 
-    func image(withURL url: URL, identifier: String?) -> TransientImage? {
-        image(withIdentifier: identifier ?? url.absoluteString)
+    func getImage(withIdentifier identifier: String?, orURL url: URL) -> TransientImage? {
+        let key = (identifier ?? url.absoluteString) as NSString
+        let wrapper = nsCache.object(forKey: key)
+
+        return wrapper?.transientImage
     }
 
     func cacheTransientImage(_ transientImage: TransientImage, withURL url: URL, identifier: String?) {
-        cacheTransientImage(transientImage, withIdentifier: identifier ?? url.absoluteString)
+        let key = (identifier ?? url.absoluteString) as NSString
+        let wrapper = TransientImageWrapper(transientImage)
+
+        nsCache.setObject(wrapper, forKey: key)
     }
 
     private final class TransientImageWrapper {
@@ -31,18 +37,4 @@ final class InMemoryCache {
     }
 
     private let nsCache = NSCache<NSString, TransientImageWrapper>()
-
-    private func image(withIdentifier identifier: String) -> TransientImage? {
-        let key = identifier as NSString
-        let wrapper = nsCache.object(forKey: key)
-
-        return wrapper?.transientImage
-    }
-
-    private func cacheTransientImage(_ transientImage: TransientImage, withIdentifier identifier: String) {
-        let key = identifier as NSString
-        let wrapper = TransientImageWrapper(transientImage)
-
-        nsCache.setObject(wrapper, forKey: key)
-    }
 }

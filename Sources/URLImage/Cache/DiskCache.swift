@@ -26,15 +26,6 @@ final class DiskCache {
         self.init(fileIndex: fileIndex)
     }
 
-    private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
-        if let identifier = identifier {
-            return fileIndex.get(identifier).first
-        }
-        else {
-            return fileIndex.get(url).first
-        }
-    }
-
     func getImage(withIdentifier identifier: String?, orURL url: URL) throws -> TransientImage? {
         guard let file = getFile(withIdentifier: identifier, orURL: url) else {
             return nil
@@ -75,5 +66,14 @@ final class DiskCache {
 
     func cacheImageData(_ data: Data, url: URL, identifier: String?) {
         _ = try? fileIndex.write(data, originalURL: url, identifier: identifier)
+    }
+
+    private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
+        if let identifier = identifier {
+            return fileIndex.get(identifier).first
+        }
+        else {
+            return fileIndex.get(url).first
+        }
     }
 }

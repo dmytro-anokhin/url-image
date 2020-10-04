@@ -28,7 +28,7 @@ public final class RemoteImage : RemoteContent {
         self.configuration = configuration
 
         if configuration.cachePolicy.isReturnCache,
-           let transientImage = URLImageService.shared.inMemoryCache.image(withURL: download.url, identifier: configuration.identifier) {
+           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: configuration.identifier, orURL: download.url) {
             // Set image retrieved from cache
             self.loadingState = .success(transientImage)
         }
