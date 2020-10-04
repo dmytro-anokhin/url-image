@@ -28,7 +28,7 @@ public final class RemoteImage : RemoteContent {
         self.configuration = configuration
 
         if configuration.cachePolicy.isReturnCache,
-           let transientImage = URLImageService.shared.inMemoryCache.image(with: download.url) {
+           let transientImage = URLImageService.shared.inMemoryCache.image(withURL: download.url, identifier: configuration.identifier) {
             // Set image retrieved from cache
             self.loadingState = .success(transientImage)
         }
@@ -107,7 +107,7 @@ public final class RemoteImage : RemoteContent {
     private func startDownload() {
         loadingState = .inProgress(nil)
 
-        loadCancellable = downloadManager.transientImagePublisher(for: download)
+        loadCancellable = downloadManager.transientImagePublisher(for: download, configuration: configuration)
             .receive(on: RunLoop.main)
             .map {
                 .success($0.image)
@@ -121,7 +121,8 @@ public final class RemoteImage : RemoteContent {
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-        cacheCancellable = URLImageService.shared.diskCache.imagePublisher(with: download.url)
+        cacheCancellable = URLImageService.shared.diskCache
+            .getImagePublisher(withIdentifier: configuration.identifier, orURL: download.url)
             .receive(on: RunLoop.main)
             .catch { _ in
                 Just(nil)

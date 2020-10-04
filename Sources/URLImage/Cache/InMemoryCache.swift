@@ -8,7 +8,18 @@
 import Foundation
 
 
-final public class InMemoryCache {
+final class InMemoryCache {
+
+    init() {
+    }
+
+    func image(withURL url: URL, identifier: String?) -> TransientImage? {
+        image(withIdentifier: identifier ?? url.absoluteString)
+    }
+
+    func cacheTransientImage(_ transientImage: TransientImage, withURL url: URL, identifier: String?) {
+        cacheTransientImage(transientImage, withIdentifier: identifier ?? url.absoluteString)
+    }
 
     private final class TransientImageWrapper {
 
@@ -19,16 +30,19 @@ final public class InMemoryCache {
         }
     }
 
-    private let nsCache = NSCache<NSURL, TransientImageWrapper>()
+    private let nsCache = NSCache<NSString, TransientImageWrapper>()
 
-    init() {
+    private func image(withIdentifier identifier: String) -> TransientImage? {
+        let key = identifier as NSString
+        let wrapper = nsCache.object(forKey: key)
+
+        return wrapper?.transientImage
     }
 
-    public func image(with url: URL) -> TransientImage? {
-        nsCache.object(forKey: url as NSURL)?.transientImage
-    }
+    private func cacheTransientImage(_ transientImage: TransientImage, withIdentifier identifier: String) {
+        let key = identifier as NSString
+        let wrapper = TransientImageWrapper(transientImage)
 
-    func cacheTransientImage(_ transientImage: TransientImage, for url: URL) {
-        nsCache.setObject(TransientImageWrapper(transientImage), forKey: url as NSURL)
+        nsCache.setObject(wrapper, forKey: key)
     }
 }

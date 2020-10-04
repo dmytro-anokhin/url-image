@@ -10,7 +10,7 @@ import Combine
 import FileIndex
 
 
-final public class DiskCache {
+final class DiskCache {
 
     let fileIndex: FileIndex
 
@@ -26,8 +26,17 @@ final public class DiskCache {
         self.init(fileIndex: fileIndex)
     }
 
-    public func image(with url: URL) throws -> TransientImage? {
-        guard let file = fileIndex.get(url).first else {
+    private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
+        if let identifier = identifier {
+            return fileIndex.get(identifier).first
+        }
+        else {
+            return fileIndex.get(url).first
+        }
+    }
+
+    func getImage(withIdentifier identifier: String?, orURL url: URL) throws -> TransientImage? {
+        guard let file = getFile(withIdentifier: identifier, orURL: url) else {
             return nil
         }
 
@@ -36,14 +45,14 @@ final public class DiskCache {
         return try TransientImage.decode(location)
     }
 
-    public func image(with url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
+    func getImage(withIdentifier identifier: String?, orURL url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
         DispatchQueue.global().async { [weak self] in
             guard let self = self else {
                 return
             }
 
             do {
-                let transientImage = try self.image(with: url)
+                let transientImage = try self.getImage(withIdentifier: identifier, orURL: url)
                 completion(.success(transientImage))
             }
             catch {
@@ -52,19 +61,19 @@ final public class DiskCache {
         }
     }
 
-    public func imagePublisher(with url: URL) -> AnyPublisher<TransientImage?, Swift.Error> {
+    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL) -> AnyPublisher<TransientImage?, Swift.Error> {
         return Future<TransientImage?, Swift.Error> { [weak self] promise in
             guard let self = self else {
                 return
             }
 
-            self.image(with: url) {
+            self.getImage(withIdentifier: identifier, orURL: url) {
                 promise($0)
             }
         }.eraseToAnyPublisher()
     }
 
-    func cacheImageData(_ data: Data, for url: URL) {
-        _ = try? fileIndex.write(data, originalURL: url)
+    func cacheImageData(_ data: Data, url: URL, identifier: String?) {
+        _ = try? fileIndex.write(data, originalURL: url, identifier: identifier)
     }
 }

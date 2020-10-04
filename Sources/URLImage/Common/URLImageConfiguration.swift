@@ -5,6 +5,8 @@
 //  Created by Dmytro Anokhin on 02/10/2020.
 //
 
+import Foundation
+
 
 public struct URLImageConfiguration {
 
@@ -28,9 +30,12 @@ public struct URLImageConfiguration {
         }
     }
 
+    public var identifier: String?
+
     public var cachePolicy: CachePolicy
 
-    public init(cachePolicy: CachePolicy = .returnCacheElseLoad) {
+    public init(identifier: String? = nil, cachePolicy: CachePolicy = .returnCacheElseLoad) {
+        self.identifier = identifier
         self.cachePolicy = cachePolicy
     }
 }
