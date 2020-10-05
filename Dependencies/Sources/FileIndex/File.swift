@@ -26,16 +26,13 @@ public struct File : Identifiable {
 
     public var fileExtension: String?
 
-    public var urlResponse: URLResponse?
-
-    public init(id: String, dateCreated: Date, expiryInterval: TimeInterval?, originalURL: URL, fileName: String, fileExtension: String?, urlResponse: URLResponse?) {
+    public init(id: String, dateCreated: Date, expiryInterval: TimeInterval?, originalURL: URL, fileName: String, fileExtension: String?) {
         self.id = id
         self.dateCreated = dateCreated
         self.expiryInterval = expiryInterval
         self.originalURL = originalURL
         self.fileName = fileName
         self.fileExtension = fileExtension
-        self.urlResponse = urlResponse
     }
 }
 
@@ -69,16 +66,7 @@ extension File : ManagedObjectCodable {
         let expiryInterval = managedObject.value(forKey: "expiryInterval") as? TimeInterval
         let fileExtension = managedObject.value(forKey: "fileExtension") as? String
 
-        let urlResponse: URLResponse?
-
-        if let data = managedObject.value(forKey: "urlResponse") as? Data {
-            urlResponse = URLResponse.decode(data)
-        }
-        else {
-            urlResponse = nil
-        }
-
-        self.init(id: id, dateCreated: dateCreated, expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: urlResponse)
+        self.init(id: id, dateCreated: dateCreated, expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension)
     }
 
     public func encode(to object: NSManagedObject) {
@@ -88,22 +76,5 @@ extension File : ManagedObjectCodable {
         object.setValue(originalURL, forKey: "originalURL")
         object.setValue(fileName, forKey: "fileName")
         object.setValue(fileExtension, forKey: "fileExtension")
-
-        if let urlResponse = urlResponse {
-            object.setValue(urlResponse.encode(), forKey: "urlResponse")
-        }
-    }
-}
-
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension URLResponse {
-
-    static func decode(_ data: Data) -> URLResponse? {
-        try? NSKeyedUnarchiver.unarchivedObject(ofClasses: [HTTPURLResponse.self, URLResponse.self], from: data) as? URLResponse
-    }
-
-    func encode() -> Data? {
-        try? NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: true)
     }
 }

@@ -44,8 +44,7 @@ public class FileIndex {
                             .attribute(name: "expiryInterval", type: .doubleAttributeType, isOptional: true),
                             .attribute(name: "originalURL", type: .URIAttributeType),
                             .attribute(name: "fileName", type: .stringAttributeType),
-                            .attribute(name: "fileExtension", type: .stringAttributeType, isOptional: true),
-                            .attribute(name: "urlResponse", type: .binaryDataAttributeType, isOptional: true)
+                            .attribute(name: "fileExtension", type: .stringAttributeType, isOptional: true)
                           ],
                           indexes: [
                             .index(name: "byIdentifier", elements: [ .property(name: "identifier") ]),
@@ -94,7 +93,7 @@ public class FileIndex {
         let fileName = id
         let fileExtension = originalURL.pathExtension
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: nil)
+        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension)
 
         try FileManager.default.copyItem(at: sourceLocation, to: location(of: file))
         database.create(file)
@@ -104,12 +103,12 @@ public class FileIndex {
 
     /// Write data to a file in index directory and record it in the database
     @discardableResult
-    public func write(_ data: Data, originalURL: URL, identifier: String? = nil, urlResponse: URLResponse? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
+    public func write(_ data: Data, originalURL: URL, identifier: String? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
         let id = identifier ?? UUID().uuidString
         let fileName = id
         let fileExtension = originalURL.pathExtension
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension, urlResponse: urlResponse)
+        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension)
 
         try data.write(to: location(of: file))
         database.create(file)
