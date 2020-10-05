@@ -19,19 +19,32 @@ extension DownloadManager {
                 switch downloadResult {
                     case .data(let data):
 
-                        URLImageService.shared.diskCache.cacheImageData(data, url: download.url, identifier: configuration.identifier)
-
                         let decoder = ImageDecoder()
                         decoder.setData(data, allDataReceived: true)
 
+                        guard let uti = decoder.uti else {
+                            // Not an image data
+                            throw URLImageError.decode
+                        }
+
                         guard let image = decoder.createFrameImage(at: 0) else {
+                            // Can not decode image, corrupted data
                             throw URLImageError.decode
                         }
 
                         let transientImage = TransientImage(cgImage: image,
-                                                            cgOrientation: decoder.frameOrientation(at: 0))
+                                                            cgOrientation: decoder.frameOrientation(at: 0),
+                                                            uti: uti)
 
-                        URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage, withURL: download.url, identifier: configuration.identifier)
+                        URLImageService.shared.diskCache.cacheImageData(data,
+                                                                        url: download.url,
+                                                                        identifier: configuration.identifier,
+                                                                        fileName: configuration.identifier,
+                                                                        fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti))
+
+                        URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage,
+                                                                                 withURL: download.url,
+                                                                                 identifier: configuration.identifier)
 
                         return transientImage
 

@@ -9,6 +9,14 @@
 import ImageIO
 import Foundation
 
+#if canImport(MobileCoreServices)
+import MobileCoreServices
+#endif
+
+#if canImport(Cocoa)
+import Cocoa
+#endif
+
 
 // @available(iOS 9.0, macOS 10.11, *)
 @available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
@@ -61,6 +69,10 @@ public final class ImageDecoder {
     }
 
     // MARK: - Public
+
+    public static func preferredFileExtension(forTypeIdentifier uti: String) -> String? {
+        UTTypeCopyPreferredTagWithClass(uti as CFString, kUTTagClassFilenameExtension)?.takeUnretainedValue() as String?
+    }
 
     public init() {
         imageSource = CGImageSourceCreateIncremental(nil)

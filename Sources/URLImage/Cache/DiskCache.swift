@@ -64,8 +64,12 @@ final class DiskCache {
         }.eraseToAnyPublisher()
     }
 
-    func cacheImageData(_ data: Data, url: URL, identifier: String?) {
-        _ = try? fileIndex.write(data, originalURL: url, identifier: identifier)
+    func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?) {
+        _ = try? fileIndex.write(data,
+                                 originalURL: url,
+                                 identifier: identifier,
+                                 fileName: fileName,
+                                 fileExtension: fileExtension)
     }
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {

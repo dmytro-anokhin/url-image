@@ -48,7 +48,8 @@ public class FileIndex {
                           ],
                           indexes: [
                             .index(name: "byIdentifier", elements: [ .property(name: "identifier") ]),
-                            .index(name: "byDateCreated", elements: [ .property(name: "dateCreated") ])
+                            .index(name: "byDateCreated", elements: [ .property(name: "dateCreated") ]),
+                            .index(name: "byOriginalURL", elements: [ .property(name: "originalURL") ])
                           ])
         )
 
@@ -88,12 +89,23 @@ public class FileIndex {
 
     /// Copy downloaded file to index directory and record it in the database
     @discardableResult
-    public func copy(_ sourceLocation: URL, originalURL: URL, identifier: String? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
+    public func copy(_ sourceLocation: URL,
+                     originalURL: URL,
+                     identifier: String? = nil,
+                     fileName: String? = nil,
+                     fileExtension: String? = nil,
+                     expireAfter expiryInterval: TimeInterval? = nil
+    ) throws -> File {
         let id = identifier ?? UUID().uuidString
-        let fileName = id
-        let fileExtension = originalURL.pathExtension
+        let fileName = fileName ?? id
+        let fileExtension = fileExtension ?? originalURL.pathExtension
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension)
+        let file = File(id: id,
+                        dateCreated: Date(),
+                        expiryInterval: expiryInterval,
+                        originalURL: originalURL,
+                        fileName: fileName,
+                        fileExtension: fileExtension)
 
         try FileManager.default.copyItem(at: sourceLocation, to: location(of: file))
         database.create(file)
@@ -103,12 +115,23 @@ public class FileIndex {
 
     /// Write data to a file in index directory and record it in the database
     @discardableResult
-    public func write(_ data: Data, originalURL: URL, identifier: String? = nil, expireAfter expiryInterval: TimeInterval? = nil) throws -> File {
+    public func write(_ data: Data,
+                      originalURL: URL,
+                      identifier: String? = nil,
+                      fileName: String? = nil,
+                      fileExtension: String? = nil,
+                      expireAfter expiryInterval: TimeInterval? = nil
+    ) throws -> File {
         let id = identifier ?? UUID().uuidString
-        let fileName = id
-        let fileExtension = originalURL.pathExtension
+        let fileName = fileName ?? id
+        let fileExtension = fileExtension ?? originalURL.pathExtension
 
-        let file = File(id: id, dateCreated: Date(), expiryInterval: expiryInterval, originalURL: originalURL, fileName: fileName, fileExtension: fileExtension)
+        let file = File(id: id,
+                        dateCreated: Date(),
+                        expiryInterval: expiryInterval,
+                        originalURL: originalURL,
+                        fileName: fileName,
+                        fileExtension: fileExtension)
 
         try data.write(to: location(of: file))
         database.create(file)

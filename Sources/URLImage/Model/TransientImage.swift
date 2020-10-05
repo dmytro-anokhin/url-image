@@ -17,17 +17,25 @@ public struct TransientImage {
             throw URLImageError.decode
         }
 
+        guard let uti = decoder.uti else {
+            // Not an image data
+            throw URLImageError.decode
+        }
+
         guard let image = decoder.createFrameImage(at: 0) else {
             throw URLImageError.decode
         }
 
         return TransientImage(cgImage: image,
-                              cgOrientation: decoder.frameOrientation(at: 0))
+                              cgOrientation: decoder.frameOrientation(at: 0),
+                              uti: uti)
     }
 
     public var cgImage: CGImage
 
     public var cgOrientation: CGImagePropertyOrientation?
+
+    public var uti: String
 }
 
 
