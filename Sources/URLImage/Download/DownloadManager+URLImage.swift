@@ -40,11 +40,13 @@ extension DownloadManager {
                                                                         url: download.url,
                                                                         identifier: configuration.identifier,
                                                                         fileName: configuration.identifier,
-                                                                        fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti))
+                                                                        fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti),
+                                                                        expireAfter: configuration.expiryInterval)
 
                         URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage,
                                                                                  withURL: download.url,
-                                                                                 identifier: configuration.identifier)
+                                                                                 identifier: configuration.identifier,
+                                                                                 expireAfter: configuration.expiryInterval)
 
                         return transientImage
 

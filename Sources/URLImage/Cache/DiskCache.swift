@@ -31,9 +31,14 @@ final class DiskCache {
             return nil
         }
 
-        let location = fileIndex.location(of: file)
-
-        return try TransientImage.decode(location)
+        if file.isExpired {
+            fileIndex.delete(file)
+            return nil
+        }
+        else {
+            let location = fileIndex.location(of: file)
+            return try TransientImage.decode(location)
+        }
     }
 
     func getImage(withIdentifier identifier: String?, orURL url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
@@ -64,12 +69,13 @@ final class DiskCache {
         }.eraseToAnyPublisher()
     }
 
-    func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?) {
+    func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
         _ = try? fileIndex.write(data,
                                  originalURL: url,
                                  identifier: identifier,
                                  fileName: fileName,
-                                 fileExtension: fileExtension)
+                                 fileExtension: fileExtension,
+                                 expireAfter: expiryInterval)
     }
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
