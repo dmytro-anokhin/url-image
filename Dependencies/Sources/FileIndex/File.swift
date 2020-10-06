@@ -38,6 +38,19 @@ public struct File : Identifiable {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension File {
+
+    var isExpired: Bool {
+        guard let expiryInterval = expiryInterval else {
+            return false
+        }
+
+        return dateCreated.addingTimeInterval(expiryInterval) < Date()
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension File : Equatable {
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
