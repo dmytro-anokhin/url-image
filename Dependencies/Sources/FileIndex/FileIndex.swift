@@ -160,6 +160,12 @@ public class FileIndex {
         }
     }
 
+    public func deleteExpired() {
+//        database.sync { context -> [NSManagedObject] in
+//
+//        }
+    }
+
     // MARK: - Private
 
     private let database: PlainDatabase<File>
@@ -176,21 +182,33 @@ public class FileIndex {
                     continue
                 }
 
-                guard let expiryInterval = file.expiryInterval,
-                   file.dateCreated.addingTimeInterval(expiryInterval) < Date() else {
-                    result.append(object)
+                let location = self.location(of: file)
+
+                guard FileManager.default.fileExists(atPath: location.path) else {
+                    // File was deleted from disk, need to also delete it from the database
+                    context.delete(object)
                     continue
                 }
 
-                // Delete
-                context.delete(object)
+                guard !file.isExpired else {
+                    // File expired, delete it
+                    context.delete(object)
 
-                do {
-                    try FileManager.default.removeItem(at: location(of: file))
+                    do {
+                        try FileManager.default.removeItem(at: location)
+                    }
+                    catch {
+                        print(error)
+                    }
+
+                    continue
                 }
-                catch {
-                    print(error)
-                }
+
+                result.append(object)
+            }
+
+            if context.hasChanges {
+                try context.save()
             }
 
             return result

@@ -40,10 +40,9 @@ final class FileIndexTests: XCTestCase {
 
     func testWrite() throws {
         let originalURL = URL(string: "https://localhost")!
-        let urlResponse = URLResponse(url: originalURL, mimeType: "text", expectedContentLength: -1, textEncodingName: nil)
 
         // Write file
-        let file = try index.write("This is a test".data(using: .utf8)!, originalURL: originalURL, urlResponse: urlResponse)
+        let file = try index.write("This is a test".data(using: .utf8)!, originalURL: originalURL)
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(file), "This is a test")
 
@@ -51,13 +50,11 @@ final class FileIndexTests: XCTestCase {
         let files1 = index.get(originalURL)
         XCTAssertEqual(files1.count, 1)
         XCTAssertEqual(files1.first, file)
-        XCTAssertURLResponse(files1.first!.urlResponse!, urlResponse)
 
         // Get using identifier
         let files2 = index.get(file.id)
         XCTAssertEqual(files2.count, 1)
         XCTAssertEqual(files2.first, file)
-        XCTAssertURLResponse(files2.first!.urlResponse!, urlResponse)
 
         // Delete file
         index.delete(file)
@@ -101,6 +98,27 @@ final class FileIndexTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
     }
 
+    func testFileInDatabaseButDeletedFromDisk() throws {
+        let originalURL = URL(string: "https://localhost")!
+
+        // Write file
+        let file = try index.write("This is a test".data(using: .utf8)!, originalURL: originalURL)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertEqual(try contentsOf(file), "This is a test")
+
+        // File must be in the index
+        let files1 = index.get(originalURL)
+        XCTAssertEqual(files1.count, 1)
+        XCTAssertEqual(files1.first, file)
+
+        // Delete file
+        try FileManager.default.removeItem(at: index.location(of: file))
+
+        // Result must be empty
+        let files2 = index.get(originalURL)
+        XCTAssertTrue(files2.isEmpty)
+    }
+
     private var index: FileIndex!
 
     override func setUp() {
@@ -135,15 +153,5 @@ final class FileIndexTests: XCTestCase {
 
     private func contentsOf(_ file: File) throws -> String {
         try contentsOf(index.location(of: file))
-    }
-
-    /// Compare some fields of URLResponse to determine equality for test purposes
-    private func XCTAssertURLResponse(_ lhs: URLResponse, _ rhs: URLResponse) {
-        XCTAssertTrue(type(of: lhs) === type(of: rhs))
-        XCTAssertEqual(lhs.url, rhs.url)
-        XCTAssertEqual(lhs.mimeType, rhs.mimeType)
-        XCTAssertEqual(lhs.expectedContentLength, rhs.expectedContentLength)
-        XCTAssertEqual(lhs.textEncodingName, rhs.textEncodingName)
-        XCTAssertEqual((lhs as? HTTPURLResponse)?.statusCode, (rhs as? HTTPURLResponse)?.statusCode)
     }
 }
