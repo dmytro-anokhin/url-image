@@ -73,6 +73,14 @@ final class DiskCache {
                                  expireAfter: expiryInterval)
     }
 
+    // MARK: - Cleanup
+
+    func deleteExpired() {
+        fileIndex.deleteExpired()
+    }
+
+    // MARK: - Private
+
     private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
         if let identifier = identifier {
             return fileIndex.get(identifier).first

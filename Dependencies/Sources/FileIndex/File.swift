@@ -89,5 +89,10 @@ extension File : ManagedObjectCodable {
         object.setValue(originalURL, forKey: "originalURL")
         object.setValue(fileName, forKey: "fileName")
         object.setValue(fileExtension, forKey: "fileExtension")
+
+        if let expiryInterval = expiryInterval {
+            let expiryDate = dateCreated.addingTimeInterval(expiryInterval)
+            object.setValue(expiryDate, forKey: "expiryDate")
+        }
     }
 }

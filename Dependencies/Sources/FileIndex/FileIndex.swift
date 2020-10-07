@@ -44,12 +44,13 @@ public class FileIndex {
                             .attribute(name: "expiryInterval", type: .doubleAttributeType, isOptional: true),
                             .attribute(name: "originalURL", type: .URIAttributeType),
                             .attribute(name: "fileName", type: .stringAttributeType),
-                            .attribute(name: "fileExtension", type: .stringAttributeType, isOptional: true)
+                            .attribute(name: "fileExtension", type: .stringAttributeType, isOptional: true),
+                            .attribute(name: "expiryDate", type: .dateAttributeType, isOptional: true)
                           ],
                           indexes: [
                             .index(name: "byIdentifier", elements: [ .property(name: "identifier") ]),
-                            .index(name: "byDateCreated", elements: [ .property(name: "dateCreated") ]),
-                            .index(name: "byOriginalURL", elements: [ .property(name: "originalURL") ])
+                            .index(name: "byOriginalURL", elements: [ .property(name: "originalURL") ]),
+                            .index(name: "byExpiryDate", elements: [ .property(name: "expiryDate") ])
                           ])
         )
 
@@ -160,10 +161,34 @@ public class FileIndex {
         }
     }
 
-    public func deleteExpired() {
-//        database.sync { context -> [NSManagedObject] in
-//
-//        }
+    public func deleteExpired(_ completion: (() -> Void)? = nil) {
+        let predicate = database.predicate(key: "expiryDate", operator: .lessThan, value: Date(), stringOptions: .caseInsensitive)
+        let request = database.request(with: predicate)
+
+        database.async { context in
+            let objects = try context.fetch(request)
+
+            for object in objects {
+                guard let file = File(managedObject: object) else {
+                    continue
+                }
+
+                context.delete(object)
+
+                do {
+                    try FileManager.default.removeItem(at: self.location(of: file))
+                }
+                catch {
+                    print(error)
+                }
+            }
+
+            if context.hasChanges {
+                try context.save()
+            }
+
+            completion?()
+        }
     }
 
     // MARK: - Private

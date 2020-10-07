@@ -206,6 +206,17 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
         }
     }
 
+    public func async(_ closure: @escaping (_ context: NSManagedObjectContext) throws -> Void) {
+        database.async { context in
+            do {
+                try closure(context)
+            }
+            catch {
+                print(error)
+            }
+        }
+    }
+
     // MARK: - Utils
 
     public func predicate<T>(key: String, operator: PredicateOperator, value: T, stringOptions: StringOptions) -> NSPredicate {

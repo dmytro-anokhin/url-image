@@ -72,6 +72,7 @@ final class FileIndexTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(file), "This is a test")
 
+        // Time travel
         Thread.sleep(forTimeInterval: 0.1)
 
         // File was deleted
@@ -89,6 +90,7 @@ final class FileIndexTests: XCTestCase {
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(file), "This is a test")
 
+        // Time travel
         Thread.sleep(forTimeInterval: 0.1)
 
         // File still exists
@@ -117,6 +119,49 @@ final class FileIndexTests: XCTestCase {
         // Result must be empty
         let files2 = index.get(originalURL)
         XCTAssertTrue(files2.isEmpty)
+    }
+
+    func testDeleteExpired() throws {
+        let tmpLocation1 = makeTemporaryFile("This file expiring soon")
+        let tmpLocation2 = makeTemporaryFile("This file expiring not so soon")
+        let tmpLocation3 = makeTemporaryFile("This file won't expire")
+
+        let originalURL = URL(string: "https://localhost")!
+
+        let file1 = try index.copy(tmpLocation1, originalURL: originalURL, expireAfter: 0.1)
+        let file2 = try index.copy(tmpLocation2, originalURL: originalURL, expireAfter: 1.0)
+        let file3 = try index.copy(tmpLocation3, originalURL: originalURL)
+
+        // Files must be in the index
+        let files1 = index.get(originalURL)
+        XCTAssertEqual(files1.count, 3)
+
+        for file in files1 {
+            XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        }
+
+        // Time travel
+        Thread.sleep(forTimeInterval: 0.1)
+
+        // Delete is async
+        let deleteExpiredExpectation = expectation(description: "Delete expired")
+
+        index.deleteExpired {
+            // First file expired
+            XCTAssertFalse(FileManager.default.fileExists(atPath: self.index.location(of: file1).path))
+            // Second and third must be in place
+            XCTAssertTrue(FileManager.default.fileExists(atPath: self.index.location(of: file2).path))
+            XCTAssertTrue(FileManager.default.fileExists(atPath: self.index.location(of: file3).path))
+
+            // Index must contain only last two files
+            let files2 = self.index.get(originalURL)
+            XCTAssertEqual(files2.count, 2)
+            XCTAssertEqual(files2, [file2, file3])
+
+            deleteExpiredExpectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1.0)
     }
 
     private var index: FileIndex!
