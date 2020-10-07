@@ -38,8 +38,8 @@ public final class RemoteImage : RemoteContent {
 
     @Published public private(set) var loadingState: LoadingState = .initial
 
-    private var cacheCancellable: AnyCancellable?
-    private var loadCancellable: AnyCancellable?
+    private var cancellables = Set<AnyCancellable>()
+    private var delayedDownload: DispatchWorkItem?
 
     public func load() {
         guard !isLoading else {
@@ -53,7 +53,12 @@ public final class RemoteImage : RemoteContent {
                         guard let self = self else { return }
 
                         if !success {
-                            self.startDownload()
+                            if let delay = self.configuration.downloadDelay {
+                                self.startDownload(afterDelay: delay)
+                            }
+                            else {
+                                self.startDownload()
+                            }
                         }
                     }
                 }
@@ -67,11 +72,22 @@ public final class RemoteImage : RemoteContent {
             case .returnCacheReload:
                 returnCached { [weak self] success in
                     guard let self = self else { return }
-                    self.startDownload()
+
+                    if let delay = self.configuration.downloadDelay {
+                        self.startDownload(afterDelay: delay)
+                    }
+                    else {
+                        self.startDownload()
+                    }
                 }
 
             case .ignoreCache:
-                startDownload()
+                if let delay = self.configuration.downloadDelay {
+                    self.startDownload(afterDelay: delay)
+                }
+                else {
+                    self.startDownload()
+                }
         }
     }
 
@@ -83,16 +99,19 @@ public final class RemoteImage : RemoteContent {
         // Reset loading state
         loadingState = .initial
 
-        // Stop loading
-        cacheCancellable?.cancel()
-        cacheCancellable = nil
+        // Cancel
+        for cancellable in cancellables {
+            cancellable.cancel()
+        }
 
-        loadCancellable?.cancel()
-        loadCancellable = nil
+        cancellables.removeAll()
+
+        delayedDownload?.cancel()
+        delayedDownload = nil
     }
 
     private var isLoading: Bool {
-        loadCancellable != nil || cacheCancellable != nil
+        !cancellables.isEmpty
     }
 
     private var isLoadedSuccessfully: Bool {
@@ -104,10 +123,19 @@ public final class RemoteImage : RemoteContent {
         }
     }
 
+    private func startDownload(afterDelay delay: TimeInterval) {
+        delayedDownload = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.startDownload()
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedDownload!)
+    }
+
     private func startDownload() {
         loadingState = .inProgress(nil)
 
-        loadCancellable = downloadManager.transientImagePublisher(for: download, configuration: configuration)
+        downloadManager.transientImagePublisher(for: download, configuration: configuration)
             .receive(on: RunLoop.main)
             .map {
                 .success($0.image)
@@ -116,12 +144,13 @@ public final class RemoteImage : RemoteContent {
                 Just(.failure($0))
             }
             .assign(to: \.loadingState, on: self)
+            .store(in: &cancellables)
     }
 
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-        cacheCancellable = URLImageService.shared.diskCache
+        URLImageService.shared.diskCache
             .getImagePublisher(withIdentifier: configuration.identifier, orURL: download.url)
             .receive(on: RunLoop.main)
             .catch { _ in
@@ -141,6 +170,7 @@ public final class RemoteImage : RemoteContent {
                     completion(false)
                 }
             }
+            .store(in: &cancellables)
     }
 }
 

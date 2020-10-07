@@ -52,6 +52,8 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
     func request(_ demand: Subscribers.Demand) {
         guard demand > 0 else { return }
 
+        print("Start download")
+
         coordinator.startDownload(download,
             receiveData: { _, _ in
             },
