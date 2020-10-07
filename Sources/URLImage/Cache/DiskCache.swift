@@ -75,7 +75,7 @@ final class DiskCache {
 
     // MARK: - Cleanup
 
-    func deleteExpired() {
+    func cleanup() {
         fileIndex.deleteExpired()
     }
 

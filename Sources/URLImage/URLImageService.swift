@@ -22,4 +22,9 @@ public final class URLImageService {
 
     init() {
     }
+
+    public func cleanup() {
+        diskCache.cleanup()
+        inMemoryCache.cleanup()
+    }
 }

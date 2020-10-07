@@ -38,6 +38,14 @@ final class InMemoryCache {
         nsCache.setObject(wrapper, forKey: key)
     }
 
+    // MARK: - Cleanup
+
+    func cleanup() {
+        nsCache.removeAllObjects()
+    }
+
+    // MARK: - Private
+
     private final class TransientImageWrapper {
 
         let transientImage: TransientImage
