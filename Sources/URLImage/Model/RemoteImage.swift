@@ -53,12 +53,7 @@ public final class RemoteImage : RemoteContent {
                         guard let self = self else { return }
 
                         if !success {
-                            if let delay = self.options.downloadDelay {
-                                self.startDownload(afterDelay: delay)
-                            }
-                            else {
-                                self.startDownload()
-                            }
+                            self.scheduleDownload()
                         }
                     }
                 }
@@ -72,22 +67,11 @@ public final class RemoteImage : RemoteContent {
             case .returnCacheReload:
                 returnCached { [weak self] success in
                     guard let self = self else { return }
-
-                    if let delay = self.options.downloadDelay {
-                        self.startDownload(afterDelay: delay)
-                    }
-                    else {
-                        self.startDownload()
-                    }
+                    self.scheduleDownload()
                 }
 
             case .ignoreCache:
-                if let delay = self.options.downloadDelay {
-                    self.startDownload(afterDelay: delay)
-                }
-                else {
-                    self.startDownload()
-                }
+                scheduleDownload()
         }
     }
 
@@ -123,7 +107,13 @@ public final class RemoteImage : RemoteContent {
         }
     }
 
-    private func startDownload(afterDelay delay: TimeInterval) {
+    private func scheduleDownload() {
+        guard let delay = options.downloadDelay else {
+            // Start download immediately if no delay needed
+            startDownload()
+            return
+        }
+
         delayedDownload = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             self.startDownload()
