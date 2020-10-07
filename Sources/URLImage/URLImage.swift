@@ -59,6 +59,25 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage where Empty == EmptyView {
+
+    init(url: URL,
+         options: URLImageOptions = URLImageOptions(),
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ image: Image) -> Content)
+    {
+        self.init(url: url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: inProgress,
+                  failure: failure,
+                  content: content)
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView, InProgress == ActivityIndicator {
 
     init(url: URL,
