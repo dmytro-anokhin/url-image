@@ -20,15 +20,15 @@ public final class RemoteImage : RemoteContent {
     /// Download object describes how the image should be downloaded.
     let download: Download
 
-    let configuration: URLImageConfiguration
+    let options: URLImageOptions
 
-    public init(downloadManager: DownloadManager, download: Download, configuration: URLImageConfiguration) {
+    public init(downloadManager: DownloadManager, download: Download, options: URLImageOptions) {
         self.downloadManager = downloadManager
         self.download = download
-        self.configuration = configuration
+        self.options = options
 
-        if configuration.cachePolicy.isReturnCache,
-           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: configuration.identifier, orURL: download.url) {
+        if options.cachePolicy.isReturnCache,
+           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
             // Set image retrieved from cache
             self.loadingState = .success(transientImage)
         }
@@ -46,14 +46,14 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
-        switch configuration.cachePolicy {
+        switch options.cachePolicy {
             case .returnCacheElseLoad:
                 if !isLoadedSuccessfully {
                     returnCached { [weak self] success in
                         guard let self = self else { return }
 
                         if !success {
-                            if let delay = self.configuration.downloadDelay {
+                            if let delay = self.options.downloadDelay {
                                 self.startDownload(afterDelay: delay)
                             }
                             else {
@@ -73,7 +73,7 @@ public final class RemoteImage : RemoteContent {
                 returnCached { [weak self] success in
                     guard let self = self else { return }
 
-                    if let delay = self.configuration.downloadDelay {
+                    if let delay = self.options.downloadDelay {
                         self.startDownload(afterDelay: delay)
                     }
                     else {
@@ -82,7 +82,7 @@ public final class RemoteImage : RemoteContent {
                 }
 
             case .ignoreCache:
-                if let delay = self.configuration.downloadDelay {
+                if let delay = self.options.downloadDelay {
                     self.startDownload(afterDelay: delay)
                 }
                 else {
@@ -135,7 +135,7 @@ public final class RemoteImage : RemoteContent {
     private func startDownload() {
         loadingState = .inProgress(nil)
 
-        downloadManager.transientImagePublisher(for: download, configuration: configuration)
+        downloadManager.transientImagePublisher(for: download, options: options)
             .receive(on: RunLoop.main)
             .map {
                 .success($0.image)
@@ -151,7 +151,7 @@ public final class RemoteImage : RemoteContent {
         loadingState = .inProgress(nil)
 
         URLImageService.shared.diskCache
-            .getImagePublisher(withIdentifier: configuration.identifier, orURL: download.url)
+            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url)
             .receive(on: RunLoop.main)
             .catch { _ in
                 Just(nil)

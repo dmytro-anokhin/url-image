@@ -18,7 +18,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 {
     let url: URL
 
-    let configuration: URLImageConfiguration
+    let options: URLImageOptions
 
     let empty: () -> Empty
 
@@ -29,14 +29,14 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let content: (_ image: Image) -> Content
 
     public init(url: URL,
-                configuration: URLImageConfiguration = URLImageConfiguration(),
+                options: URLImageOptions = URLImageOptions(),
                 empty: @escaping () -> Empty,
                 inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
                 content: @escaping (_ image: Image) -> Content)
     {
         self.url = url
-        self.configuration = configuration
+        self.options = options
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
@@ -47,7 +47,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         let download = Download(url: url)
         let remoteImage = RemoteImage(downloadManager: URLImageService.shared.downloadManager,
                                       download: download,
-                                      configuration: configuration)
+                                      options: options)
 
         return RemoteContentView(remoteContent: remoteImage,
                                  empty: empty,
@@ -62,12 +62,12 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage where Empty == EmptyView, InProgress == ActivityIndicator {
 
     init(url: URL,
-         configuration: URLImageConfiguration = URLImageConfiguration(),
+         options: URLImageOptions = URLImageOptions(),
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content)
     {
         self.init(url: url,
-                  configuration: configuration,
+                  options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,

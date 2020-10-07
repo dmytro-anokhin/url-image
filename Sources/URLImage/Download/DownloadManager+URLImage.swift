@@ -13,7 +13,7 @@ import ImageDecoder
 
 extension DownloadManager {
 
-    func transientImagePublisher(for download: Download, configuration: URLImageConfiguration) -> AnyPublisher<TransientImage, Error> {
+    func transientImagePublisher(for download: Download, options: URLImageOptions) -> AnyPublisher<TransientImage, Error> {
         publisher(for: download)
             .tryMap { downloadResult -> TransientImage in
                 switch downloadResult {
@@ -38,15 +38,15 @@ extension DownloadManager {
 
                         URLImageService.shared.diskCache.cacheImageData(data,
                                                                         url: download.url,
-                                                                        identifier: configuration.identifier,
-                                                                        fileName: configuration.identifier,
+                                                                        identifier: options.identifier,
+                                                                        fileName: options.identifier,
                                                                         fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti),
-                                                                        expireAfter: configuration.expiryInterval)
+                                                                        expireAfter: options.expiryInterval)
 
                         URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage,
                                                                                  withURL: download.url,
-                                                                                 identifier: configuration.identifier,
-                                                                                 expireAfter: configuration.expiryInterval)
+                                                                                 identifier: options.identifier,
+                                                                                 expireAfter: options.expiryInterval)
 
                         return transientImage
 
