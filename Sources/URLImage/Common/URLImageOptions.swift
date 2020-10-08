@@ -36,16 +36,20 @@ public struct URLImageOptions {
 
     public var expiryInterval: TimeInterval?
 
+    public var diskCacheDelay: TimeInterval?
+
     public var downloadDelay: TimeInterval?
 
     public init(identifier: String? = nil,
                 cachePolicy: CachePolicy = .returnCacheElseLoad,
                 expireAfter expiryInterval: TimeInterval? = nil,
+                diskCacheDelay: TimeInterval? = nil,
                 downloadAfter downloadDelay: TimeInterval? = nil
     ) {
         self.identifier = identifier
         self.cachePolicy = cachePolicy
         self.expiryInterval = expiryInterval
+        self.diskCacheDelay = diskCacheDelay
         self.downloadDelay = downloadDelay
     }
 }

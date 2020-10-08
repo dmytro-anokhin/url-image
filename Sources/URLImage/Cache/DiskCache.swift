@@ -26,28 +26,29 @@ final class DiskCache {
         self.init(fileIndex: fileIndex)
     }
 
-    func getImage(withIdentifier identifier: String?, orURL url: URL) throws -> TransientImage? {
-        guard let file = getFile(withIdentifier: identifier, orURL: url) else {
-            return nil
-        }
+    func getImage(withIdentifier identifier: String?,
+                  orURL url: URL,
+                  _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void
+    ) {
+        databaseQueue.async { [weak self] in
+            guard let self = self else { return }
 
-        let location = fileIndex.location(of: file)
-
-        return try TransientImage.decode(location)
-    }
-
-    func getImage(withIdentifier identifier: String?, orURL url: URL, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
-        DispatchQueue.global().async { [weak self] in
-            guard let self = self else {
+            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
+                completion(.success(nil))
                 return
             }
 
-            do {
-                let transientImage = try self.getImage(withIdentifier: identifier, orURL: url)
-                completion(.success(transientImage))
-            }
-            catch {
-                completion(.failure(error))
+            self.decodeQueue.async { [weak self] in
+                guard let self = self else { return }
+
+                do {
+                    let location = self.fileIndex.location(of: file)
+                    let transientImage = try TransientImage.decode(location)
+                    completion(.success(transientImage))
+                }
+                catch {
+                    completion(.failure(error))
+                }
             }
         }
     }
@@ -80,6 +81,9 @@ final class DiskCache {
     }
 
     // MARK: - Private
+
+    private let databaseQueue = DispatchQueue(label: "URLImage.DiskCache.databaseQueue", attributes: .concurrent)
+    private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
         if let identifier = identifier {

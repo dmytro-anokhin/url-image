@@ -26,12 +26,6 @@ public final class RemoteImage : RemoteContent {
         self.downloadManager = downloadManager
         self.download = download
         self.options = options
-
-        if options.cachePolicy.isReturnCache,
-           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
-            // Set image retrieved from cache
-            self.loadingState = .success(transientImage)
-        }
     }
 
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
@@ -39,7 +33,16 @@ public final class RemoteImage : RemoteContent {
     @Published public private(set) var loadingState: LoadingState = .initial
 
     private var cancellables = Set<AnyCancellable>()
+    private var delayedReturnCached: DispatchWorkItem?
     private var delayedDownload: DispatchWorkItem?
+
+    public func loadInMemory() {
+        if options.cachePolicy.isReturnCache,
+           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
+            // Set image retrieved from cache
+            self.loadingState = .success(transientImage)
+        }
+    }
 
     public func load() {
         guard !isLoading else {
@@ -49,7 +52,7 @@ public final class RemoteImage : RemoteContent {
         switch options.cachePolicy {
             case .returnCacheElseLoad:
                 if !isLoadedSuccessfully {
-                    returnCached { [weak self] success in
+                    scheduleReturnCached { [weak self] success in
                         guard let self = self else { return }
 
                         if !success {
@@ -60,12 +63,12 @@ public final class RemoteImage : RemoteContent {
 
             case .returnCacheDontLoad:
                 if !isLoadedSuccessfully {
-                    returnCached {_ in
+                    scheduleReturnCached { _ in
                     }
                 }
 
             case .returnCacheReload:
-                returnCached { [weak self] success in
+                scheduleReturnCached { [weak self] success in
                     guard let self = self else { return }
                     self.scheduleDownload()
                 }
@@ -90,12 +93,15 @@ public final class RemoteImage : RemoteContent {
 
         cancellables.removeAll()
 
+        delayedReturnCached?.cancel()
+        delayedReturnCached = nil
+
         delayedDownload?.cancel()
         delayedDownload = nil
     }
 
     private var isLoading: Bool {
-        !cancellables.isEmpty
+        !cancellables.isEmpty || delayedReturnCached != nil || delayedDownload != nil
     }
 
     private var isLoadedSuccessfully: Bool {
@@ -107,6 +113,22 @@ public final class RemoteImage : RemoteContent {
         }
     }
 
+    private func scheduleReturnCached(completion: @escaping (_ success: Bool) -> Void) {
+        guard let delay = options.diskCacheDelay else {
+            // Read from cache immediately if no delay needed
+            returnCached(completion)
+            return
+        }
+
+        delayedReturnCached?.cancel()
+        delayedReturnCached = DispatchWorkItem { [weak self] in
+            guard let self = self else { return }
+            self.returnCached(completion)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnCached!)
+    }
+
     private func scheduleDownload() {
         guard let delay = options.downloadDelay else {
             // Start download immediately if no delay needed
@@ -114,6 +136,7 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
+        delayedDownload?.cancel()
         delayedDownload = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
             self.startDownload()
