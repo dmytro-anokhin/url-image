@@ -56,7 +56,7 @@ public final class RemoteImage : RemoteContent {
                         guard let self = self else { return }
 
                         if !success {
-                            self.scheduleDownload(secondCacheCheck: true)
+                            self.scheduleDownload(secondCacheLookup: true)
                         }
                     }
                 }
@@ -129,8 +129,8 @@ public final class RemoteImage : RemoteContent {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnCached!)
     }
 
-    // Second cache check is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
-    private func scheduleDownload(secondCacheCheck: Bool = false) {
+    // Second cache lookup is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
+    private func scheduleDownload(secondCacheLookup: Bool = false) {
         guard let delay = options.downloadDelay else {
             // Start download immediately if no delay needed
             startDownload()
@@ -141,7 +141,7 @@ public final class RemoteImage : RemoteContent {
         delayedDownload = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
 
-            if secondCacheCheck {
+            if secondCacheLookup {
                 self.returnCached { [weak self] success in
                     guard let self = self else { return }
 
