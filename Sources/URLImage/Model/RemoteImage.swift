@@ -36,7 +36,7 @@ public final class RemoteImage : RemoteContent {
     private var delayedReturnCached: DispatchWorkItem?
     private var delayedDownload: DispatchWorkItem?
 
-    public func loadInMemory() {
+    public func preload() {
         if options.cachePolicy.isReturnCache,
            let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
             // Set image retrieved from cache
@@ -56,7 +56,7 @@ public final class RemoteImage : RemoteContent {
                         guard let self = self else { return }
 
                         if !success {
-                            self.scheduleDownload()
+                            self.scheduleDownload(secondCacheCheck: true)
                         }
                     }
                 }
@@ -129,7 +129,8 @@ public final class RemoteImage : RemoteContent {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnCached!)
     }
 
-    private func scheduleDownload() {
+    // Second cache check is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
+    private func scheduleDownload(secondCacheCheck: Bool = false) {
         guard let delay = options.downloadDelay else {
             // Start download immediately if no delay needed
             startDownload()
@@ -139,7 +140,19 @@ public final class RemoteImage : RemoteContent {
         delayedDownload?.cancel()
         delayedDownload = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            self.startDownload()
+
+            if secondCacheCheck {
+                self.returnCached { [weak self] success in
+                    guard let self = self else { return }
+
+                    if !success {
+                        self.startDownload()
+                    }
+                }
+            }
+            else {
+                self.startDownload()
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedDownload!)

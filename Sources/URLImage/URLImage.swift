@@ -51,13 +51,13 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let remoteImage: RemoteImage
 
     public var body: some View {
-        remoteImage.loadInMemory()
-        
+        remoteImage.preload()
+
         return RemoteContentView(remoteContent: remoteImage,
-                          empty: empty,
-                          inProgress: inProgress,
-                          failure: failure,
-                          content: content)
+                                 empty: empty,
+                                 inProgress: inProgress,
+                                 failure: failure,
+                                 content: content)
     }
 }
 
