@@ -49,6 +49,8 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
+        isLoading = true
+
         switch options.cachePolicy {
             case .returnCacheElseLoad:
                 if !isLoadedSuccessfully {
@@ -83,6 +85,8 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
+        isLoading = false
+
         // Reset loading state
         loadingState = .initial
 
@@ -100,9 +104,7 @@ public final class RemoteImage : RemoteContent {
         delayedDownload = nil
     }
 
-    private var isLoading: Bool {
-        !cancellables.isEmpty || delayedReturnCached != nil || delayedDownload != nil
-    }
+    private var isLoading: Bool = false
 
     private var isLoadedSuccessfully: Bool {
         switch loadingState {
