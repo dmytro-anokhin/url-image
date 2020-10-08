@@ -193,6 +193,11 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
     // MARK: - Custom
 
     public func sync(_ closure: (_ context: NSManagedObjectContext) throws -> [NSManagedObject]) -> [Object] {
+
+        if Thread.isMainThread {
+            print("Sync database access on the main thread")
+        }
+
         do {
             return try database.sync { context in
                 try closure(context).compactMap {
