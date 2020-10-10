@@ -54,7 +54,7 @@ final class DownloadTask {
         serialQueue = DispatchQueue(label: "DownloadController.serialQueue." + download.id.uuidString)
     }
 
-    func complete(withError error: URLError? = nil) {
+    func complete(withError error: Error? = nil) {
         serialQueue.async {
             if let error = error {
                 self.observer.notifyCompletion(.failure(error))

@@ -33,13 +33,11 @@ final class URLSessionCoordinator {
 
                     self.registry[downloadTaskID] = nil
 
-                    switch error {
-                        case .none:
-                            downloadTask.complete()
-                        case .some(let urlError as URLError):
-                            downloadTask.complete(withError: urlError)
-                        case .some(let error):
-                            assertionFailure("Unknown error: \(error)")
+                    if let error = error {
+                        downloadTask.complete(withError: error)
+                    }
+                    else {
+                        downloadTask.complete()
                     }
                 }
             }
