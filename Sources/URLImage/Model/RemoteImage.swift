@@ -8,6 +8,7 @@
 import Combine
 import SwiftUI
 import DownloadManager
+import ImageDecoder
 import RemoteContentView
 
 
@@ -31,10 +32,6 @@ public final class RemoteImage : RemoteContent {
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
 
     @Published public private(set) var loadingState: LoadingState = .initial
-
-    private var cancellables = Set<AnyCancellable>()
-    private var delayedReturnCached: DispatchWorkItem?
-    private var delayedDownload: DispatchWorkItem?
 
     public func preload() {
         if options.cachePolicy.isReturnCache,
@@ -106,6 +103,14 @@ public final class RemoteImage : RemoteContent {
 
     private var isLoading: Bool = false
 
+    private var cancellables = Set<AnyCancellable>()
+    private var delayedReturnCached: DispatchWorkItem?
+    private var delayedDownload: DispatchWorkItem?
+}
+
+
+extension RemoteImage {
+
     private var isLoadedSuccessfully: Bool {
         switch loadingState {
             case .success:
@@ -163,15 +168,38 @@ public final class RemoteImage : RemoteContent {
     private func startDownload() {
         loadingState = .inProgress(nil)
 
-        downloadManager.transientImagePublisher(for: download, options: options)
-            .receive(on: RunLoop.main)
-            .map {
-                .success($0.image)
+        downloadManager.publisher(for: download)
+            .sink { [weak self] result in
+                guard let self = self else {
+                    return
+                }
+
+                switch result {
+                    case .finished:
+                        break
+
+                    case .failure(let error):
+                        self.updateLoadingState(.failure(error))
+                }
             }
-            .catch {
-                Just(.failure($0))
+            receiveValue: { [weak self] info in
+                guard let self = self else {
+                    return
+                }
+
+                switch info {
+                    case .progress(let progress):
+                        self.updateLoadingState(.inProgress(progress))
+                    case .completion(let result):
+                        do {
+                            let transientImage = try self.decode(result: result)
+                            self.updateLoadingState(.success(transientImage))
+                        }
+                        catch {
+                            self.updateLoadingState(.failure(error))
+                        }
+                }
             }
-            .assign(to: \.loadingState, on: self)
             .store(in: &cancellables)
     }
 
@@ -191,7 +219,7 @@ public final class RemoteImage : RemoteContent {
 
                 if let transientImage = $0 {
                     // Set image retrieved from cache
-                    self.loadingState = .success(transientImage)
+                    self.updateLoadingState(.success(transientImage))
                     completion(true)
                 }
                 else {
@@ -200,10 +228,60 @@ public final class RemoteImage : RemoteContent {
             }
             .store(in: &cancellables)
     }
+
+    private func decode(result: DownloadResult) throws -> TransientImage {
+        switch result {
+            case .data(let data):
+
+                let decoder = ImageDecoder()
+                decoder.setData(data, allDataReceived: true)
+
+                guard let uti = decoder.uti else {
+                    // Not an image data
+                    throw URLImageError.decode
+                }
+
+                guard let image = decoder.createFrameImage(at: 0) else {
+                    // Can not decode image, corrupted data
+                    throw URLImageError.decode
+                }
+
+                let transientImage = TransientImage(cgImage: image,
+                                                    cgOrientation: decoder.frameOrientation(at: 0),
+                                                    uti: uti)
+
+                URLImageService.shared.diskCache.cacheImageData(data,
+                                                                url: download.url,
+                                                                identifier: options.identifier,
+                                                                fileName: options.identifier,
+                                                                fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti),
+                                                                expireAfter: options.expiryInterval)
+
+                URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage,
+                                                                         withURL: download.url,
+                                                                         identifier: options.identifier,
+                                                                         expireAfter: options.expiryInterval)
+
+                return transientImage
+
+            case .file:
+                fatalError("Not implemented")
+        }
+    }
+
+    private func updateLoadingState(_ loadingState: LoadingState) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.loadingState = loadingState
+        }
+    }
 }
 
 
-fileprivate extension RemoteContentLoadingState where Value == Image {
+private extension RemoteContentLoadingState where Value == Image {
 
     static func success(_ transientImage: TransientImage) -> RemoteContentLoadingState<Value, Progress> {
         .success(transientImage.image)

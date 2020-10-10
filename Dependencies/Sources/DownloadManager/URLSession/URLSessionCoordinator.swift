@@ -59,12 +59,31 @@ final class URLSessionCoordinator {
                     downloadTask.receive(data: data)
                 }
             }
-            .onDataTaskDidReceiveResponse { task, response, completion in
-                completion(.allow)
+            .onDataTaskDidReceiveResponse { [weak self] task, response, completion in
+                guard let self = self else {
+                    completion(.cancel)
+                    return
+                }
+
+                self.async {
+                    let downloadTaskID = task.taskDescription!
+
+                    guard let downloadTask = self.registry[downloadTaskID] else {
+                        // This can happen when the task was cancelled
+                        completion(.cancel)
+                        return
+                    }
+
+                    downloadTask.receive(response: response)
+                    completion(.allow)
+                }
             }
     }
 
-    func startDownload(_ download: Download, receiveData: @escaping DownloadReceiveData, completion: @escaping DownloadCompletion) {
+    func startDownload(_ download: Download,
+                       receiveResponse: @escaping DownloadReceiveResponse,
+                       receiveData: @escaping DownloadReceiveData,
+                       completion: @escaping DownloadCompletion) {
         async {
             let downloadTaskID = download.id.uuidString
 
@@ -73,7 +92,7 @@ final class URLSessionCoordinator {
                 return
             }
 
-            let observer = DownloadTask.Observer(download: download, receiveData: receiveData, completion: completion)
+            let observer = DownloadTask.Observer(download: download, receiveResponse: receiveResponse, receiveData: receiveData, completion: completion)
 
             let downloadTask = self.makeDownloadTask(for: download, withObserver: observer)
             self.registry[downloadTaskID] = downloadTask

@@ -13,10 +13,16 @@ final class DownloadTask {
 
     final class Observer {
 
+        private var receiveResponse: DownloadReceiveResponse?
+
+        func notifyReceiveResponse() {
+            receiveResponse?(download)
+        }
+
         private var receiveData: DownloadReceiveData?
 
-        func notifyReceiveData(_ data: Data) {
-            receiveData?(download, data)
+        func notifyReceiveData(_ data: Data, _ progress: Float?) {
+            receiveData?(download, data, progress)
         }
 
         private var completion: DownloadCompletion?
@@ -27,8 +33,9 @@ final class DownloadTask {
 
         public let download: Download
 
-        init(download: Download, receiveData: DownloadReceiveData?, completion: DownloadCompletion?) {
+        init(download: Download, receiveResponse: DownloadReceiveResponse?, receiveData: DownloadReceiveData?, completion: DownloadCompletion?) {
             self.download = download
+            self.receiveResponse = receiveResponse
             self.receiveData = receiveData
             self.completion = completion
         }
@@ -52,7 +59,7 @@ final class DownloadTask {
             if let error = error {
                 self.observer.notifyCompletion(.failure(error))
             }
-            else if let data = self.buffer {
+            else if let data = self.progress?.buffer {
                 self.observer.notifyCompletion(.success(.data(data)))
             }
             else {
@@ -61,24 +68,23 @@ final class DownloadTask {
         }
     }
 
+    func receive(response: URLResponse) {
+        serialQueue.async {
+            self.progress = DataTaskProgress(response: response)
+            self.observer.notifyReceiveResponse()
+        }
+    }
+
     func receive(data: Data) {
         serialQueue.async {
-            self.append(data)
-            self.observer.notifyReceiveData(data)
+            self.progress?.buffer.append(data)
+            self.observer.notifyReceiveData(data, self.progress?.progress)
         }
     }
 
     fileprivate let serialQueue: DispatchQueue
 
-    private var buffer: Data?
-
-    private func append(_ data: Data) {
-        if buffer == nil {
-            buffer = Data()
-        }
-
-        buffer?.append(data)
-    }
+    private var progress: DataTaskProgress?
 }
 
 

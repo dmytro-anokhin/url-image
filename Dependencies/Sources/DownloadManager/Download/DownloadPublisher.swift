@@ -11,7 +11,7 @@ import Combine
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct DownloadPublisher: Publisher {
 
-    public typealias Output = DownloadResult
+    public typealias Output = DownloadInfo
     public typealias Failure = DownloadError
 
     public let download: Download
@@ -35,7 +35,7 @@ public struct DownloadPublisher: Publisher {
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
-                                                        where SubscriberType.Input == DownloadResult,
+                                                        where SubscriberType.Input == DownloadInfo,
                                                               SubscriberType.Failure == DownloadError
 {
     private var subscriber: SubscriberType?
@@ -55,7 +55,15 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
         print("Start download")
 
         coordinator.startDownload(download,
-            receiveData: { _, _ in
+            receiveResponse: { _ in
+            },
+            receiveData: { [weak self] _, data, progress in
+                guard let self = self else {
+                    return
+                }
+
+                print("Download receive data: \(data.count)")
+                let _ = self.subscriber?.receive(.progress(progress))
             },
             completion: { [weak self] _, result in
                 guard let self = self else {
@@ -63,10 +71,19 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
                 }
                 
                 switch result {
-                    case .success(let data):
-                        let _ = self.subscriber?.receive(data)
+                    case .success(let downloadResult):
+                        switch downloadResult {
+                            case .data(let data):
+                                print("Downloaded: \(data.count)")
+                            case .file(let path):
+                                print("Downloaded file at \(path)")
+                        }
+
+                        let _ = self.subscriber?.receive(.completion(downloadResult))
                         self.subscriber?.receive(completion: .finished)
+
                     case .failure(let error):
+                        print("Download failed \(error)")
                         self.subscriber?.receive(completion: .failure(error))
                 }
             })
