@@ -15,16 +15,16 @@ import RemoteContentView
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class RemoteImage : RemoteContent {
 
-    /// Reference to the download manager used to download the image.
-    unowned let downloadManager: DownloadManager
+    /// Reference to URLImageService used to download and cache the image.
+    unowned let service: URLImageService
 
     /// Download object describes how the image should be downloaded.
     let download: Download
 
     let options: URLImageOptions
 
-    public init(downloadManager: DownloadManager, download: Download, options: URLImageOptions) {
-        self.downloadManager = downloadManager
+    public init(service: URLImageService, download: Download, options: URLImageOptions) {
+        self.service = service
         self.download = download
         self.options = options
     }
@@ -35,7 +35,7 @@ public final class RemoteImage : RemoteContent {
 
     public func preload() {
         if options.cachePolicy.isReturnCache,
-           let transientImage = URLImageService.shared.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
+           let transientImage = service.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
             // Set image retrieved from cache
             self.loadingState = .success(transientImage)
         }
@@ -168,7 +168,7 @@ extension RemoteImage {
     private func startDownload() {
         loadingState = .inProgress(nil)
 
-        downloadManager.publisher(for: download)
+        service.downloadManager.publisher(for: download)
             .sink { [weak self] result in
                 guard let self = self else {
                     return
@@ -206,7 +206,7 @@ extension RemoteImage {
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-        URLImageService.shared.diskCache
+        service.diskCache
             .getImagePublisher(withIdentifier: options.identifier, orURL: download.url)
             .receive(on: RunLoop.main)
             .catch { _ in
@@ -250,17 +250,19 @@ extension RemoteImage {
                                                     cgOrientation: decoder.frameOrientation(at: 0),
                                                     uti: uti)
 
-                URLImageService.shared.diskCache.cacheImageData(data,
-                                                                url: download.url,
-                                                                identifier: options.identifier,
-                                                                fileName: options.identifier,
-                                                                fileExtension: ImageDecoder.preferredFileExtension(forTypeIdentifier: uti),
-                                                                expireAfter: options.expiryInterval)
+                let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: uti)
 
-                URLImageService.shared.inMemoryCache.cacheTransientImage(transientImage,
-                                                                         withURL: download.url,
-                                                                         identifier: options.identifier,
-                                                                         expireAfter: options.expiryInterval)
+                service.diskCache.cacheImageData(data,
+                                                 url: download.url,
+                                                 identifier: options.identifier,
+                                                 fileName: options.identifier,
+                                                 fileExtension: fileExtension,
+                                                 expireAfter: options.expiryInterval)
+
+                service.inMemoryCache.cacheTransientImage(transientImage,
+                                                          withURL: download.url,
+                                                          identifier: options.identifier,
+                                                          expireAfter: options.expiryInterval)
 
                 return transientImage
 
