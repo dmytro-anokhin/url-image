@@ -49,31 +49,31 @@ public final class RemoteImage : RemoteContent {
         isLoading = true
 
         switch options.cachePolicy {
-            case .returnCacheElseLoad:
+            case .returnCacheElseLoad(let cacheDelay, let downloadDelay):
                 if !isLoadedSuccessfully {
-                    scheduleReturnCached { [weak self] success in
+                    scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
                         guard let self = self else { return }
 
                         if !success {
-                            self.scheduleDownload(secondCacheLookup: true)
+                            self.scheduleDownload(afterDelay: downloadDelay, secondCacheLookup: true)
                         }
                     }
                 }
 
-            case .returnCacheDontLoad:
+            case .returnCacheDontLoad(let delay):
                 if !isLoadedSuccessfully {
-                    scheduleReturnCached { _ in
+                    scheduleReturnCached(afterDelay: delay) { _ in
                     }
                 }
 
-            case .returnCacheReload:
-                scheduleReturnCached { [weak self] success in
+            case .returnCacheReload(let cacheDelay, let downloadDelay):
+                scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
                     guard let self = self else { return }
-                    self.scheduleDownload()
+                    self.scheduleDownload(afterDelay: downloadDelay)
                 }
 
-            case .ignoreCache:
-                scheduleDownload()
+            case .ignoreCache(let delay):
+                scheduleDownload(afterDelay: delay)
         }
     }
 
@@ -120,8 +120,8 @@ extension RemoteImage {
         }
     }
 
-    private func scheduleReturnCached(completion: @escaping (_ success: Bool) -> Void) {
-        guard let delay = options.diskCacheDelay else {
+    private func scheduleReturnCached(afterDelay delay: TimeInterval?, completion: @escaping (_ success: Bool) -> Void) {
+        guard let delay = delay else {
             // Read from cache immediately if no delay needed
             returnCached(completion)
             return
@@ -137,8 +137,8 @@ extension RemoteImage {
     }
 
     // Second cache lookup is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
-    private func scheduleDownload(secondCacheLookup: Bool = false) {
-        guard let delay = options.downloadDelay else {
+    private func scheduleDownload(afterDelay delay: TimeInterval?, secondCacheLookup: Bool = false) {
+        guard let delay = delay else {
             // Start download immediately if no delay needed
             startDownload()
             return
@@ -219,7 +219,7 @@ extension RemoteImage {
 
                 if let transientImage = $0 {
                     // Set image retrieved from cache
-                    self.updateLoadingState(.success(transientImage))
+                    self.loadingState = .success(transientImage)
                     completion(true)
                 }
                 else {

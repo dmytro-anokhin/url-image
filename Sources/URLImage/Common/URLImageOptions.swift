@@ -12,13 +12,13 @@ public struct URLImageOptions {
 
     public enum CachePolicy {
 
-        case returnCacheElseLoad
+        case returnCacheElseLoad(cacheDelay: TimeInterval? = nil, downloadDelay: TimeInterval? = nil)
 
-        case returnCacheDontLoad
+        case returnCacheDontLoad(delay: TimeInterval? = nil)
 
-        case returnCacheReload
+        case returnCacheReload(cacheDelay: TimeInterval? = nil, downloadDelay: TimeInterval? = nil)
 
-        case ignoreCache
+        case ignoreCache(delay: TimeInterval? = nil)
 
         var isReturnCache: Bool {
             switch self {
@@ -36,20 +36,11 @@ public struct URLImageOptions {
 
     public var expiryInterval: TimeInterval?
 
-    public var diskCacheDelay: TimeInterval?
-
-    public var downloadDelay: TimeInterval?
-
     public init(identifier: String? = nil,
-                cachePolicy: CachePolicy = .returnCacheElseLoad,
-                expireAfter expiryInterval: TimeInterval? = nil,
-                diskCacheDelay: TimeInterval? = nil,
-                downloadAfter downloadDelay: TimeInterval? = nil
-    ) {
+                cachePolicy: CachePolicy = .returnCacheElseLoad(),
+                expireAfter expiryInterval: TimeInterval? = nil) {
         self.identifier = identifier
         self.cachePolicy = cachePolicy
         self.expiryInterval = expiryInterval
-        self.diskCacheDelay = diskCacheDelay
-        self.downloadDelay = downloadDelay
     }
 }
