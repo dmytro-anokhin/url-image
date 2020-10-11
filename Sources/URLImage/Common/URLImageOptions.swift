@@ -57,8 +57,8 @@ public struct URLImageOptions {
     public var cachePolicy: CachePolicy
 
     public init(identifier: String? = nil,
-                expireAfter expiryInterval: TimeInterval? = nil,
-                cachePolicy: CachePolicy = .returnCacheElseLoad()) {
+                expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
+                cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
