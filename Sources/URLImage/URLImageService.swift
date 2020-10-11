@@ -23,6 +23,7 @@ public final class URLImageService {
     init() {
     }
 
+    /// Remove expired images from the disk and in memory caches
     public func cleanup() {
         diskCache.cleanup()
         inMemoryCache.cleanup()

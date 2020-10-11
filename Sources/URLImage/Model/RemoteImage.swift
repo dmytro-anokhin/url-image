@@ -289,3 +289,16 @@ private extension RemoteContentLoadingState where Value == Image {
         .success(transientImage.image)
     }
 }
+
+
+private extension URLImageOptions.CachePolicy {
+
+    var isReturnCache: Bool {
+        switch self {
+            case .returnCacheElseLoad, .returnCacheDontLoad, .returnCacheReload:
+                return true
+            default:
+                return false
+        }
+    }
+}
