@@ -20,13 +20,7 @@ final class InMemoryCache {
             return nil
         }
 
-        if wrapper.isExpired {
-            nsCache.removeObject(forKey: key)
-            return nil
-        }
-        else {
-            return wrapper.transientImage
-        }
+        return wrapper.transientImage
     }
 
     func cacheTransientImage(_ transientImage: TransientImage, withURL url: URL, identifier: String?, expireAfter expiryInterval: TimeInterval? = nil) {
@@ -67,14 +61,6 @@ final class InMemoryCache {
             self.transientImage = transientImage
             self.dateCreated = dateCreated
             self.expiryInterval = expiryInterval
-        }
-
-        var isExpired: Bool {
-            guard let expiryInterval = expiryInterval else {
-                return false
-            }
-
-            return dateCreated.addingTimeInterval(expiryInterval) < Date()
         }
     }
 

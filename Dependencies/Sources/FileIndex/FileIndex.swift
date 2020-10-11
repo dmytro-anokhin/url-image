@@ -215,20 +215,6 @@ public class FileIndex {
                     continue
                 }
 
-                guard !file.isExpired else {
-                    // File expired, delete it
-                    context.delete(object)
-
-                    do {
-                        try FileManager.default.removeItem(at: location)
-                    }
-                    catch {
-                        print(error)
-                    }
-
-                    continue
-                }
-
                 result.append(object)
             }
 
