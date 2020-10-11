@@ -80,17 +80,41 @@ final class DiskCache {
         fileIndex.deleteExpired()
     }
 
+    func delete(withIdentifier identifier: String?, orURL url: URL?) {
+        databaseQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
+                return
+            }
+
+            self.utilityQueue.async { [weak self] in
+                guard let self = self else {
+                    return
+                }
+
+                self.fileIndex.delete(file)
+            }
+        }
+    }
+
     // MARK: - Private
 
     private let databaseQueue = DispatchQueue(label: "URLImage.DiskCache.databaseQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
+    private let utilityQueue = DispatchQueue(label: "URLImage.DiskCache.utilityQueue", qos: .utility, attributes: .concurrent)
 
-    private func getFile(withIdentifier identifier: String?, orURL url: URL) -> File? {
+    private func getFile(withIdentifier identifier: String?, orURL url: URL?) -> File? {
         if let identifier = identifier {
             return fileIndex.get(identifier).first
         }
-        else {
+        else if let url = url {
             return fileIndex.get(url).first
+        }
+        else {
+            return nil
         }
     }
 }

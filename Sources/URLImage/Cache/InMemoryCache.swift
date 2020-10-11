@@ -44,6 +44,15 @@ final class InMemoryCache {
         nsCache.removeAllObjects()
     }
 
+    func delete(withIdentifier identifier: String?, orURL url: URL?) {
+        if let identifier = identifier {
+            nsCache.removeObject(forKey: identifier as NSString)
+        }
+        else if let url = url {
+            nsCache.removeObject(forKey: url.absoluteString as NSString)
+        }
+    }
+
     // MARK: - Private
 
     private final class TransientImageWrapper {

@@ -28,4 +28,14 @@ public final class URLImageService {
         diskCache.cleanup()
         inMemoryCache.cleanup()
     }
+
+    public func removeImageWithURL(_ url: URL) {
+        diskCache.delete(withIdentifier: nil, orURL: url)
+        inMemoryCache.delete(withIdentifier: nil, orURL: url)
+    }
+
+    public func removeImageWithIdentifier(_ identifier: String) {
+        diskCache.delete(withIdentifier: identifier, orURL: nil)
+        inMemoryCache.delete(withIdentifier: identifier, orURL: nil)
+    }
 }
