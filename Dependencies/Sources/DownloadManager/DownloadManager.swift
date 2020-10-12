@@ -12,7 +12,7 @@ import Combine
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class DownloadManager {
 
-    private let coordinator: URLSessionCoordinator
+    let coordinator: URLSessionCoordinator
 
     public init(urlCache: URLCache = URLCache()) {
         let configuration = URLSessionConfiguration.default
@@ -27,10 +27,20 @@ public final class DownloadManager {
 
     public func publisher(for download: Download) -> DownloadTaskPublisher {
         sync {
-            let publisher = publishers[download] ?? DownloadPublisher(download: download, coordinator: coordinator).share()
+            let publisher = publishers[download] ?? DownloadPublisher(download: download, manager: self).share()
             publishers[download] = publisher
 
             return publisher
+        }
+    }
+
+    public func reset(download: Download) {
+        async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.publishers[download] = nil
         }
     }
 

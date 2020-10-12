@@ -20,16 +20,16 @@ public struct DownloadPublisher: Publisher {
                                                 DownloadPublisher.Failure == S.Failure,
                                                 DownloadPublisher.Output == S.Input
     {
-        let subscription = DownloadSubscription(subscriber: subscriber, download: download, coordinator: coordinator)
+        let subscription = DownloadSubscription(subscriber: subscriber, download: download, manager: manager)
         subscriber.receive(subscription: subscription)
     }
 
-    init(download: Download, coordinator: URLSessionCoordinator) {
+    init(download: Download, manager: DownloadManager) {
         self.download = download
-        self.coordinator = coordinator
+        self.manager = manager
     }
 
-    private unowned let coordinator: URLSessionCoordinator
+    private unowned let manager: DownloadManager
 }
 
 
@@ -41,12 +41,13 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
     private var subscriber: SubscriberType?
 
     private let download: Download
-    private unowned let coordinator: URLSessionCoordinator
 
-    init(subscriber: SubscriberType, download: Download, coordinator: URLSessionCoordinator) {
+    private unowned let manager: DownloadManager
+
+    init(subscriber: SubscriberType, download: Download, manager: DownloadManager) {
         self.subscriber = subscriber
         self.download = download
-        self.coordinator = coordinator
+        self.manager = manager
     }
 
     func request(_ demand: Subscribers.Demand) {
@@ -54,7 +55,7 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
 
         print("Start download")
 
-        coordinator.startDownload(download,
+        manager.coordinator.startDownload(download,
             receiveResponse: { _ in
             },
             receiveData: { [weak self] _, data, progress in
@@ -86,10 +87,13 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
                         print("Download failed \(error)")
                         self.subscriber?.receive(completion: .failure(error))
                 }
+
+                self.manager.reset(download: self.download)
             })
     }
 
     func cancel() {
-        coordinator.cancelDownload(download)
+        manager.coordinator.cancelDownload(download)
+        manager.reset(download: download)
     }
 }
