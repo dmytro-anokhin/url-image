@@ -36,11 +36,9 @@ Note: version 2.0 is in development and API is subject to change. If you open an
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager or CocoaPods.
+`URLImage` can be installed using Swift Package Manager.
 
-To install `URLImage` using Swift Package Manager look for https://github.com/dmytro-anokhin/url-image.git in Xcode (*File/Swift Packages/Add Package Dependency...*). See [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) for details.
-
-To install `URLImage` using CocoaPods add `pod 'URLImage'` to your Podfile.
+Note: if you wish to follow latest changes, you can point SPM to `version_2` branch.
 
 ## Usage
 
