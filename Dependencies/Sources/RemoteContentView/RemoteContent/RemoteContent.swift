@@ -38,6 +38,7 @@ final class AnyRemoteContent<Value, Progress> : RemoteContent {
         }
 
         loadClosure = {
+            remoteContent.cancel()
             remoteContent.load()
         }
 
