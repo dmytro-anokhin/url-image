@@ -28,7 +28,7 @@ struct ActivityIndicatorUIKit: UIViewRepresentable {
 #endif
 
 
-#if canImport(AppKit)
+#if canImport(AppKit) && !targetEnvironment(macCatalyst)
 
 @available(macOS 10.15, *)
 struct ActivityIndicatorAppKit: NSViewRepresentable {
