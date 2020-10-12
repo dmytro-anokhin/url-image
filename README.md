@@ -86,7 +86,7 @@ struct MyView: View {
                  },
                  inProgress: { progress -> Text in  // Display progress
                     if let progress = progress {
-                        return Text(progress as NSNumber, formatter: formatter) 
+                        return Text(formatter.string(from: progress as NSNumber) ?? "Loading...")
                     }
                     else {
                         return Text("Loading...")
