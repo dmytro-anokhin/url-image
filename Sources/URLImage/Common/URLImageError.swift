@@ -10,4 +10,7 @@ public enum URLImageError : Error {
 
     /// Failed to decode the image from data. Either after download or when reading from disk.
     case decode
+
+    /// Failed to read the image from file
+    case file
 }

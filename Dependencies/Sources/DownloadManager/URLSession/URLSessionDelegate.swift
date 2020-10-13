@@ -46,6 +46,18 @@ final class URLSessionDelegate : NSObject {
         dataTaskDidReceiveData = handler
         return self
     }
+
+    // URLSessionDownloadDelegate
+
+    typealias DownloadTaskDidFinishDownloadingTo = (_ task: URLSessionDownloadTask, _ location: URL) -> Void
+
+    private var downloadTaskDidFinishDownloadingTo: DownloadTaskDidFinishDownloadingTo?
+
+    @discardableResult
+    func onDownloadTaskDidFinishDownloadingTo(_ handler: @escaping DownloadTaskDidFinishDownloadingTo) -> Self {
+        downloadTaskDidFinishDownloadingTo = handler
+        return self
+    }
 }
 
 
@@ -120,6 +132,7 @@ extension URLSessionDelegate : URLSessionDownloadDelegate {
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         print(#function)
+        downloadTaskDidFinishDownloadingTo?(downloadTask, location)
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {

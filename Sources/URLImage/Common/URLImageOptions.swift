@@ -56,11 +56,16 @@ public struct URLImageOptions {
     /// The cache policy controls how the image loaded from cache
     public var cachePolicy: CachePolicy
 
+    /// Download image data in memory or directly to the file on disk
+    public var isInMemoryDownload: Bool
+
     public init(identifier: String? = nil,
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
-                cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy) {
+                cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
+                isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
+        self.isInMemoryDownload = isInMemoryDownload
     }
 }

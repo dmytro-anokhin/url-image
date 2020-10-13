@@ -35,6 +35,10 @@ public class FileIndex {
             self.directoryURL = directoryURL
         }
 
+        public var filesDirectoryURL: URL {
+            directoryURL.appendingPathComponent(filesDirectoryName)
+        }
+
         let modelDescription = CoreDataModelDescription(
             entity: .init(name: "File",
                           managedObjectClass: NSManagedObject.self,
@@ -56,10 +60,6 @@ public class FileIndex {
 
         var databaseConfiguration: Database.Configuration {
             Database.Configuration(name: name, directoryURL: directoryURL)
-        }
-
-        var filesDirectoryURL: URL {
-            directoryURL.appendingPathComponent(filesDirectoryName)
         }
     }
 

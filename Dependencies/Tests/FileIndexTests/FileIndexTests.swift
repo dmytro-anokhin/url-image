@@ -75,10 +75,10 @@ final class FileIndexTests: XCTestCase {
         // Time travel
         Thread.sleep(forTimeInterval: 0.1)
 
-        // File was deleted
+        // Expired file must still be there on access
         let files = index.get(originalURL)
-        XCTAssertTrue(files.isEmpty)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        XCTAssertFalse(files.isEmpty)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
     }
 
     func testNotExpired() throws {

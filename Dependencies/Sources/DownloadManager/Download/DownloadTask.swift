@@ -58,12 +58,23 @@ final class DownloadTask {
         serialQueue.async {
             if let error = error {
                 self.observer.notifyCompletion(.failure(error))
+                return
             }
-            else if let data = self.progress?.buffer {
-                self.observer.notifyCompletion(.success(.data(data)))
-            }
-            else {
-                self.observer.notifyCompletion(.failure(URLError(.unknown)))
+
+            switch self.download.destination {
+                case .inMemory:
+                    if let data = self.progress?.buffer {
+                        let result = DownloadResult.data(data)
+                        self.observer.notifyCompletion(.success(result))
+                    }
+                    else {
+                        let error = URLError(.unknown)
+                        self.observer.notifyCompletion(.failure(error))
+                    }
+
+                case .onDisk(let path):
+                    let result = DownloadResult.file(path)
+                    self.observer.notifyCompletion(.success(result))
             }
         }
     }

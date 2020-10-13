@@ -25,7 +25,8 @@ public final class URLImageService {
 
     public var defaultOptions = URLImageOptions(identifier: nil,
                                                 expireAfter: 24 * 60 * 60,
-                                                cachePolicy: .returnCacheElseLoad())
+                                                cachePolicy: .returnCacheElseLoad(),
+                                                isInMemoryDownload: false)
 
     /// Remove expired images from the disk and in memory caches
     public func cleanup() {

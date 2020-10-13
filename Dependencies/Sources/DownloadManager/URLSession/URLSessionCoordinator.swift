@@ -76,6 +76,28 @@ final class URLSessionCoordinator {
                     completion(.allow)
                 }
             }
+            .onDownloadTaskDidFinishDownloadingTo { [weak self] task, location in
+                guard let self = self else {
+                    return
+                }
+
+                self.sync {
+                    let downloadTaskID = task.taskDescription!
+
+                    guard let downloadTask = self.registry[downloadTaskID] else {
+                        // This can happen when the task was cancelled
+                        return
+                    }
+
+                    guard case Download.Destination.onDisk(let path) = downloadTask.download.destination else {
+                        assertionFailure("Expected file path destination for download task")
+                        return
+                    }
+
+                    let destination = URL(fileURLWithPath: path)
+                    try? FileManager.default.moveItem(at: location, to: destination)
+                }
+            }
     }
 
     func startDownload(_ download: Download,
@@ -139,5 +161,9 @@ final class URLSessionCoordinator {
 
     private func async(_ closure: @escaping () -> Void) {
         serialQueue.async(execute: closure)
+    }
+
+    private func sync(_ closure: () -> Void) {
+        serialQueue.sync(execute: closure)
     }
 }

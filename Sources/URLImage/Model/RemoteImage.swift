@@ -271,8 +271,43 @@ extension RemoteImage {
 
                 return transientImage
 
-            case .file:
-                fatalError("Not implemented")
+            case .file(let path):
+
+                let location = URL(fileURLWithPath: path)
+
+                guard let decoder = ImageDecoder(url: location) else {
+                    throw URLImageError.file
+                }
+
+                guard let uti = decoder.uti else {
+                    // Not an image data
+                    throw URLImageError.decode
+                }
+
+                guard let image = decoder.createFrameImage(at: 0) else {
+                    // Can not decode image, corrupted data
+                    throw URLImageError.decode
+                }
+
+                let transientImage = TransientImage(cgImage: image,
+                                                    cgOrientation: decoder.frameOrientation(at: 0),
+                                                    uti: uti)
+
+                let fileExtension = location.pathExtension
+
+                service.diskCache.cacheImageFile(at: location,
+                                                 url: download.url,
+                                                 identifier: options.identifier,
+                                                 fileName: options.identifier,
+                                                 fileExtension: fileExtension,
+                                                 expireAfter: options.expiryInterval)
+
+                service.inMemoryCache.cacheTransientImage(transientImage,
+                                                          withURL: download.url,
+                                                          identifier: options.identifier,
+                                                          expireAfter: options.expiryInterval)
+
+                return transientImage
         }
     }
 
