@@ -8,12 +8,13 @@
 import SwiftUI
 
 
-#if canImport(UIKit)
+#if canImport(UIKit) && !os(watchOS)
 
 import UIKit
 
 
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(iOS 13.0, tvOS 13.0, *)
+@available(watchOS, unavailable)
 struct ActivityIndicatorUIKit: UIViewRepresentable {
 
     func makeUIView(context: Context) -> UIActivityIndicatorView {
@@ -55,7 +56,7 @@ public struct ActivityIndicator: View {
     public init() {
     }
 
-    #if canImport(UIKit)
+    #if canImport(UIKit) && !os(watchOS)
     public var body: some View {
         ActivityIndicatorUIKit()
     }
