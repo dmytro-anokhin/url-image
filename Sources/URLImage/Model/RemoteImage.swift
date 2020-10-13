@@ -62,7 +62,12 @@ public final class RemoteImage : RemoteContent {
 
             case .returnCacheDontLoad(let delay):
                 if !isLoadedSuccessfully {
-                    scheduleReturnCached(afterDelay: delay) { _ in
+                    scheduleReturnCached(afterDelay: delay) { [weak self] success in
+                        guard let self = self else { return }
+
+                        if !success {
+                            self.loadingState = .initial
+                        }
                     }
                 }
 
