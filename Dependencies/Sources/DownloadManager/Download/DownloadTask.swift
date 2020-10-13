@@ -21,8 +21,14 @@ final class DownloadTask {
 
         private var receiveData: DownloadReceiveData?
 
-        func notifyReceiveData(_ data: Data, _ progress: Float?) {
-            receiveData?(download, data, progress)
+        func notifyReceiveData(_ data: Data) {
+            receiveData?(download, data)
+        }
+
+        private var reportProgress: DownloadReportProgress?
+
+        func notifyReportProgress(_ progress: Float?) {
+            reportProgress?(download, progress)
         }
 
         private var completion: DownloadCompletion?
@@ -33,10 +39,11 @@ final class DownloadTask {
 
         public let download: Download
 
-        init(download: Download, receiveResponse: DownloadReceiveResponse?, receiveData: DownloadReceiveData?, completion: DownloadCompletion?) {
+        init(download: Download, receiveResponse: DownloadReceiveResponse?, receiveData: DownloadReceiveData?, reportProgress: DownloadReportProgress?, completion: DownloadCompletion?) {
             self.download = download
             self.receiveResponse = receiveResponse
             self.receiveData = receiveData
+            self.reportProgress = reportProgress
             self.completion = completion
         }
     }
@@ -63,7 +70,7 @@ final class DownloadTask {
 
             switch self.download.destination {
                 case .inMemory:
-                    if let data = self.progress?.buffer {
+                    if let data = self.buffer {
                         let result = DownloadResult.data(data)
                         self.observer.notifyCompletion(.success(result))
                     }
@@ -81,21 +88,37 @@ final class DownloadTask {
 
     func receive(response: URLResponse) {
         serialQueue.async {
-            self.progress = DataTaskProgress(response: response)
+            self.progress = DownloadProgress(response: response)
+            self.buffer = Data()
             self.observer.notifyReceiveResponse()
         }
     }
 
     func receive(data: Data) {
         serialQueue.async {
-            self.progress?.buffer.append(data)
-            self.observer.notifyReceiveData(data, self.progress?.progress)
+            self.buffer?.append(data)
+            self.observer.notifyReceiveData(data)
+            self.observer.notifyReportProgress(self.progress?.percentage)
+        }
+    }
+
+    func downloadProgress(received: Int64, expected: Int64) {
+        serialQueue.async {
+            if self.progress == nil {
+                self.progress = DownloadProgress()
+            }
+
+            self.progress?.totalBytesReceived = received
+            self.progress?.totalBytesExpected = expected
+            self.observer.notifyReportProgress(self.progress?.percentage)
         }
     }
 
     fileprivate let serialQueue: DispatchQueue
 
-    private var progress: DataTaskProgress?
+    private var progress: DownloadProgress?
+
+    private var buffer: Data?
 }
 
 

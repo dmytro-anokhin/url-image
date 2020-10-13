@@ -49,13 +49,23 @@ final class URLSessionDelegate : NSObject {
 
     // URLSessionDownloadDelegate
 
-    typealias DownloadTaskDidFinishDownloadingTo = (_ task: URLSessionDownloadTask, _ location: URL) -> Void
+    typealias DownloadTaskDidFinishDownloadingTo = (_ downloadTask: URLSessionDownloadTask, _ location: URL) -> Void
 
     private var downloadTaskDidFinishDownloadingTo: DownloadTaskDidFinishDownloadingTo?
 
     @discardableResult
     func onDownloadTaskDidFinishDownloadingTo(_ handler: @escaping DownloadTaskDidFinishDownloadingTo) -> Self {
         downloadTaskDidFinishDownloadingTo = handler
+        return self
+    }
+
+    typealias DownloadTaskDidWriteData = (_ downloadTask: URLSessionDownloadTask, _ bytesWritten: Int64, _ totalBytesWritten: Int64, _ totalBytesExpectedToWrite: Int64) -> Void
+
+    private var downloadTaskDidWriteData: DownloadTaskDidWriteData?
+
+    @discardableResult
+    func onDownloadTaskDidWriteData(_ handler: @escaping DownloadTaskDidWriteData) -> Self {
+        downloadTaskDidWriteData = handler
         return self
     }
 }
@@ -137,7 +147,7 @@ extension URLSessionDelegate : URLSessionDownloadDelegate {
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         print(#function)
-        // URLCache.shared.storeCachedResponse(CachedURLResponse(response: res!, data: data), for: req)
+        downloadTaskDidWriteData?(downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {

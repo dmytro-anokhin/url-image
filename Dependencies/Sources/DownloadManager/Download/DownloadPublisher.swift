@@ -58,12 +58,13 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
         manager.coordinator.startDownload(download,
             receiveResponse: { _ in
             },
-            receiveData: { [weak self] _, data, progress in
+            receiveData: {  _, _ in
+            },
+            reportProgress: { [weak self] _, progress in
                 guard let self = self else {
                     return
                 }
 
-                print("Download receive data: \(data.count)")
                 let _ = self.subscriber?.receive(.progress(progress))
             },
             completion: { [weak self] _, result in

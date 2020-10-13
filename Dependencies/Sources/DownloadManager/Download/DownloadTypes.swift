@@ -29,5 +29,6 @@ extension DownloadResult : Hashable {}
 public typealias DownloadError = Error
 
 public typealias DownloadReceiveResponse = (_ download: Download) -> Void
-public typealias DownloadReceiveData = (_ download: Download, _ data: Data, _ progress: Float?) -> Void
+public typealias DownloadReceiveData = (_ download: Download, _ data: Data) -> Void
+public typealias DownloadReportProgress = (_ download: Download, _ progress: Float?) -> Void
 public typealias DownloadCompletion = (_ download: Download, _ result: Result<DownloadResult, DownloadError>) -> Void

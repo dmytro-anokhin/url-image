@@ -98,11 +98,28 @@ final class URLSessionCoordinator {
                     try? FileManager.default.moveItem(at: location, to: destination)
                 }
             }
+            .onDownloadTaskDidWriteData { [weak self] task, _, totalBytesWritten, totalBytesExpectedToWrite in
+                guard let self = self else {
+                    return
+                }
+
+                self.async {
+                    let downloadTaskID = task.taskDescription!
+
+                    guard let downloadTask = self.registry[downloadTaskID] else {
+                        // This can happen when the task was cancelled
+                        return
+                    }
+
+                    downloadTask.downloadProgress(received: totalBytesWritten, expected: totalBytesExpectedToWrite)
+                }
+            }
     }
 
     func startDownload(_ download: Download,
                        receiveResponse: @escaping DownloadReceiveResponse,
                        receiveData: @escaping DownloadReceiveData,
+                       reportProgress: @escaping DownloadReportProgress,
                        completion: @escaping DownloadCompletion) {
         async {
             let downloadTaskID = download.id.uuidString
@@ -112,7 +129,7 @@ final class URLSessionCoordinator {
                 return
             }
 
-            let observer = DownloadTask.Observer(download: download, receiveResponse: receiveResponse, receiveData: receiveData, completion: completion)
+            let observer = DownloadTask.Observer(download: download, receiveResponse: receiveResponse, receiveData: receiveData, reportProgress: reportProgress, completion: completion)
 
             let downloadTask = self.makeDownloadTask(for: download, withObserver: observer)
             self.registry[downloadTaskID] = downloadTask
