@@ -17,7 +17,7 @@ public final class DownloadManager {
     public init(urlCache: URLCache = URLCache()) {
         let configuration = URLSessionConfiguration.default
 
-        configuration.requestCachePolicy = .returnCacheDataElseLoad
+        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
         configuration.urlCache = urlCache
 
         coordinator = URLSessionCoordinator(urlSessionConfiguration: configuration)
