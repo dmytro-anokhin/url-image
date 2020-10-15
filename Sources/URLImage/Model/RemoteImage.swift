@@ -67,6 +67,7 @@ public final class RemoteImage : RemoteContent {
 
                         if !success {
                             self.loadingState = .initial
+                            self.isLoading = false
                         }
                     }
                 }
@@ -223,11 +224,13 @@ extension RemoteImage {
                 }
 
                 if let transientImage = $0 {
+                    print("Image for \(self.download.url) is in cache")
                     // Set image retrieved from cache
                     self.loadingState = .success(transientImage)
                     completion(true)
                 }
                 else {
+                    print("Image for \(self.download.url) is not in cache")
                     completion(false)
                 }
             }

@@ -75,6 +75,12 @@ final class DiskCache {
     }
 
     func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
+        _ = try? fileIndex.copy(location,
+                                originalURL: url,
+                                identifier: identifier,
+                                fileName: fileName,
+                                fileExtension: fileExtension,
+                                expireAfter: expiryInterval)
     }
 
     // MARK: - Cleanup
