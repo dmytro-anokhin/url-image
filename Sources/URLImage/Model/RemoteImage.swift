@@ -38,11 +38,19 @@ public final class RemoteImage : RemoteContent {
            let transientImage = service.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
             // Set image retrieved from cache
             self.loadingState = .success(transientImage)
+//            print("Image for \(download.url) is in the in memory cache")
+        }
+        else {
+//            print("Image for \(download.url) not in the in memory cache")
         }
     }
 
     public func load() {
         guard !isLoading else {
+            return
+        }
+
+        guard !(options.cachePolicy.isReturnCache && loadingState.isSuccess) else {
             return
         }
 
@@ -224,13 +232,18 @@ extension RemoteImage {
                 }
 
                 if let transientImage = $0 {
-                    print("Image for \(self.download.url) is in cache")
+//                    print("Image for \(self.download.url) is in the disk cache")
+                    // Move to in memory cache
+                    self.service.inMemoryCache.cacheTransientImage(transientImage,
+                                                                   withURL: self.download.url,
+                                                                   identifier: self.options.identifier,
+                                                                   expireAfter: self.options.expiryInterval)
                     // Set image retrieved from cache
                     self.loadingState = .success(transientImage)
                     completion(true)
                 }
                 else {
-                    print("Image for \(self.download.url) is not in cache")
+//                    print("Image for \(self.download.url) not in the disk cache")
                     completion(false)
                 }
             }
