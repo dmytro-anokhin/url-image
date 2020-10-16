@@ -88,18 +88,18 @@ public class FileIndex {
     
     // MARK: - Actions
 
-    /// Copy downloaded file to index directory and record it in the database
+    /// Move downloaded file to index directory and record it in the database
     @discardableResult
-    public func copy(_ sourceLocation: URL,
+    public func move(_ sourceLocation: URL,
                      originalURL: URL,
                      identifier: String? = nil,
                      fileName: String? = nil,
                      fileExtension: String? = nil,
                      expireAfter expiryInterval: TimeInterval? = nil
     ) throws -> File {
-        let id = identifier ?? UUID().uuidString
-        let fileName = fileName ?? id
-        let fileExtension = fileExtension ?? originalURL.pathExtension
+        let id: String = .string(suggested: identifier, generator: UUID().uuidString)
+        let fileName: String = .string(suggested: fileName, generator: UUID().uuidString)
+        let fileExtension: String? = .string(suggested: fileExtension, generator: originalURL.pathExtension)
 
         let file = File(id: id,
                         dateCreated: Date(),
@@ -108,7 +108,7 @@ public class FileIndex {
                         fileName: fileName,
                         fileExtension: fileExtension)
 
-        try FileManager.default.copyItem(at: sourceLocation, to: location(of: file))
+        try FileManager.default.moveItem(at: sourceLocation, to: location(of: file))
         database.create(file)
 
         return file
@@ -123,9 +123,9 @@ public class FileIndex {
                       fileExtension: String? = nil,
                       expireAfter expiryInterval: TimeInterval? = nil
     ) throws -> File {
-        let id = identifier ?? UUID().uuidString
-        let fileName = fileName ?? id
-        let fileExtension = fileExtension ?? originalURL.pathExtension
+        let id: String = .string(suggested: identifier, generator: UUID().uuidString)
+        let fileName: String = .string(suggested: fileName, generator: UUID().uuidString)
+        let fileExtension: String? = .string(suggested: fileExtension, generator: originalURL.pathExtension)
 
         let file = File(id: id,
                         dateCreated: Date(),
@@ -224,5 +224,30 @@ public class FileIndex {
 
             return result
         }
+    }
+}
+
+
+private extension String {
+
+    /// Returns suggested string if not nil or empty, otherwise returns generator result.
+    static func string(suggested: String?, generator: @autoclosure () -> String) -> String {
+        if let suggested = suggested, !suggested.isEmpty {
+            return suggested
+        }
+
+        return generator()
+    }
+}
+
+private extension Optional where Wrapped == String {
+
+    /// Returns suggested string if not nil or empty, otherwise returns generator result.
+    static func string(suggested: String?, generator: @autoclosure () -> String?) -> String? {
+        if let suggested = suggested, !suggested.isEmpty {
+            return suggested
+        }
+
+        return generator()
     }
 }

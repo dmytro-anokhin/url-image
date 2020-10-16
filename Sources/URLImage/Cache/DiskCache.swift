@@ -75,7 +75,7 @@ final class DiskCache {
     }
 
     func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        _ = try? fileIndex.copy(location,
+        _ = try? fileIndex.move(location,
                                 originalURL: url,
                                 identifier: identifier,
                                 fileName: fileName,
@@ -107,18 +107,6 @@ final class DiskCache {
                 self.fileIndex.delete(file)
             }
         }
-    }
-
-    // MARK: - Path
-
-    func filePath(forFileName fileName: String, fileExtension: String?) -> String {
-        var fileURL = fileIndex.configuration.filesDirectoryURL.appendingPathComponent(fileName)
-
-        if let fileExtension = fileExtension {
-            fileURL.appendPathExtension(fileExtension)
-        }
-
-        return fileURL.path
     }
 
     // MARK: - Private

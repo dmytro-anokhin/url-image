@@ -48,12 +48,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
             download = Download(url: url)
         }
         else {
-            let fileName = url.deletingPathExtension().lastPathComponent
-            let fileExtension: String = url.pathExtension
-            let path = URLImageService.shared.diskCache.filePath(
-                forFileName: !fileName.isEmpty ? fileName : UUID().uuidString,
-                fileExtension: !fileExtension.isEmpty ? fileExtension : nil)
-
+            let path = FileManager.default.tmpFilePathInCachesDirectory()
             download = Download(destination: .onDisk(path), url: url)
         }
 

@@ -271,12 +271,13 @@ extension RemoteImage {
                                                     cgOrientation: decoder.frameOrientation(at: 0),
                                                     uti: uti)
 
+                let fileName = UUID().uuidString
                 let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: uti)
 
                 service.diskCache.cacheImageData(data,
                                                  url: download.url,
                                                  identifier: options.identifier,
-                                                 fileName: options.identifier,
+                                                 fileName: fileName,
                                                  fileExtension: fileExtension,
                                                  expireAfter: options.expiryInterval)
 
@@ -309,12 +310,20 @@ extension RemoteImage {
                                                     cgOrientation: decoder.frameOrientation(at: 0),
                                                     uti: uti)
 
-                let fileExtension = location.pathExtension
+                let fileName = UUID().uuidString
+                let fileExtension: String?
+
+                if !location.pathExtension.isEmpty {
+                    fileExtension = location.pathExtension
+                }
+                else {
+                    fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: uti)
+                }
 
                 service.diskCache.cacheImageFile(at: location,
                                                  url: download.url,
                                                  identifier: options.identifier,
-                                                 fileName: options.identifier,
+                                                 fileName: fileName,
                                                  fileExtension: fileExtension,
                                                  expireAfter: options.expiryInterval)
 
