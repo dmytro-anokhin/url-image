@@ -42,6 +42,7 @@ let package = Package(
             path: "Dependencies/Sources/PlainDatabase"),
         .target(
             name: "DownloadManager",
+            dependencies: [ "Log" ],
             path: "Dependencies/Sources/DownloadManager"),
         .target(
             name: "Log",

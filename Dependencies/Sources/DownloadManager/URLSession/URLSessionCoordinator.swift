@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import Log
 
 
 /// `URLSessionCoordinator` manages `URLSession` instance and forwards callbacks to responding `DownloadController` instances.
@@ -122,6 +123,8 @@ final class URLSessionCoordinator {
                        reportProgress: @escaping DownloadReportProgress,
                        completion: @escaping DownloadCompletion) {
         async {
+            log_debug(self, #function, "download.id = \(download.id), download.url: \(download.url)", detail: log_normal)
+
             let downloadTaskID = download.id.uuidString
 
             guard self.registry[downloadTaskID] == nil else {
@@ -140,6 +143,8 @@ final class URLSessionCoordinator {
 
     func cancelDownload(_ download: Download) {
         async {
+            log_debug(self, #function, "download.id = \(download.id), download.url: \(download.url)", detail: log_normal)
+
             let downloadTaskID = download.id.uuidString
 
             guard let downloadTask = self.registry[downloadTaskID] else {

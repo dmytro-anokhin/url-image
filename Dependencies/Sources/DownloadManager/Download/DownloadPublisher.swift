@@ -6,6 +6,7 @@
 //
 
 import Combine
+import Log
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -53,7 +54,7 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
     func request(_ demand: Subscribers.Demand) {
         guard demand > 0 else { return }
 
-        print("Start download")
+        log_debug(self, #function, "download.id = \(download.id), download.url = \(self.download.url)", detail: log_detailed)
 
         manager.coordinator.startDownload(download,
             receiveResponse: { _ in
@@ -76,16 +77,16 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
                     case .success(let downloadResult):
                         switch downloadResult {
                             case .data(let data):
-                                print("Downloaded: \(data.count)")
+                                log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded \(data.count) bytes", detail: log_detailed)
                             case .file(let path):
-                                print("Downloaded file at \(path)")
+                                log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded file to \(path)", detail: log_detailed)
                         }
 
                         let _ = self.subscriber?.receive(.completion(downloadResult))
                         self.subscriber?.receive(completion: .finished)
 
                     case .failure(let error):
-                        print("Download failed \(error)")
+                        log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded failed \(error)", detail: log_detailed)
                         self.subscriber?.receive(completion: .failure(error))
                 }
 

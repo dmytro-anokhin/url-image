@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Log
 
 
 final class URLSessionDelegate : NSObject {
@@ -108,7 +109,7 @@ extension URLSessionDelegate : URLSessionTaskDelegate {
 
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: task.originalRequest))", detail: log_detailed)
         taskDidCompleteWithError?(task, error)
     }
 }
@@ -117,7 +118,7 @@ extension URLSessionDelegate : URLSessionTaskDelegate {
 extension URLSessionDelegate : URLSessionDataDelegate {
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: dataTask.originalRequest))", detail: log_detailed)
         dataTaskDidReceiveResponse?(dataTask, response, completionHandler)
     }
 
@@ -127,12 +128,12 @@ extension URLSessionDelegate : URLSessionDataDelegate {
 //    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask)
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: dataTask.originalRequest))", detail: log_detailed)
         dataTaskDidReceiveData?(dataTask, data)
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: dataTask.originalRequest))", detail: log_detailed)
         completionHandler(proposedResponse)
     }
 }
@@ -141,16 +142,16 @@ extension URLSessionDelegate : URLSessionDataDelegate {
 extension URLSessionDelegate : URLSessionDownloadDelegate {
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: downloadTask.originalRequest))", detail: log_detailed)
         downloadTaskDidFinishDownloadingTo?(downloadTask, location)
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: downloadTask.originalRequest))", detail: log_detailed)
         downloadTaskDidWriteData?(downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {
-        print(#function)
+        log_debug(self, #function, "\(String(describing: downloadTask.originalRequest))", detail: log_detailed)
     }
 }
