@@ -17,7 +17,7 @@ final class FileIndexTests: XCTestCase {
         let originalURL = URL(string: "https://localhost")!
 
         // Copy file
-        let file = try index.copy(tmpLocation, originalURL: originalURL)
+        let file = try index.move(tmpLocation, originalURL: originalURL)
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(index.location(of: file)), "This is a test")
 
@@ -68,7 +68,7 @@ final class FileIndexTests: XCTestCase {
         let originalURL = URL(string: "https://localhost")!
 
         // Copy file
-        let file = try index.copy(tmpLocation, originalURL: originalURL, expireAfter: 0.1)
+        let file = try index.move(tmpLocation, originalURL: originalURL, expireAfter: 0.1)
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(file), "This is a test")
 
@@ -86,7 +86,7 @@ final class FileIndexTests: XCTestCase {
         let originalURL = URL(string: "https://localhost")!
 
         // Copy file
-        let file = try index.copy(tmpLocation, originalURL: originalURL, expireAfter: 1.0)
+        let file = try index.move(tmpLocation, originalURL: originalURL, expireAfter: 1.0)
         XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
         XCTAssertEqual(try contentsOf(file), "This is a test")
 
@@ -128,9 +128,9 @@ final class FileIndexTests: XCTestCase {
 
         let originalURL = URL(string: "https://localhost")!
 
-        let file1 = try index.copy(tmpLocation1, originalURL: originalURL, expireAfter: 0.1)
-        let file2 = try index.copy(tmpLocation2, originalURL: originalURL, expireAfter: 1.0)
-        let file3 = try index.copy(tmpLocation3, originalURL: originalURL)
+        let file1 = try index.move(tmpLocation1, originalURL: originalURL, expireAfter: 0.1)
+        let file2 = try index.move(tmpLocation2, originalURL: originalURL, expireAfter: 1.0)
+        let file3 = try index.move(tmpLocation3, originalURL: originalURL)
 
         // Files must be in the index
         let files1 = index.get(originalURL)
