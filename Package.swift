@@ -43,6 +43,9 @@ let package = Package(
         .target(
             name: "DownloadManager",
             path: "Dependencies/Sources/DownloadManager"),
+        .target(
+            name: "Log",
+            path: "Dependencies/Sources/Log"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
