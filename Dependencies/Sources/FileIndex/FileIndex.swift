@@ -161,10 +161,18 @@ public class FileIndex {
         }
     }
 
+    public func deleteAll(_ completion: (() -> Void)? = nil) {
+        let request = database.request()
+        delete(request: request, completion)
+    }
+
     public func deleteExpired(_ completion: (() -> Void)? = nil) {
         let predicate = database.predicate(key: "expiryDate", operator: .lessThan, value: Date(), stringOptions: .caseInsensitive)
         let request = database.request(with: predicate)
+        delete(request: request, completion)
+    }
 
+    private func delete(request: NSFetchRequest<NSManagedObject>, _ completion: (() -> Void)? = nil) {
         database.async { context in
             let objects = try context.fetch(request)
 

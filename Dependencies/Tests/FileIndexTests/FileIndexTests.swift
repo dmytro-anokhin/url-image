@@ -164,6 +164,44 @@ final class FileIndexTests: XCTestCase {
         waitForExpectations(timeout: 1.0)
     }
 
+    func testDeleteAll() throws {
+        let tmpLocation1 = makeTemporaryFile("This file expiring soon")
+        let tmpLocation2 = makeTemporaryFile("This file expiring not so soon")
+        let tmpLocation3 = makeTemporaryFile("This file won't expire")
+
+        let originalURL = URL(string: "https://localhost")!
+
+        let _ = try index.move(tmpLocation1, originalURL: originalURL)
+        let _ = try index.move(tmpLocation2, originalURL: originalURL)
+        let _ = try index.move(tmpLocation3, originalURL: originalURL)
+
+        // Files must be in the index
+        let files1 = index.get(originalURL)
+        XCTAssertEqual(files1.count, 3)
+
+        for file in files1 {
+            XCTAssertTrue(FileManager.default.fileExists(atPath: index.location(of: file).path))
+        }
+
+        // Delete is async
+        let deleteAllExpectation = expectation(description: "Delete all")
+
+        index.deleteAll {
+            // Files must be deleted
+            for file in files1 {
+                XCTAssertFalse(FileManager.default.fileExists(atPath: self.index.location(of: file).path))
+            }
+
+            // Index must be empty
+            let files2 = self.index.get(originalURL)
+            XCTAssertTrue(files2.isEmpty)
+
+            deleteAllExpectation.fulfill()
+        }
+
+        waitForExpectations(timeout: 1.0)
+    }
+
     private var index: FileIndex!
 
     override func setUp() {

@@ -38,6 +38,10 @@ final class InMemoryCache {
         nsCache.removeAllObjects()
     }
 
+    func removeAll() {
+        nsCache.removeAllObjects()
+    }
+
     func delete(withIdentifier identifier: String?, orURL url: URL?) {
         if let identifier = identifier {
             nsCache.removeObject(forKey: identifier as NSString)

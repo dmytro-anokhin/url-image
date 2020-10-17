@@ -243,7 +243,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
                                      options: stringOptions.nsComparisonPredicateOptions)
     }
 
-    public func request(with predicate: NSPredicate) -> NSFetchRequest<NSManagedObject> {
+    public func request(with predicate: NSPredicate? = nil) -> NSFetchRequest<NSManagedObject> {
         let request = NSFetchRequest<NSManagedObject>(entityName: self.entityName)
         request.predicate = predicate
 

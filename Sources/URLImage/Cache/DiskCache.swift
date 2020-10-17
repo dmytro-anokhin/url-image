@@ -89,6 +89,10 @@ final class DiskCache {
         fileIndex.deleteExpired()
     }
 
+    func deleteAll() {
+        fileIndex.deleteAll()
+    }
+
     func delete(withIdentifier identifier: String?, orURL url: URL?) {
         databaseQueue.async { [weak self] in
             guard let self = self else {
