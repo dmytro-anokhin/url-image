@@ -91,7 +91,8 @@ public extension URLImage where Empty == EmptyView {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public extension URLImage where Empty == EmptyView, InProgress == ActivityIndicator {
+public extension URLImage where Empty == EmptyView,
+                                InProgress == ActivityIndicator {
 
     init(url: URL,
          options: URLImageOptions = URLImageOptions(),
@@ -107,6 +108,24 @@ public extension URLImage where Empty == EmptyView, InProgress == ActivityIndica
     }
 }
 
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage where Empty == EmptyView,
+                                InProgress == ActivityIndicator,
+                                Failure == EmptyView {
+
+    init(url: URL,
+         options: URLImageOptions = URLImageOptions(),
+         content: @escaping (_ image: Image) -> Content)
+    {
+        self.init(url: url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: { _ in ActivityIndicator() },
+                  failure: { _, _ in EmptyView() },
+                  content: content)
+    }
+}
 
 //@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 //struct URLImage_Previews: PreviewProvider {
