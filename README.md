@@ -8,15 +8,11 @@
 Using `URLImage` is dead simple:
 
 ```swift
-URLImage(url: url,                                // Provide URL for the image
-         failure: { error, _ in
-             Text(error.localizedDescription)     // Display an error
-         },
-         content: { image in                      // Provide a content view when the image is downloaded
-             image
-                 .resizable()
-                 .aspectRatio(contentMode: .fit)
-         })
+URLImage(url: url) { image in
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
 ```
 
 Note: version 2.0 is in development and API is subject to change. If you open an issue please mark it with v2.0 label.
