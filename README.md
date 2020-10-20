@@ -15,12 +15,14 @@ URLImage(url: url) { image in
 }
 ```
 
-Note: version 2.0 is in development and API is subject to change. If you open an issue please mark it with v2.0 label.
-
 # Table of Contents
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Cache](#cache)
+- [Reporting a Bug](#reporting-a-bug)
+- [Requesting a Feature](#requesting-a-feature)
+- [Contributing](#contributing)
 
 ## Features
 - SwiftUI image view for remote images;
@@ -28,7 +30,8 @@ Note: version 2.0 is in development and API is subject to change. If you open an
 - Local disk cache for downloaded images;
 - Download progress indication;
 - Fully customizable including placeholder, progress indication, and the image view;
-- Control over download delay for better scroll performance in lists.
+- Control over download delay for better scroll performance;
+- Images can be downloaded directly to disk or in memory.
 
 ## Installation
 
@@ -38,13 +41,10 @@ Note: if you wish to follow latest changes, you can point SPM to `version_2` bra
 
 ## Usage
 
-`URLImage` expects URL of the image and two views: the content view to display the image when downloaded, and the failure view to display an error if occurs:
+`URLImage` expects URL of the image and the content view:
 
 ```swift
 URLImage(url: url,
-         failure: { error, _ in
-             Text(error.localizedDescription)
-         },
          content: { image in
              image
                  .resizable()
@@ -52,7 +52,13 @@ URLImage(url: url,
          })
 ```
 
-There is more to customize:
+`URLImage` transitions between 4 states:
+- Empty state, when download has not started yet, or there is nothing to display;
+- In Progress state to indicate download process;
+- Failure state in case there is an error;
+- Content to display the image.
+
+Each of this states has a separate view that can be provided using closures. You can also customize certain settings, like cache policy and expiry interval, using `URLImageOptions`.
 
 ```swift
 struct MyView: View {
@@ -102,3 +108,36 @@ struct MyView: View {
     }
 }
 ```
+
+## Cache
+
+`URLImage`  uses two caches:
+- In memory cache for quick access;
+- Local disk cache.
+
+Downloaded images stored in user caches folder. This allows OS to take care of cleaning up files. However, it is also good idea to perform manual cleanup time to time. You can remove expired images by calling `URLImageService.shared.removeAllCachedImages()` as a part of your startup routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`. 
+
+You can also remove individual or all cached images using `URLImageService`.
+
+## Reporting a Bug
+
+Use GitHub issues to report a bug. Include this information when possible:
+
+Summary and/or background;
+OS and what device you are using;
+Version of URLImage library;
+What you expected would happen;
+What actually happens;
+Additional information:
+Screenshots or video demonstrating a bug;
+Crash log;
+Sample code, try isolating it so it compiles without dependancies;
+Test data: if you use public resource provide URLs of the images.
+
+## Requesting a Feature
+
+Use GitHub issues to request a feature.
+
+## Contributing
+
+Contributions are welcome. Please create a GitHub issue before submitting a pull request to plan and discuss implementation.
