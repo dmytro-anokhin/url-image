@@ -2,72 +2,79 @@
 //  URLImageService.swift
 //  
 //
-//  Created by Dmytro Anokhin on 11/10/2019.
+//  Created by Dmytro Anokhin on 25/08/2020.
 //
 
 import Foundation
+import Combine
+import DownloadManager
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
-public protocol URLImageServiceType {
+public final class URLImageService {
 
-    var services: Services { get }
+    public static let shared = URLImageService()
 
-    var defaultExpiryTime: TimeInterval { get }
+    let downloadManager = DownloadManager()
 
-    func setDefaultExpiryTime(_ defaultExpiryTime: TimeInterval)
+    let diskCache = DiskCache()
 
-    func resetFileCache()
+    let inMemoryCache = InMemoryCache()
 
-    func cleanFileCache()
-
-    func removeCachedImage(with url: URL)
-}
-
-
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
-public final class Services {
-
-    init(remoteFileCacheService: RemoteFileCacheService, downloadService: DownloadService) {
-        self.remoteFileCacheService = remoteFileCacheService
-        self.downloadService = downloadService
+    init() {
     }
 
-    let remoteFileCacheService: RemoteFileCacheService
+    public var defaultOptions = URLImageOptions(identifier: nil,
+                                                expireAfter: 24 * 60 * 60,
+                                                cachePolicy: .returnCacheElseLoad(),
+                                                isInMemoryDownload: false)
 
-    let downloadService: DownloadService
-}
+    /// Remove expired images from the disk and in memory caches
+    public func cleanup() {
+        performPreviousVersionCleanup()
 
-
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
-public final class URLImageService: URLImageServiceType {
-
-    public static let shared: URLImageServiceType = URLImageService()
-
-    public let services: Services
-
-    public private(set) var defaultExpiryTime: TimeInterval = 60.0 * 60.0 * 24.0 * 7.0 // 1 week
-
-    public func setDefaultExpiryTime(_ defaultExpiryTime: TimeInterval) {
-        self.defaultExpiryTime = defaultExpiryTime
+        diskCache.cleanup()
+        inMemoryCache.cleanup()
     }
 
-    public func resetFileCache() {
-        services.remoteFileCacheService.reset()
+    public func removeAllCachedImages() {
+        diskCache.deleteAll()
+        inMemoryCache.removeAll()
     }
 
-    public func cleanFileCache() {
-        services.remoteFileCacheService.clean()
+    public func removeImageWithURL(_ url: URL) {
+        diskCache.delete(withIdentifier: nil, orURL: url)
+        inMemoryCache.delete(withIdentifier: nil, orURL: url)
     }
 
-    public func removeCachedImage(with url: URL) {
-        services.remoteFileCacheService.delete(withRemoteURL: url)
+    public func removeImageWithIdentifier(_ identifier: String) {
+        diskCache.delete(withIdentifier: identifier, orURL: nil)
+        inMemoryCache.delete(withIdentifier: identifier, orURL: nil)
     }
 
-    private init() {
-        let remoteFileCacheService = RemoteFileCacheServiceImpl(name: "URLImage", baseURL: FileManager.appCachesDirectoryURL)
-        let downloadService = DownloadServiceImpl(remoteFileCache: remoteFileCacheService)
+    private func performPreviousVersionCleanup() {
+        let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let directoryURL = cachesURL.appendingPathComponent("URLImage", isDirectory: true)
 
-        services = Services(remoteFileCacheService: remoteFileCacheService, downloadService: downloadService)
+        // First check if old version exists
+        let versionFileURL = directoryURL.appendingPathComponent("filesCacheVersion")
+
+        guard FileManager.default.fileExists(atPath: versionFileURL.path) else {
+            return
+        }
+
+        let items = [
+            // Files directory
+            directoryURL.appendingPathComponent("files", isDirectory: true),
+            // CoreData files
+            directoryURL.appendingPathComponent("files").appendingPathExtension("db"),
+            directoryURL.appendingPathComponent("files").appendingPathExtension("db-shm"),
+            directoryURL.appendingPathComponent("files").appendingPathExtension("db-wal"),
+            // Version file
+            versionFileURL
+        ]
+
+        for itemURL in items {
+            try? FileManager.default.removeItem(at: itemURL)
+        }
     }
 }
