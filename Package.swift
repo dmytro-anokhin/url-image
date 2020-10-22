@@ -34,7 +34,7 @@ let package = Package(
             path: "Dependencies/Sources/ImageDecoder"),
         .target(
             name: "FileIndex",
-            dependencies: [ "PlainDatabase" ],
+            dependencies: [ "PlainDatabase", "Log" ],
             path: "Dependencies/Sources/FileIndex"),
         .target(
             name: "PlainDatabase",

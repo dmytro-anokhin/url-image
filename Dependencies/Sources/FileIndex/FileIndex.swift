@@ -8,6 +8,7 @@
 import Foundation
 import CoreData
 import PlainDatabase
+import Log
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -66,9 +67,11 @@ public class FileIndex {
     public let configuration: Configuration
 
     public init(configuration: Configuration) {
-        self.configuration = configuration
+        defer {
+            log_debug(self, #function, "FileIndex path: \(configuration.directoryURL.path)")
+        }
 
-        print("FileIndex directory: \(configuration.directoryURL.path)")
+        self.configuration = configuration
 
         // Create directories if necessary. Directory must be created before initializing index or adding files.
         try? FileManager.default.createDirectory(at: configuration.filesDirectoryURL, withIntermediateDirectories: true, attributes: nil)
