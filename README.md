@@ -35,7 +35,7 @@ URLImage(url: url) { image in
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager.
+`URLImage` can be installed using Swift Package Manager or Cocoa Pods.
 
 ## Usage
 
@@ -113,7 +113,15 @@ struct MyView: View {
 - In memory cache for quick access;
 - Local disk cache.
 
-Downloaded images stored in user caches folder. This allows OS to take care of cleaning up files. However, it is also good idea to perform manual cleanup time to time. You can remove expired images by calling `URLImageService.shared.removeAllCachedImages()` as a part of your startup routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`. 
+Downloaded images stored in user caches folder. This allows OS to take care of cleaning up files. It is also a good idea to perform manual cleanup time to time.
+
+You can remove expired images by calling `cleanup` as a part of your startup routine. This will also remove image files from the previous `URLImage` version if you used it.
+
+```
+URLImageService.shared.cleanup()
+```
+
+Downloaded images expire after some time. Expired images removed in `cleanup` routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`.
 
 You can also remove individual or all cached images using `URLImageService`.
 
