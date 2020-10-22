@@ -15,6 +15,8 @@ URLImage(url: url) { image in
 }
 ```
 
+Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin/url-image-demo).
+
 # Table of Contents
 - [Features](#features)
 - [Installation](#installation)
