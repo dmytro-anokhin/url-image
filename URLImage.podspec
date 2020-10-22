@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = "URLImage"
-  spec.version      = "0.9.19"
+  spec.version      = "2.0.0"
   spec.summary      = "SwiftUI Image view that displays an image downloaded from URL."
 
   spec.description  = <<-DESC
@@ -20,6 +20,6 @@ Pod::Spec.new do |spec|
 
   spec.swift_versions = "5.0"
 
-  spec.platforms = { :ios => "11.0", :tvos => "11.0", :osx => "10.13", :watchos => "4.0" }
+  spec.platforms = { :ios => "13.0", :tvos => "13.0", :osx => "10.15" }
 
 end
