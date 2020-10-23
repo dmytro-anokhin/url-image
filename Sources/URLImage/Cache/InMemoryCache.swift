@@ -13,7 +13,7 @@ final class InMemoryCache {
     init() {
     }
 
-    func getImage(withIdentifier identifier: String?, orURL url: URL) -> TransientImage? {
+    func getImage(withIdentifier identifier: String?, orURL url: URL) -> TransientImageType? {
         let key = (identifier ?? url.absoluteString) as NSString
 
         guard let wrapper = nsCache.object(forKey: key) else {
@@ -23,7 +23,7 @@ final class InMemoryCache {
         return wrapper.transientImage
     }
 
-    func cacheTransientImage(_ transientImage: TransientImage, withURL url: URL, identifier: String?, expireAfter expiryInterval: TimeInterval? = nil) {
+    func cacheTransientImage(_ transientImage: TransientImageType, withURL url: URL, identifier: String?, expireAfter expiryInterval: TimeInterval? = nil) {
         let key = (identifier ?? url.absoluteString) as NSString
         let wrapper = TransientImageWrapper(transientImage: transientImage,
                                             dateCreated: Date(),
@@ -55,13 +55,13 @@ final class InMemoryCache {
 
     private final class TransientImageWrapper {
 
-        let transientImage: TransientImage
+        let transientImage: TransientImageType
 
         let dateCreated: Date
 
         let expiryInterval: TimeInterval?
 
-        init(transientImage: TransientImage, dateCreated: Date, expiryInterval: TimeInterval?) {
+        init(transientImage: TransientImageType, dateCreated: Date, expiryInterval: TimeInterval?) {
             self.transientImage = transientImage
             self.dateCreated = dateCreated
             self.expiryInterval = expiryInterval

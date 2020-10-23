@@ -250,7 +250,7 @@ extension RemoteImage {
             .store(in: &cancellables)
     }
 
-    private func decode(result: DownloadResult) throws -> TransientImage {
+    private func decode(result: DownloadResult) throws -> TransientImageType {
         switch result {
             case .data(let data):
 
@@ -350,7 +350,7 @@ extension RemoteImage {
 
 private extension RemoteContentLoadingState where Value == Image {
 
-    static func success(_ transientImage: TransientImage) -> RemoteContentLoadingState<Value, Progress> {
+    static func success(_ transientImage: TransientImageType) -> RemoteContentLoadingState<Value, Progress> {
         .success(transientImage.image)
     }
 }

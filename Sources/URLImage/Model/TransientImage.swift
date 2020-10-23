@@ -9,7 +9,14 @@ import SwiftUI
 import ImageDecoder
 
 
-public struct TransientImage {
+/// Temporary representation used after decoding an image from data or file on disk and before creating an `Image` object.
+public protocol TransientImageType {
+
+    var image: Image { get }
+}
+
+
+public struct TransientImage: TransientImageType {
 
     static func decode(_ location: URL) throws -> TransientImage {
 
@@ -39,15 +46,15 @@ public struct TransientImage {
 }
 
 
-public extension TransientImage {
+public extension TransientImageType where Self == TransientImage {
 
     var image: Image {
-        if let cgOrientation = cgOrientation {
+        if let cgOrientation = self.cgOrientation {
             let orientation = Image.Orientation(cgOrientation)
-            return Image(decorative: cgImage, scale: 1.0, orientation: orientation)
+            return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
         }
         else {
-            return Image(decorative: cgImage, scale: 1.0)
+            return Image(decorative: self.cgImage, scale: 1.0)
         }
     }
 }
