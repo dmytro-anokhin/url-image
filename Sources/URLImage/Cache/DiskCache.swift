@@ -41,13 +41,13 @@ final class DiskCache {
             self.decodeQueue.async { [weak self] in
                 guard let self = self else { return }
 
-                do {
-                    let location = self.fileIndex.location(of: file)
-                    let transientImage = try TransientImage.decode(location)
+                let location = self.fileIndex.location(of: file)
+                
+                if let transientImage = TransientImage(location: location) {
                     completion(.success(transientImage))
                 }
-                catch {
-                    completion(.failure(error))
+                else {
+                    completion(.failure(URLImageError.decode))
                 }
             }
         }

@@ -16,26 +16,44 @@ public protocol TransientImageType {
 }
 
 
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, *)
 public struct TransientImage: TransientImageType {
 
-    static func decode(_ location: URL) throws -> TransientImage {
+    public init?(data: Data) {
+        let decoder = ImageDecoder()
+        decoder.setData(data, allDataReceived: true)
 
+        self.init(decoder: decoder)
+    }
+
+    public init?(location: URL) {
         guard let decoder = ImageDecoder(url: location) else {
-            throw URLImageError.decode
+            return nil
         }
 
+        self.init(decoder: decoder)
+    }
+
+    public init?(decoder: ImageDecoder) {
         guard let uti = decoder.uti else {
             // Not an image data
-            throw URLImageError.decode
+            return nil
         }
 
-        guard let image = decoder.createFrameImage(at: 0) else {
-            throw URLImageError.decode
+        guard let cgImage = decoder.createFrameImage(at: 0) else {
+            // Can not decode image, corrupted data
+            return nil
         }
 
-        return TransientImage(cgImage: image,
-                              cgOrientation: decoder.frameOrientation(at: 0),
-                              uti: uti)
+        self.cgImage = cgImage
+        self.cgOrientation = decoder.frameOrientation(at: 0)
+        self.uti = uti
+    }
+
+    public init(cgImage: CGImage, cgOrientation: CGImagePropertyOrientation?, uti: String) {
+        self.cgImage = cgImage
+        self.cgOrientation = cgOrientation
+        self.uti = uti
     }
 
     public var cgImage: CGImage
