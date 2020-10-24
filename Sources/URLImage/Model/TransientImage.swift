@@ -7,6 +7,7 @@
 
 import SwiftUI
 import ImageDecoder
+import ImageIO
 
 
 /// Temporary representation used after decoding an image from data or file on disk and before creating an `Image` object.
