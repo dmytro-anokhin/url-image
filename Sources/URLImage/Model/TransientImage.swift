@@ -7,28 +7,54 @@
 
 import SwiftUI
 import ImageDecoder
+import ImageIO
 
 
-public struct TransientImage {
+/// Temporary representation used after decoding an image from data or file on disk and before creating an `Image` object.
+public protocol TransientImageType {
 
-    static func decode(_ location: URL) throws -> TransientImage {
+    var image: Image { get }
+}
 
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, *)
+public struct TransientImage: TransientImageType {
+
+    public init?(data: Data) {
+        let decoder = ImageDecoder()
+        decoder.setData(data, allDataReceived: true)
+
+        self.init(decoder: decoder)
+    }
+
+    public init?(location: URL) {
         guard let decoder = ImageDecoder(url: location) else {
-            throw URLImageError.decode
+            return nil
         }
 
+        self.init(decoder: decoder)
+    }
+
+    public init?(decoder: ImageDecoder) {
         guard let uti = decoder.uti else {
             // Not an image data
-            throw URLImageError.decode
+            return nil
         }
 
-        guard let image = decoder.createFrameImage(at: 0) else {
-            throw URLImageError.decode
+        guard let cgImage = decoder.createFrameImage(at: 0) else {
+            // Can not decode image, corrupted data
+            return nil
         }
 
-        return TransientImage(cgImage: image,
-                              cgOrientation: decoder.frameOrientation(at: 0),
-                              uti: uti)
+        self.cgImage = cgImage
+        self.cgOrientation = decoder.frameOrientation(at: 0)
+        self.uti = uti
+    }
+
+    public init(cgImage: CGImage, cgOrientation: CGImagePropertyOrientation?, uti: String) {
+        self.cgImage = cgImage
+        self.cgOrientation = cgOrientation
+        self.uti = uti
     }
 
     public var cgImage: CGImage
@@ -39,15 +65,15 @@ public struct TransientImage {
 }
 
 
-public extension TransientImage {
+public extension TransientImageType where Self == TransientImage {
 
     var image: Image {
-        if let cgOrientation = cgOrientation {
+        if let cgOrientation = self.cgOrientation {
             let orientation = Image.Orientation(cgOrientation)
-            return Image(decorative: cgImage, scale: 1.0, orientation: orientation)
+            return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
         }
         else {
-            return Image(decorative: cgImage, scale: 1.0)
+            return Image(decorative: self.cgImage, scale: 1.0)
         }
     }
 }

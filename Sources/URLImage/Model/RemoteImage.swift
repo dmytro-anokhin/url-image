@@ -250,29 +250,16 @@ extension RemoteImage {
             .store(in: &cancellables)
     }
 
-    private func decode(result: DownloadResult) throws -> TransientImage {
+    private func decode(result: DownloadResult) throws -> TransientImageType {
         switch result {
             case .data(let data):
 
-                let decoder = ImageDecoder()
-                decoder.setData(data, allDataReceived: true)
-
-                guard let uti = decoder.uti else {
-                    // Not an image data
+                guard let transientImage = TransientImage(data: data) else {
                     throw URLImageError.decode
                 }
-
-                guard let image = decoder.createFrameImage(at: 0) else {
-                    // Can not decode image, corrupted data
-                    throw URLImageError.decode
-                }
-
-                let transientImage = TransientImage(cgImage: image,
-                                                    cgOrientation: decoder.frameOrientation(at: 0),
-                                                    uti: uti)
 
                 let fileName = UUID().uuidString
-                let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: uti)
+                let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
 
                 service.diskCache.cacheImageData(data,
                                                  url: download.url,
@@ -292,23 +279,9 @@ extension RemoteImage {
 
                 let location = URL(fileURLWithPath: path)
 
-                guard let decoder = ImageDecoder(url: location) else {
-                    throw URLImageError.file
-                }
-
-                guard let uti = decoder.uti else {
-                    // Not an image data
+                guard let transientImage = TransientImage(location: location) else {
                     throw URLImageError.decode
                 }
-
-                guard let image = decoder.createFrameImage(at: 0) else {
-                    // Can not decode image, corrupted data
-                    throw URLImageError.decode
-                }
-
-                let transientImage = TransientImage(cgImage: image,
-                                                    cgOrientation: decoder.frameOrientation(at: 0),
-                                                    uti: uti)
 
                 let fileName = UUID().uuidString
                 let fileExtension: String?
@@ -317,7 +290,7 @@ extension RemoteImage {
                     fileExtension = location.pathExtension
                 }
                 else {
-                    fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: uti)
+                    fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
                 }
 
                 service.diskCache.cacheImageFile(at: location,
@@ -350,7 +323,7 @@ extension RemoteImage {
 
 private extension RemoteContentLoadingState where Value == Image {
 
-    static func success(_ transientImage: TransientImage) -> RemoteContentLoadingState<Value, Progress> {
+    static func success(_ transientImage: TransientImageType) -> RemoteContentLoadingState<Value, Progress> {
         .success(transientImage.image)
     }
 }

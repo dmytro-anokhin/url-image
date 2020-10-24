@@ -18,7 +18,7 @@ import Cocoa
 #endif
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, *)
+@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class ImageDecoder {
 
     public struct DecodingOptions {

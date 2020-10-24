@@ -28,7 +28,7 @@ final class DiskCache {
 
     func getImage(withIdentifier identifier: String?,
                   orURL url: URL,
-                  _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void
+                  _ completion: @escaping (_ result: Result<TransientImageType?, Swift.Error>) -> Void
     ) {
         databaseQueue.async { [weak self] in
             guard let self = self else { return }
@@ -41,20 +41,20 @@ final class DiskCache {
             self.decodeQueue.async { [weak self] in
                 guard let self = self else { return }
 
-                do {
-                    let location = self.fileIndex.location(of: file)
-                    let transientImage = try TransientImage.decode(location)
+                let location = self.fileIndex.location(of: file)
+                
+                if let transientImage = TransientImage(location: location) {
                     completion(.success(transientImage))
                 }
-                catch {
-                    completion(.failure(error))
+                else {
+                    completion(.failure(URLImageError.decode))
                 }
             }
         }
     }
 
-    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL) -> AnyPublisher<TransientImage?, Swift.Error> {
-        return Future<TransientImage?, Swift.Error> { [weak self] promise in
+    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL) -> AnyPublisher<TransientImageType?, Swift.Error> {
+        return Future<TransientImageType?, Swift.Error> { [weak self] promise in
             guard let self = self else {
                 return
             }
