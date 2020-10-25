@@ -37,7 +37,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager or Cocoa Pods.
+`URLImage` can be installed using Swift Package Manager.
 
 ## Usage
 
