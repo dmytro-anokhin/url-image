@@ -37,6 +37,8 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
+
+        remoteContent.load()
     }
 
     public var body: some View {

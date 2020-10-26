@@ -10,6 +10,7 @@ import SwiftUI
 import DownloadManager
 import ImageDecoder
 import RemoteContentView
+import Log
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -54,6 +55,8 @@ public final class RemoteImage : RemoteContent {
             return
         }
 
+        log_debug(self, #function, "Start load for: \(download.url)", detail: log_normal)
+
         isLoading = true
 
         switch options.cachePolicy {
@@ -95,6 +98,8 @@ public final class RemoteImage : RemoteContent {
         guard isLoading else {
             return
         }
+
+        log_debug(self, #function, "Cancel load for: \(download.url)", detail: log_normal)
 
         isLoading = false
 
