@@ -95,6 +95,7 @@ final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
     }
 
     func cancel() {
+        log_debug(self, #function, "download.id = \(download.id), download.url = \(self.download.url)", detail: log_detailed)
         manager.coordinator.cancelDownload(download)
         manager.reset(download: download)
     }
