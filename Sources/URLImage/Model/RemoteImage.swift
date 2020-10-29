@@ -103,9 +103,6 @@ public final class RemoteImage : RemoteContent {
 
         isLoading = false
 
-        // Reset loading state
-        loadingState = .initial
-
         // Cancel
         for cancellable in cancellables {
             cancellable.cancel()
