@@ -94,19 +94,6 @@ public final class RemoteImage : RemoteContent {
                     }
                 }
 
-            case .returnCacheReload(let cacheDelay, let downloadDelay):
-                if loadFromInMemory() {
-                    // Loaded from the in-memory cache, reload
-                    scheduleDownload(afterDelay: downloadDelay)
-                }
-                else {
-                    // Disk cache lookup, than download
-                    scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
-                        guard let self = self else { return }
-                        self.scheduleDownload(afterDelay: downloadDelay)
-                    }
-                }
-
             case .ignoreCache(let delay):
                 // Always download
                 scheduleDownload(afterDelay: delay)

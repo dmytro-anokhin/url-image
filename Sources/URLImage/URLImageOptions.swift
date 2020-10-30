@@ -28,14 +28,6 @@ public struct URLImageOptions {
         /// There is no delay for in memory cache lookup.
         case returnCacheDontLoad(delay: TimeInterval? = nil)
 
-        /// Return an image from cache and reload it
-        ///
-        /// - `cacheDelay`: delay before accessing disk cache.
-        /// - `downloadDelay`: delay before starting download.
-        ///
-        /// There is no delay for in memory cache lookup.
-        case returnCacheReload(cacheDelay: TimeInterval? = nil, downloadDelay: TimeInterval? = nil)
-
         /// Ignore cached image and download remote one
         ///
         /// - `delay`: delay before starting download.
