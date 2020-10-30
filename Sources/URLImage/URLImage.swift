@@ -8,6 +8,7 @@
 import SwiftUI
 import RemoteContentView
 import DownloadManager
+import Common
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -60,13 +61,11 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let remoteImage: RemoteImage
 
     public var body: some View {
-        remoteImage.preload()
-
-        return RemoteContentView(remoteContent: remoteImage,
-                                 empty: empty,
-                                 inProgress: inProgress,
-                                 failure: failure,
-                                 content: content)
+        RemoteContentView(remoteContent: remoteImage,
+                          empty: empty,
+                          inProgress: inProgress,
+                          failure: failure,
+                          content: content)
     }
 }
 

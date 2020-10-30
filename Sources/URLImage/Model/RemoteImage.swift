@@ -32,26 +32,15 @@ public final class RemoteImage : RemoteContent {
 
     public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
 
-    @Published public private(set) var loadingState: LoadingState = .initial
-
-    public func preload() {
-        if options.cachePolicy.isReturnCache,
-           let transientImage = service.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) {
-            // Set image retrieved from cache
-            self.loadingState = .success(transientImage)
-//            print("Image for \(download.url) is in the in memory cache")
-        }
-        else {
-//            print("Image for \(download.url) not in the in memory cache")
+    /// External loading state used to update the view
+    @Published public private(set) var loadingState: LoadingState = .initial {
+        willSet {
+            log_debug(self, #function, "\(download.url) will transition from \(loadingState) to \(newValue)", detail: log_detailed)
         }
     }
 
     public func load() {
         guard !isLoading else {
-            return
-        }
-
-        guard !(options.cachePolicy.isReturnCache && loadingState.isSuccess) else {
             return
         }
 
@@ -61,35 +50,65 @@ public final class RemoteImage : RemoteContent {
 
         switch options.cachePolicy {
             case .returnCacheElseLoad(let cacheDelay, let downloadDelay):
-                if !isLoadedSuccessfully {
-                    scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
-                        guard let self = self else { return }
+                guard !isLoadedSuccessfully else {
+                    // Already loaded
+                    isLoading = false
+                    return
+                }
 
-                        if !success {
-                            self.scheduleDownload(afterDelay: downloadDelay, secondCacheLookup: true)
-                        }
+                guard !loadFromInMemory() else {
+                    // Loaded from the in-memory cache
+                    isLoading = false
+                    return
+                }
+
+                // Disk cache lookup
+                scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
+                    guard let self = self else { return }
+
+                    if !success {
+                        self.scheduleDownload(afterDelay: downloadDelay, secondCacheLookup: true)
                     }
                 }
 
             case .returnCacheDontLoad(let delay):
-                if !isLoadedSuccessfully {
-                    scheduleReturnCached(afterDelay: delay) { [weak self] success in
-                        guard let self = self else { return }
+                guard !isLoadedSuccessfully else {
+                    // Already loaded
+                    isLoading = false
+                    return
+                }
 
-                        if !success {
-                            self.loadingState = .initial
-                            self.isLoading = false
-                        }
+                guard !loadFromInMemory() else {
+                    // Loaded from the in-memory cache
+                    isLoading = false
+                    return
+                }
+
+                // Disk cache lookup
+                scheduleReturnCached(afterDelay: delay) { [weak self] success in
+                    guard let self = self else { return }
+
+                    if !success {
+                        self.loadingState = .initial
+                        self.isLoading = false
                     }
                 }
 
             case .returnCacheReload(let cacheDelay, let downloadDelay):
-                scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
-                    guard let self = self else { return }
-                    self.scheduleDownload(afterDelay: downloadDelay)
+                if loadFromInMemory() {
+                    // Loaded from the in-memory cache, reload
+                    scheduleDownload(afterDelay: downloadDelay)
+                }
+                else {
+                    // Disk cache lookup, than download
+                    scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
+                        guard let self = self else { return }
+                        self.scheduleDownload(afterDelay: downloadDelay)
+                    }
                 }
 
             case .ignoreCache(let delay):
+                // Always download
                 scheduleDownload(afterDelay: delay)
         }
     }
@@ -103,10 +122,7 @@ public final class RemoteImage : RemoteContent {
 
         isLoading = false
 
-        // Reset loading state
-        loadingState = .initial
-
-        // Cancel
+        // Cancel publishers
         for cancellable in cancellables {
             cancellable.cancel()
         }
@@ -120,6 +136,7 @@ public final class RemoteImage : RemoteContent {
         delayedDownload = nil
     }
 
+    /// Internal loading state
     private var isLoading: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
@@ -137,6 +154,22 @@ extension RemoteImage {
             default:
                 return false
         }
+    }
+
+    /// Rerturn an image from the in memory cache.
+    ///
+    /// Sets `loadingState` to `.success` if an image is in the in-memory cache and returns `true`. Otherwise returns `false` without changing the state.
+    private func loadFromInMemory() -> Bool {
+        guard let transientImage = service.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) else {
+            log_debug(self, #function, "Image for \(download.url) not in the in memory cache", detail: log_normal)
+            return false
+        }
+
+        // Set image retrieved from cache
+        self.loadingState = .success(transientImage)
+        log_debug(self, #function, "Image for \(download.url) is in the in memory cache", detail: log_normal)
+
+        return true
     }
 
     private func scheduleReturnCached(afterDelay delay: TimeInterval?, completion: @escaping (_ success: Bool) -> Void) {
@@ -237,7 +270,7 @@ extension RemoteImage {
                 }
 
                 if let transientImage = $0 {
-//                    print("Image for \(self.download.url) is in the disk cache")
+                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
                     // Move to in memory cache
                     self.service.inMemoryCache.cacheTransientImage(transientImage,
                                                                    withURL: self.download.url,
@@ -248,7 +281,7 @@ extension RemoteImage {
                     completion(true)
                 }
                 else {
-//                    print("Image for \(self.download.url) not in the disk cache")
+                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
                     completion(false)
                 }
             }
@@ -330,18 +363,5 @@ private extension RemoteContentLoadingState where Value == Image {
 
     static func success(_ transientImage: TransientImageType) -> RemoteContentLoadingState<Value, Progress> {
         .success(transientImage.image)
-    }
-}
-
-
-private extension URLImageOptions.CachePolicy {
-
-    var isReturnCache: Bool {
-        switch self {
-            case .returnCacheElseLoad, .returnCacheDontLoad, .returnCacheReload:
-                return true
-            default:
-                return false
-        }
     }
 }

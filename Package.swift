@@ -26,7 +26,7 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "URLImage",
-            dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex" ]),
+            dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex", "Common" ]),
         .target(
             name: "RemoteContentView",
             path: "Dependencies/Sources/RemoteContentView"),
@@ -35,11 +35,10 @@ let package = Package(
             path: "Dependencies/Sources/ImageDecoder"),
         .target(
             name: "FileIndex",
-            dependencies: [ "PlainDatabase", "Log" ],
+            dependencies: [ "PlainDatabase", "Log", "Common" ],
             path: "Dependencies/Sources/FileIndex"),
         .target(
             name: "PlainDatabase",
-            dependencies: [],
             path: "Dependencies/Sources/PlainDatabase"),
         .target(
             name: "DownloadManager",
@@ -48,6 +47,9 @@ let package = Package(
         .target(
             name: "Log",
             path: "Dependencies/Sources/Log"),
+        .target(
+            name: "Common",
+            path: "Dependencies/Sources/Common"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),
