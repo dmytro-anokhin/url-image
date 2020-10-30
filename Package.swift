@@ -39,7 +39,6 @@ let package = Package(
             path: "Dependencies/Sources/FileIndex"),
         .target(
             name: "PlainDatabase",
-            dependencies: [],
             path: "Dependencies/Sources/PlainDatabase"),
         .target(
             name: "DownloadManager",
