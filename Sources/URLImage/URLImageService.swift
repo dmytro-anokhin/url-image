@@ -7,7 +7,10 @@
 
 import Foundation
 import Combine
+
+#if canImport(DownloadManager)
 import DownloadManager
+#endif
 
 
 public final class URLImageService {

@@ -66,24 +66,6 @@ public enum PredicateOperator {
 }
 
 
-public struct StringOptions : OptionSet {
-
-    public let rawValue: UInt
-
-    public init(rawValue: RawValue) {
-        self.rawValue = rawValue
-    }
-
-    public static let caseInsensitive = StringOptions(rawValue: 1 << 0)
-
-    public static let diacriticInsensitive = StringOptions(rawValue: 1 << 1)
-
-    var nsComparisonPredicateOptions: NSComparisonPredicate.Options {
-        .init(rawValue: rawValue)
-    }
-}
-
-
 /**
     A database that stores a plain list of same type objects.
  */
@@ -109,7 +91,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
     // MARK: - Read
 
     /// Synchronous
-    public func read<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: StringOptions = []) -> [Object] {
+    public func read<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: NSComparisonPredicate.Options = []) -> [Object] {
         let predicate = self.predicate(key: key, operator: `operator`, value: value, stringOptions: stringOptions)
         return read(where: predicate)
     }
@@ -132,7 +114,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
     }
 
     /// Asynchronous
-    public func read<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: StringOptions = [], completion: @escaping (_ objects: [Object]) -> Void) {
+    public func read<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: NSComparisonPredicate.Options = [], completion: @escaping (_ objects: [Object]) -> Void) {
         let predicate = self.predicate(key: key, operator: `operator`, value: value, stringOptions: stringOptions)
         read(where: predicate, completion: completion)
     }
@@ -152,7 +134,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
 
     // MARK: - Update
 
-    public func update<T>(_ encodable: Object, where key: String, is operator: PredicateOperator, value: T, stringOptions: StringOptions = []) {
+    public func update<T>(_ encodable: Object, where key: String, is operator: PredicateOperator, value: T, stringOptions: NSComparisonPredicate.Options = []) {
         let predicate = self.predicate(key: key, operator: `operator`, value: value, stringOptions: stringOptions)
         update(encodable, where: predicate)
     }
@@ -172,7 +154,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
 
     // MARK: - Delete
 
-    public func delete<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: StringOptions = []) {
+    public func delete<T>(where key: String, is operator: PredicateOperator, value: T, stringOptions: NSComparisonPredicate.Options = []) {
         let predicate = self.predicate(key: key, operator: `operator`, value: value, stringOptions: stringOptions)
         delete(where: predicate)
     }
@@ -224,7 +206,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
 
     // MARK: - Utils
 
-    public func predicate<T>(key: String, operator: PredicateOperator, value: T, stringOptions: StringOptions) -> NSPredicate {
+    public func predicate<T>(key: String, operator: PredicateOperator, value: T, stringOptions: NSComparisonPredicate.Options) -> NSPredicate {
         let lhs = NSExpression(forKeyPath: key)
         let rhs: NSExpression
 
@@ -240,7 +222,7 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
                                      rightExpression: rhs,
                                      modifier: .direct,
                                      type: `operator`.nsComparisonPredicateOperator,
-                                     options: stringOptions.nsComparisonPredicateOptions)
+                                     options: stringOptions)
     }
 
     public func request(with predicate: NSPredicate? = nil) -> NSFetchRequest<NSManagedObject> {

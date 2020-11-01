@@ -7,7 +7,10 @@
 
 import Foundation
 import Combine
+
+#if canImport(FileIndex)
 import FileIndex
+#endif
 
 
 final class DiskCache {

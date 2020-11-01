@@ -6,7 +6,10 @@
 //
 
 import Foundation
+
+#if canImport(Log)
 import Log
+#endif
 
 
 final class URLSessionDelegate : NSObject {

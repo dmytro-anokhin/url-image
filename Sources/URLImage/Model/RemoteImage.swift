@@ -7,10 +7,22 @@
 
 import Combine
 import SwiftUI
+
+#if canImport(DownloadManager)
 import DownloadManager
+#endif
+
+#if canImport(ImageDecoder)
 import ImageDecoder
+#endif
+
+#if canImport(RemoteContentView)
 import RemoteContentView
+#endif
+
+#if canImport(Log)
 import Log
+#endif
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
