@@ -13,7 +13,7 @@ Pod::Spec.new do |spec|
 
   spec.author       = { 'Dmytro Anokhin' => '5136301+dmytro-anokhin@users.noreply.github.com' }
 
-  spec.source       = { :git => 'https://github.com/dmytro-anokhin/url-image.git', :tag => '#{spec.version}' }
+  spec.source       = { :git => 'https://github.com/dmytro-anokhin/url-image.git', :tag => "#{spec.version}" }
 
   spec.source_files  = 'Sources', 'Sources/**/*.{swift}'
   spec.exclude_files = 'Tests'
