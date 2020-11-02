@@ -258,7 +258,7 @@ extension RemoteImage {
         loadingState = .inProgress(nil)
 
         service.diskCache
-            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url)
+            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url, maxPixelSize: options.maxPixelSize)
             .receive(on: RunLoop.main)
             .catch { _ in
                 Just(nil)
@@ -291,7 +291,7 @@ extension RemoteImage {
         switch result {
             case .data(let data):
 
-                guard let transientImage = TransientImage(data: data) else {
+                guard let transientImage = TransientImage(data: data, maxPixelSize: options.maxPixelSize) else {
                     throw URLImageError.decode
                 }
 
@@ -316,7 +316,7 @@ extension RemoteImage {
 
                 let location = URL(fileURLWithPath: path)
 
-                guard let transientImage = TransientImage(location: location) else {
+                guard let transientImage = TransientImage(location: location, maxPixelSize: options.maxPixelSize) else {
                     throw URLImageError.decode
                 }
 

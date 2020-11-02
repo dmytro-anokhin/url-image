@@ -88,7 +88,7 @@ import AppKit
 extension NSImage {
 
     var cgImage: CGImage? {
-        var imageRect = CGRect(x: 0, y: 0, width: size.width, height: size.height)
+        var imageRect = CGRect(x: 0, y: 0, width: maxPixelSize.width, height: maxPixelSize.height)
         return cgImage(forProposedRect: &imageRect, context: nil, hints: nil)
     }
 }

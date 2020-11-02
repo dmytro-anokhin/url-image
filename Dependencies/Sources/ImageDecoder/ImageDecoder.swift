@@ -37,6 +37,11 @@ public final class ImageDecoder {
         public var mode: Mode
 
         public var sizeForDrawing: CGSize?
+
+        public init(mode: Mode, sizeForDrawing: CGSize?) {
+            self.mode = mode
+            self.sizeForDrawing = sizeForDrawing
+        }
     }
 
     public enum SubsamplingLevel: Int {
