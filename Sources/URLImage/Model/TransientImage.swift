@@ -23,41 +23,45 @@ public protocol TransientImageType {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, *)
 public struct TransientImage: TransientImageType {
 
-    public init?(data: Data) {
+    public init?(data: Data, maxPixelSize: CGSize?) {
         let decoder = ImageDecoder()
         decoder.setData(data, allDataReceived: true)
 
-        self.init(decoder: decoder)
+        self.init(decoder: decoder, maxPixelSize: maxPixelSize)
     }
 
-    public init?(location: URL) {
+    public init?(location: URL, maxPixelSize: CGSize?) {
         guard let decoder = ImageDecoder(url: location) else {
             return nil
         }
 
-        self.init(decoder: decoder)
+        self.init(decoder: decoder, maxPixelSize: maxPixelSize)
     }
 
-    public init?(decoder: ImageDecoder) {
+    public init?(decoder: ImageDecoder, maxPixelSize: CGSize?) {
         guard let uti = decoder.uti else {
             // Not an image data
             return nil
         }
 
-        guard let cgImage = decoder.createFrameImage(at: 0) else {
-            // Can not decode image, corrupted data
+        let decodedCGImage: CGImage?
+
+        if let size = maxPixelSize {
+            let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: size)
+            decodedCGImage = decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)
+        } else {
+            decodedCGImage = decoder.createFrameImage(at: 0)
+        }
+
+        guard let cgImage = decodedCGImage else {
+            // Can not decode image
             return nil
         }
 
         self.cgImage = cgImage
         self.cgOrientation = decoder.frameOrientation(at: 0)
         self.uti = uti
-    }
-
-    public init(cgImage: CGImage, cgOrientation: CGImagePropertyOrientation?, uti: String) {
-        self.cgImage = cgImage
-        self.cgOrientation = cgOrientation
-        self.uti = uti
+        self.maxPixelSize = maxPixelSize
     }
 
     public var cgImage: CGImage
@@ -65,6 +69,8 @@ public struct TransientImage: TransientImageType {
     public var cgOrientation: CGImagePropertyOrientation?
 
     public var uti: String
+
+    public var maxPixelSize: CGSize?
 }
 
 

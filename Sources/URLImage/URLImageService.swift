@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreGraphics
 
 #if canImport(DownloadManager)
 import DownloadManager
@@ -29,7 +30,8 @@ public final class URLImageService {
     public var defaultOptions = URLImageOptions(identifier: nil,
                                                 expireAfter: 24 * 60 * 60,
                                                 cachePolicy: .returnCacheElseLoad(),
-                                                isInMemoryDownload: false)
+                                                isInMemoryDownload: false,
+                                                maxPixelSize: CGSize(width: 300.0, height: 300.0))
 
     /// Remove expired images from the disk and in memory caches
     public func cleanup() {

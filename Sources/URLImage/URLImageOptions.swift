@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import CoreGraphics
 
 
 /// Options to control how the image is downloaded and stored
@@ -51,13 +52,17 @@ public struct URLImageOptions {
     /// Download image data in memory or directly to the file on disk
     public var isInMemoryDownload: Bool
 
+    public var maxPixelSize: CGSize?
+
     public init(identifier: String? = nil,
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
-                isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload) {
+                isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload,
+                maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
         self.isInMemoryDownload = isInMemoryDownload
+        self.maxPixelSize = maxPixelSize
     }
 }

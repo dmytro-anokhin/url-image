@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import CoreGraphics
 
 #if canImport(FileIndex)
 import FileIndex
@@ -31,6 +32,7 @@ final class DiskCache {
 
     func getImage(withIdentifier identifier: String?,
                   orURL url: URL,
+                  maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImageType?, Swift.Error>) -> Void
     ) {
         databaseQueue.async { [weak self] in
@@ -45,8 +47,8 @@ final class DiskCache {
                 guard let self = self else { return }
 
                 let location = self.fileIndex.location(of: file)
-                
-                if let transientImage = TransientImage(location: location) {
+
+                if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
                     completion(.success(transientImage))
                 }
                 else {
@@ -56,13 +58,13 @@ final class DiskCache {
         }
     }
 
-    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL) -> AnyPublisher<TransientImageType?, Swift.Error> {
+    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImageType?, Swift.Error> {
         return Future<TransientImageType?, Swift.Error> { [weak self] promise in
             guard let self = self else {
                 return
             }
 
-            self.getImage(withIdentifier: identifier, orURL: url) {
+            self.getImage(withIdentifier: identifier, orURL: url, maxPixelSize: maxPixelSize) {
                 promise($0)
             }
         }.eraseToAnyPublisher()
