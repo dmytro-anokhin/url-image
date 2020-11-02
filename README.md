@@ -22,6 +22,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Installation](#installation)
 - [Usage](#usage)
 - [Cache](#cache)
+- [Options](#options)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -37,7 +38,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager.
+`URLImage` can be installed using Swift Package Manager or CocoaPods.
 
 ## Usage
 
@@ -119,13 +120,49 @@ Downloaded images stored in user caches folder. This allows OS to take care of c
 
 You can remove expired images by calling `cleanup` as a part of your startup routine. This will also remove image files from the previous `URLImage` version if you used it.
 
-```
+```swift
 URLImageService.shared.cleanup()
 ```
 
 Downloaded images expire after some time. Expired images removed in `cleanup` routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`.
 
 You can also remove individual or all cached images using `URLImageService`.
+
+## Options
+
+`URLImage` allows controlling various aspects of download and cache using `URLImageOptions` structure. You can set default options using `URLImageService.shared.defaultOptions` property. Here are the main settings:
+
+**`identifier: String?`**
+
+By default an image is identified by its URL. Alternatively, you can provide a string identifier to override this.
+
+**`expiryInterval: TimeInterval?`**
+
+Time interval after which the cached image expires and can be deleted. Images are deleted as part of cleanup routine described in [Cache](#cache) paragraph.
+
+**`maxPixelSize: CGSize?`**
+
+Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
+
+**`cachePolicy: CachePolicy`**
+
+The cache policy controls how the image loaded from cache.
+
+### Cache Policy
+
+Cache policy, `URLImageOptions.CachePolicy` type, allows to specify how `URLImage` utilizes it's cache, similar to `NSURLRequest.CachePolicy`. This type also allows to specify delays for accessing disk cache and starting download.
+
+**`case returnCacheElseLoad`**
+    
+Return an image from cache or download it.
+
+**`returnCacheDontLoad`**
+
+Return an image from cache, do not download it.
+
+**`ignoreCache`**
+
+Ignore cached image and download remote one.
 
 ## Reporting a Bug
 
