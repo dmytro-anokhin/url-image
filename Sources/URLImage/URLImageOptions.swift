@@ -52,6 +52,7 @@ public struct URLImageOptions {
     /// Download image data in memory or directly to the file on disk
     public var isInMemoryDownload: Bool
 
+    /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
 
     public init(identifier: String? = nil,
