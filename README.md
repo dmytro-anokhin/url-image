@@ -164,6 +164,13 @@ Return an image from cache, do not download it.
 
 Ignore cached image and download remote one.
 
+---
+
+Some options are can be set globally using `URLImageService.shared.defaultOptions` property. Those are set by default:
+- `expireAfter` to 24 hours;
+- `cachePolicy` to `returnCacheElseLoad` without delays;
+- `maxPixelSize` to 300 by 300 pixels.
+
 ## Reporting a Bug
 
 Use GitHub issues to report a bug. Include this information when possible:
