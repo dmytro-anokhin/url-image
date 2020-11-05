@@ -40,11 +40,25 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 `URLImage` can be installed using Swift Package Manager or CocoaPods.
 
+### Using Swift Package Manager
+
+Use the package URL to search for the `URLImage` package: https://github.com/dmytro-anokhin/url-image
+
+### Using Cocoa Pods
+
+Add the `URLImage` pod to your Podfile:
+
+```rb
+pod 'URLImage'
+```
+
 ## Usage
 
 `URLImage` expects URL of the image and the content view:
 
 ```swift
+import URLImage // Import the package module
+
 URLImage(url: url,
          content: { image in
              image
