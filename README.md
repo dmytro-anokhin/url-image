@@ -42,7 +42,9 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ### Using Swift Package Manager
 
-Use the package URL to search for the `URLImage` package: https://github.com/dmytro-anokhin/url-image
+Use the package URL to search for the `URLImage` package: https://github.com/dmytro-anokhin/url-image.
+
+For how-to integrate package dependencies refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
 
 ### Using Cocoa Pods
 
@@ -51,6 +53,8 @@ Add the `URLImage` pod to your Podfile:
 ```rb
 pod 'URLImage'
 ```
+
+Refer to https://cocoapods.org for information on setup Cocoa Pods for your project.
 
 ## Usage
 
