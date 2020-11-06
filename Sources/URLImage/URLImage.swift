@@ -39,7 +39,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let content: (_ image: Image) -> Content
 
     public init(url: URL,
-                options: URLImageOptions = URLImageOptions(),
+                options: URLImageOptions = URLImageService.shared.defaultOptions,
                 empty: @escaping () -> Empty,
                 inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -83,7 +83,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage where Empty == EmptyView {
 
     init(url: URL,
-         options: URLImageOptions = URLImageOptions(),
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content)
@@ -103,7 +103,7 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(url: URL,
-         options: URLImageOptions = URLImageOptions(),
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content)
     {
@@ -123,7 +123,7 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(url: URL,
-         options: URLImageOptions = URLImageOptions(),
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
          content: @escaping (_ image: Image) -> Content)
     {
         self.init(url: url,
