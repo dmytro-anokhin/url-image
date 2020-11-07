@@ -71,6 +71,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     public var body: some View {
         RemoteContentView(remoteContent: remoteImage,
+                          isImmediate: options.loadBehaviour == .immediate,
                           empty: empty,
                           inProgress: inProgress,
                           failure: failure,
@@ -135,9 +136,23 @@ public extension URLImage where Empty == EmptyView,
     }
 }
 
-//@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-//struct URLImage_Previews: PreviewProvider {
-//    static var previews: some View {
-//        URLImage()
-//    }
-//}
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+struct URLImage_Previews: PreviewProvider {
+    static var previews: some View {
+        URLImage(url: URL(string: "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png")!,
+                 options: URLImageOptions(expireAfter: 60.0,
+                                          cachePolicy: .ignoreCache()),
+                 failure: { error, _ -> Text in
+                    let string = "\(error)"
+                    return Text(string)
+                 },
+                 content: { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .clipped()
+                 })
+            .frame(width: 320.0, height: 320.0)
+    }
+}

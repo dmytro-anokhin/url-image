@@ -15,6 +15,8 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
                                                                                                    Failure : View,
                                                                                                    Content : View
 {
+    let isImmediate: Bool
+
     let empty: () -> Empty
 
     let inProgress: (_ progress: Progress) -> InProgress
@@ -24,6 +26,7 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
     let content: (_ value: Value) -> Content
 
     public init<R: RemoteContent>(remoteContent: R,
+                                  isImmediate: Bool,
                                   empty: @escaping () -> Empty,
                                   inProgress: @escaping (_ progress: Progress) -> InProgress,
                                   failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -33,12 +36,15 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
     {
         self.remoteContent = AnyRemoteContent(remoteContent)
 
+        self.isImmediate = isImmediate
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
 
-        remoteContent.load()
+        if isImmediate {
+            remoteContent.load()
+        }
     }
 
     public var body: some View {
@@ -60,9 +66,17 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
             }
         }
         .onAppear {
+            guard !isImmediate else {
+                return
+            }
+
             remoteContent.load()
         }
         .onDisappear {
+            guard !isImmediate else {
+                return
+            }
+
             remoteContent.cancel()
         }
     }
