@@ -41,7 +41,7 @@ public struct URLImageOptions {
         case immediate
 
         /// Start load when the image view appears, cancel when disappears
-        case appearance
+        case onAppearance
     }
 
     /// Unique identifier used to identify an image in cache.
@@ -69,7 +69,7 @@ public struct URLImageOptions {
     public init(identifier: String? = nil,
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
-                loadBehaviour: LoadBehaviour = URLImageService.shared.defaultOptions.loadBehaviour,
+                load loadBehaviour: LoadBehaviour = URLImageService.shared.defaultOptions.loadBehaviour,
                 isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload,
                 maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
