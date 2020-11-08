@@ -35,6 +35,25 @@ public struct URLImageOptions {
         case ignoreCache(delay: TimeInterval? = nil)
     }
 
+    /// Controls how download starts and when it can be cancelled
+    public struct LoadOptions: OptionSet {
+
+        public let rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        /// Start load when the image view is created
+        public static let loadImmediately: LoadOptions = .init(rawValue: 1 << 0)
+
+        /// Start load when the image view appears
+        public static let loadOnAppear: LoadOptions = .init(rawValue: 1 << 1)
+
+        /// Cancel load when the image view disappears
+        public static let cancelOnDisappear: LoadOptions = .init(rawValue: 1 << 2)
+    }
+
     /// Unique identifier used to identify an image in cache.
     ///
     /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
@@ -49,6 +68,8 @@ public struct URLImageOptions {
     /// The cache policy controls how the image loaded from cache
     public var cachePolicy: CachePolicy
 
+    public var loadOptions: LoadOptions
+
     /// Download image data in memory or directly to the file on disk
     public var isInMemoryDownload: Bool
 
@@ -58,11 +79,13 @@ public struct URLImageOptions {
     public init(identifier: String? = nil,
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
+                load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
                 isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload,
                 maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
+        self.loadOptions = loadOptions
         self.isInMemoryDownload = isInMemoryDownload
         self.maxPixelSize = maxPixelSize
     }

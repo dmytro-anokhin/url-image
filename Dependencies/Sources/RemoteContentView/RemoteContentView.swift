@@ -9,12 +9,34 @@ import SwiftUI
 import Combine
 
 
+/// Controls how download starts and when it can be cancelled
+public struct RemoteContentViewLoadOptions: OptionSet {
+
+    public let rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    /// Start load when the view is created
+    static let loadImmediately: RemoteContentViewLoadOptions = .init(rawValue: 1 << 0)
+
+    /// Start load when the view appears
+    static let loadOnAppear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 1)
+
+    /// Cancel load when the view disappears
+    static let cancelOnDisappear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 2)
+}
+
+
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                                                    InProgress : View,
                                                                                                    Failure : View,
                                                                                                    Content : View
 {
+    let loadOptions: RemoteContentViewLoadOptions
+
     let empty: () -> Empty
 
     let inProgress: (_ progress: Progress) -> InProgress
@@ -24,6 +46,7 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
     let content: (_ value: Value) -> Content
 
     public init<R: RemoteContent>(remoteContent: R,
+                                  loadOptions: RemoteContentViewLoadOptions,
                                   empty: @escaping () -> Empty,
                                   inProgress: @escaping (_ progress: Progress) -> InProgress,
                                   failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -33,12 +56,15 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
     {
         self.remoteContent = AnyRemoteContent(remoteContent)
 
+        self.loadOptions = loadOptions
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
 
-        remoteContent.load()
+        if loadOptions.contains(.loadImmediately) {
+            remoteContent.load()
+        }
     }
 
     public var body: some View {
@@ -60,10 +86,14 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
             }
         }
         .onAppear {
-            remoteContent.load()
+            if loadOptions.contains(.loadOnAppear) {
+                remoteContent.load()
+            }
         }
         .onDisappear {
-            remoteContent.cancel()
+            if loadOptions.contains(.cancelOnDisappear) {
+                remoteContent.load()
+            }
         }
     }
 
