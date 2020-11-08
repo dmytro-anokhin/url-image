@@ -28,7 +28,7 @@ public final class URLImageService {
     public var defaultOptions = URLImageOptions(identifier: nil,
                                                 expireAfter: 24 * 60 * 60,
                                                 cachePolicy: .returnCacheElseLoad(),
-                                                load: .immediate,
+                                                load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
                                                 isInMemoryDownload: false,
                                                 maxPixelSize: CGSize(width: 300.0, height: 300.0))
 

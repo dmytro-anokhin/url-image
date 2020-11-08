@@ -71,7 +71,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     public var body: some View {
         RemoteContentView(remoteContent: remoteImage,
-                          isImmediate: options.loadBehaviour == .immediate,
+                          loadOptions: RemoteContentViewLoadOptions(rawValue: options.loadOptions.rawValue),
                           empty: empty,
                           inProgress: inProgress,
                           failure: failure,
