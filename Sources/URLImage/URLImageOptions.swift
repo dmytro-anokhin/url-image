@@ -35,7 +35,7 @@ public struct URLImageOptions {
         case ignoreCache(delay: TimeInterval? = nil)
     }
 
-    /// Controls how download starts and when it can be cancelled
+    /// Controls some aspects of download process
     public struct LoadOptions: OptionSet {
 
         public let rawValue: Int
