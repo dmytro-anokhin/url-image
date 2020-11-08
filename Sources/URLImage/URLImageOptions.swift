@@ -52,6 +52,9 @@ public struct URLImageOptions {
 
         /// Cancel load when the image view disappears
         public static let cancelOnDisappear: LoadOptions = .init(rawValue: 1 << 2)
+
+        /// Download image data in memory
+        public static let inMemory: LoadOptions = .init(rawValue: 1 << 3)
     }
 
     /// Unique identifier used to identify an image in cache.
@@ -70,9 +73,6 @@ public struct URLImageOptions {
 
     public var loadOptions: LoadOptions
 
-    /// Download image data in memory or directly to the file on disk
-    public var isInMemoryDownload: Bool
-
     /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
 
@@ -80,13 +80,11 @@ public struct URLImageOptions {
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
                 load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
-                isInMemoryDownload: Bool = URLImageService.shared.defaultOptions.isInMemoryDownload,
                 maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
         self.loadOptions = loadOptions
-        self.isInMemoryDownload = isInMemoryDownload
         self.maxPixelSize = maxPixelSize
     }
 }

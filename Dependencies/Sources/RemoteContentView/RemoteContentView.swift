@@ -19,13 +19,13 @@ public struct RemoteContentViewLoadOptions: OptionSet {
     }
 
     /// Start load when the view is created
-    static let loadImmediately: RemoteContentViewLoadOptions = .init(rawValue: 1 << 0)
+    public static let loadImmediately: RemoteContentViewLoadOptions = .init(rawValue: 1 << 0)
 
     /// Start load when the view appears
-    static let loadOnAppear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 1)
+    public static let loadOnAppear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 1)
 
     /// Cancel load when the view disappears
-    static let cancelOnDisappear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 2)
+    public static let cancelOnDisappear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 2)
 }
 
 
