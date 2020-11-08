@@ -45,6 +45,9 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
                 content: @escaping (_ image: Image) -> Content)
     {
+        assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
+               "Options must specify how to load the image")
+
         self.url = url
         self.options = options
         self.empty = empty
