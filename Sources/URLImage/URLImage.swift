@@ -57,7 +57,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
         let download: Download
 
-        if options.isInMemoryDownload {
+        if options.loadOptions.contains(.inMemory) {
             download = Download(url: url)
         }
         else {
@@ -74,7 +74,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     public var body: some View {
         RemoteContentView(remoteContent: remoteImage,
-                          loadOptions: RemoteContentViewLoadOptions(rawValue: options.loadOptions.rawValue),
+                          loadOptions: RemoteContentViewLoadOptions(options.loadOptions),
                           empty: empty,
                           inProgress: inProgress,
                           failure: failure,
