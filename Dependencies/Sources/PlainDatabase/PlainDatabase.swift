@@ -193,6 +193,12 @@ public final class PlainDatabase<Object: PlainDatabaseObject> {
         }
     }
 
+    public func sync(_ closure: @escaping (_ context: NSManagedObjectContext) throws -> Void) {
+        database.sync { context in
+            try closure(context)
+        }
+    }
+
     public func async(_ closure: @escaping (_ context: NSManagedObjectContext) throws -> Void) {
         database.async { context in
             do {
