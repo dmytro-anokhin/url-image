@@ -52,7 +52,7 @@ public func log_info(_ object: Any?, _ function: String?, _ message: String) {
 }
 
 public func log_debug(_ object: Any?, _ function: String?, _ message: @autoclosure () -> String?, detail: Int = log_default) {
-    guard detail < log_detail else {
+    guard detail <= log_detail else {
         return
     }
 
