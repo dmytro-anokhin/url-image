@@ -13,6 +13,10 @@ import CoreGraphics
 import FileIndex
 #endif
 
+#if canImport(Log)
+import Log
+#endif
+
 
 final class DiskCache {
 
@@ -35,7 +39,7 @@ final class DiskCache {
                   maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImageType?, Swift.Error>) -> Void
     ) {
-        databaseQueue.async { [weak self] in
+        fileIndexQueue.async { [weak self] in
             guard let self = self else { return }
 
             guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
@@ -43,10 +47,10 @@ final class DiskCache {
                 return
             }
 
-            self.decodeQueue.async { [weak self] in
-                guard let self = self else { return }
+            let location = self.fileIndex.location(of: file)
 
-                let location = self.fileIndex.location(of: file)
+            self.decodeQueue.async { [weak self] in
+                guard let _ = self else { return }
 
                 if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
                     completion(.success(transientImage))
@@ -71,35 +75,71 @@ final class DiskCache {
     }
 
     func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        _ = try? fileIndex.write(data,
-                                 originalURL: url,
-                                 identifier: identifier,
-                                 fileName: fileName,
-                                 fileExtension: fileExtension,
-                                 expireAfter: expiryInterval)
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            _ = try? self.fileIndex.write(data,
+                                          originalURL: url,
+                                          identifier: identifier,
+                                          fileName: fileName,
+                                          fileExtension: fileExtension,
+                                          expireAfter: expiryInterval)
+        }
     }
 
     func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        _ = try? fileIndex.move(location,
-                                originalURL: url,
-                                identifier: identifier,
-                                fileName: fileName,
-                                fileExtension: fileExtension,
-                                expireAfter: expiryInterval)
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            _ = try? self.fileIndex.move(location,
+                                         originalURL: url,
+                                         identifier: identifier,
+                                         fileName: fileName,
+                                         fileExtension: fileExtension,
+                                         expireAfter: expiryInterval)
+        }
     }
 
     // MARK: - Cleanup
 
     func cleanup() {
-        fileIndex.deleteExpired()
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.fileIndex.deleteExpired()
+        }
     }
 
     func deleteAll() {
-        fileIndex.deleteAll()
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.fileIndex.deleteAll()
+        }
     }
 
     func delete(withIdentifier identifier: String?, orURL url: URL?) {
-        databaseQueue.async { [weak self] in
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            log_debug(self, #function, {
+                if let identifier = identifier {
+                    return "identifier = " + identifier
+                }
+
+                if let url = url {
+                    return "url = " + url.absoluteString
+                }
+
+                return "No identifier or url"
+            }(), detail: log_normal)
+
             guard let self = self else {
                 return
             }
@@ -120,7 +160,7 @@ final class DiskCache {
 
     // MARK: - Private
 
-    private let databaseQueue = DispatchQueue(label: "URLImage.DiskCache.databaseQueue", attributes: .concurrent)
+    private let fileIndexQueue = DispatchQueue(label: "URLImage.DiskCache.fileIndexQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
     private let utilityQueue = DispatchQueue(label: "URLImage.DiskCache.utilityQueue", qos: .utility, attributes: .concurrent)
 
