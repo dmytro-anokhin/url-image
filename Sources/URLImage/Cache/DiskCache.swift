@@ -148,13 +148,7 @@ final class DiskCache {
                 return
             }
 
-            self.utilityQueue.async { [weak self] in
-                guard let self = self else {
-                    return
-                }
-
-                self.fileIndex.delete(file)
-            }
+            self.fileIndex.delete(file)
         }
     }
 
@@ -162,7 +156,6 @@ final class DiskCache {
 
     private let fileIndexQueue = DispatchQueue(label: "URLImage.DiskCache.fileIndexQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
-    private let utilityQueue = DispatchQueue(label: "URLImage.DiskCache.utilityQueue", qos: .utility, attributes: .concurrent)
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL?) -> File? {
         if let identifier = identifier {

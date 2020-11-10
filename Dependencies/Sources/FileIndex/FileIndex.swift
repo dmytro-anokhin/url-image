@@ -186,7 +186,7 @@ public class FileIndex {
     }
 
     private func delete(request: NSFetchRequest<NSManagedObject>, _ completion: (() -> Void)? = nil) {
-        database.async { context in
+        database.sync { context -> Void in
             let objects = try context.fetch(request)
 
             for object in objects {
