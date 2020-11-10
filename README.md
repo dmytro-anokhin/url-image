@@ -202,6 +202,8 @@ Crash log;
 Sample code, try isolating it so it compiles without dependancies;
 Test data: if you use public resource provide URLs of the images.
 
+Please make sure there is a reproducible scenario. Ideally provide a sample code. And if you submit a sample code - make sure it compiles ;)
+
 ## Requesting a Feature
 
 Use GitHub issues to request a feature.
