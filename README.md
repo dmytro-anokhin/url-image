@@ -30,12 +30,9 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ## Features
 - SwiftUI image view for remote images;
-- Asynchronous image loading in the background with cancellation when view disappears;
-- Local disk cache for downloaded images;
-- Download progress indication;
-- Fully customizable including placeholder, progress indication, and the image view;
-- Control over download delay for better scroll performance;
-- Images can be downloaded directly to disk or in memory.
+- Local image cache;
+- Fully customizable including placeholder, progress indication, error, and the image view;
+- Control over various download aspects for better performance.
 
 ## Installation
 
