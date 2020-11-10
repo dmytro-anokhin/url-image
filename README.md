@@ -171,7 +171,7 @@ The cache policy controls how the image loaded from cache.
 
 Cache policy, `URLImageOptions.CachePolicy` type, allows to specify how `URLImage` utilizes it's cache, similar to `NSURLRequest.CachePolicy`. This type also allows to specify delays for accessing disk cache and starting download.
 
-**`case returnCacheElseLoad`**
+**`returnCacheElseLoad`**
     
 Return an image from cache or download it.
 
