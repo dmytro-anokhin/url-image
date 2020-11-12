@@ -5,7 +5,9 @@
 //  Created by Dmytro Anokhin on 08/11/2020.
 //
 
+#if canImport(RemoteContentView)
 import RemoteContentView
+#endif
 
 
 extension RemoteContentViewLoadOptions {
