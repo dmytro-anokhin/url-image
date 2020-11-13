@@ -144,6 +144,7 @@ public final class RemoteImage : RemoteContent {
 }
 
 
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension RemoteImage {
 
     private var isLoadedSuccessfully: Bool {
@@ -358,6 +359,7 @@ extension RemoteImage {
 }
 
 
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 private extension RemoteContentLoadingState where Value == Image {
 
     static func success(_ transientImage: TransientImageType) -> RemoteContentLoadingState<Value, Progress> {

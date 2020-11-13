@@ -14,13 +14,14 @@ import ImageDecoder
 
 
 /// Temporary representation used after decoding an image from data or file on disk and before creating an `Image` object.
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public protocol TransientImageType {
 
     var image: Image { get }
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, *)
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct TransientImage: TransientImageType {
 
     public init?(data: Data, maxPixelSize: CGSize?) {
@@ -74,6 +75,7 @@ public struct TransientImage: TransientImageType {
 }
 
 
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension TransientImageType where Self == TransientImage {
 
     var image: Image {

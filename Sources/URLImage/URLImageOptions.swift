@@ -10,6 +10,7 @@ import CoreGraphics
 
 
 /// Options to control how the image is downloaded and stored
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImageOptions {
 
     public enum CachePolicy {
