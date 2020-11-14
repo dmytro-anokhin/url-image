@@ -1,6 +1,6 @@
 Pod::Spec.new do |spec|
   spec.name         = 'URLImage'
-  spec.version      = '2.1.6'
+  spec.version      = '2.1.7'
   spec.summary      = 'SwiftUI Image view that displays an image downloaded from URL.'
 
   spec.description  = <<-DESC
@@ -20,7 +20,7 @@ Pod::Spec.new do |spec|
 
   spec.swift_versions = '5.3'
 
-  spec.platforms = { :ios => '13.0', :tvos => '13.0', :osx => '10.15', :watchos => '6.0' }
+  spec.platforms = { :ios => '10.0', :tvos => '10.0', :osx => '10.12', :watchos => '3.0' }
 
   spec.subspec 'RemoteContentView' do |ss|
     ss.source_files = 'Dependencies/Sources/RemoteContentView/**/*.{swift}'
