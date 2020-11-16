@@ -5,7 +5,9 @@
 //  Created by Dmytro Anokhin on 28/07/2020.
 //
 
+#if canImport(Combine)
 import Combine
+#endif
 
 #if canImport(Log)
 import Log

@@ -6,8 +6,11 @@
 //
 
 import Foundation
-import Combine
 import CoreGraphics
+
+#if canImport(Combine)
+import Combine
+#endif
 
 #if canImport(DownloadManager)
 import DownloadManager

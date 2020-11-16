@@ -5,8 +5,13 @@
 //  Created by Dmytro Anokhin on 09/08/2020.
 //
 
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
+
+#if canImport(Combine)
 import Combine
+#endif
 
 
 /// Controls how download starts and when it can be cancelled

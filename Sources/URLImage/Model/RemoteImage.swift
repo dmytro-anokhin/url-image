@@ -5,8 +5,13 @@
 //  Created by Dmytro Anokhin on 25/08/2020.
 //
 
-import Combine
+#if canImport(SwiftUI)
 import SwiftUI
+#endif
+
+#if canImport(Combine)
+import Combine
+#endif
 
 #if canImport(DownloadManager)
 import DownloadManager

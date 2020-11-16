@@ -5,8 +5,11 @@
 //  Created by Dmytro Anokhin on 30/09/2020.
 //
 
-import SwiftUI
 import ImageIO
+
+#if canImport(SwiftUI)
+import SwiftUI
+#endif
 
 #if canImport(ImageDecoder)
 import ImageDecoder

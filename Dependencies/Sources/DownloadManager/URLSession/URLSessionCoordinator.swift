@@ -6,7 +6,10 @@
 //
 
 import Foundation
+
+#if canImport(Combine)
 import Combine
+#endif
 
 #if canImport(Log)
 import Log
