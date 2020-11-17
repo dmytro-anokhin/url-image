@@ -5,9 +5,7 @@
 //  Created by Dmytro Anokhin on 16/08/2020.
 //
 
-#if canImport(SwiftUI)
 import SwiftUI
-#endif
 
 #if canImport(RemoteContentView)
 import RemoteContentView

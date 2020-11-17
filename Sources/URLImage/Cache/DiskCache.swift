@@ -7,10 +7,7 @@
 
 import Foundation
 import CoreGraphics
-
-#if canImport(Combine)
 import Combine
-#endif
 
 #if canImport(FileIndex)
 import FileIndex

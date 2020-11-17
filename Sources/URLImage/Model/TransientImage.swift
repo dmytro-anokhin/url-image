@@ -6,10 +6,7 @@
 //
 
 import ImageIO
-
-#if canImport(SwiftUI)
 import SwiftUI
-#endif
 
 #if canImport(ImageDecoder)
 import ImageDecoder
