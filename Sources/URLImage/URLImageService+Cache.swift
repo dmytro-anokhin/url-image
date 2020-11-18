@@ -37,6 +37,8 @@ extension URLImageService {
         inMemoryCache.delete(withIdentifier: identifier, orURL: nil)
     }
 
+    // MARK: - Private
+
     private func performPreviousVersionCleanup() {
         let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
         let directoryURL = cachesURL.appendingPathComponent("URLImage", isDirectory: true)
