@@ -43,11 +43,10 @@ public final class URLImageService {
 
     let inMemoryCache = InMemoryCache()
 
-    let downloadScheduler: DownloadScheduler
+    lazy var downloadScheduler: DownloadScheduler = DownloadScheduler(service: self)
 
     // MARK: - Private
 
     private init() {
-        downloadScheduler = DownloadScheduler(downloadManager: downloadManager, diskCache: diskCache, inMemoryCache: inMemoryCache)
     }
 }

@@ -249,7 +249,9 @@ extension RemoteImage {
                         self.updateLoadingState(.inProgress(progress))
                     case .completion(let result):
                         do {
-                            let transientImage = try self.decode(result: result)
+                            let transientImage = try self.service.decode(result: result,
+                                                                         download: self.download,
+                                                                         options: self.options)
                             self.updateLoadingState(.success(transientImage))
                         }
                         catch {
@@ -291,65 +293,6 @@ extension RemoteImage {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    private func decode(result: DownloadResult) throws -> TransientImageType {
-        switch result {
-            case .data(let data):
-
-                guard let transientImage = TransientImage(data: data, maxPixelSize: options.maxPixelSize) else {
-                    throw URLImageError.decode
-                }
-
-                let fileName = UUID().uuidString
-                let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
-
-                service.diskCache.cacheImageData(data,
-                                                 url: download.url,
-                                                 identifier: options.identifier,
-                                                 fileName: fileName,
-                                                 fileExtension: fileExtension,
-                                                 expireAfter: options.expiryInterval)
-
-                service.inMemoryCache.cacheTransientImage(transientImage,
-                                                          withURL: download.url,
-                                                          identifier: options.identifier,
-                                                          expireAfter: options.expiryInterval)
-
-                return transientImage
-
-            case .file(let path):
-
-                let location = URL(fileURLWithPath: path)
-
-                guard let transientImage = TransientImage(location: location, maxPixelSize: options.maxPixelSize) else {
-                    throw URLImageError.decode
-                }
-
-                let fileName = UUID().uuidString
-                let fileExtension: String?
-
-                if !location.pathExtension.isEmpty {
-                    fileExtension = location.pathExtension
-                }
-                else {
-                    fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
-                }
-
-                service.diskCache.cacheImageFile(at: location,
-                                                 url: download.url,
-                                                 identifier: options.identifier,
-                                                 fileName: fileName,
-                                                 fileExtension: fileExtension,
-                                                 expireAfter: options.expiryInterval)
-
-                service.inMemoryCache.cacheTransientImage(transientImage,
-                                                          withURL: download.url,
-                                                          identifier: options.identifier,
-                                                          expireAfter: options.expiryInterval)
-
-                return transientImage
-        }
     }
 
     private func updateLoadingState(_ loadingState: LoadingState) {
