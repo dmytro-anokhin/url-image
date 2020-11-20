@@ -57,15 +57,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         self.failure = failure
         self.content = content
 
-        let download: Download
-
-        if options.loadOptions.contains(.inMemory) {
-            download = Download(url: url)
-        }
-        else {
-            let path = FileManager.default.tmpFilePathInCachesDirectory()
-            download = Download(destination: .onDisk(path), url: url)
-        }
+        let download = Download(url: url, options: options)
 
         remoteImage = RemoteImage(service: URLImageService.shared,
                                   download: download,

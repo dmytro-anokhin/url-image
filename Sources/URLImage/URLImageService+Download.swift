@@ -31,15 +31,7 @@ extension URLImageService {
 
         func downloadImage(url: URL, options: URLImageOptions) {
 
-            let download: Download
-
-            if options.loadOptions.contains(.inMemory) {
-                download = Download(url: url)
-            }
-            else {
-                let path = FileManager.default.tmpFilePathInCachesDirectory()
-                download = Download(destination: .onDisk(path), url: url)
-            }
+            let download = Download(url: url, options: options)
 
             service.downloadManager.publisher(for: download)
                 .sink { [weak self] result in
