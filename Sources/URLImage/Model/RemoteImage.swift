@@ -236,6 +236,7 @@ extension RemoteImage {
                         break
 
                     case .failure(let error):
+                        // This route happens when download fails
                         self.updateLoadingState(.failure(error))
                 }
             }
@@ -255,6 +256,7 @@ extension RemoteImage {
                             self.updateLoadingState(.success(transientImage))
                         }
                         catch {
+                            // This route happens when download succeeds, but decoding fails
                             self.updateLoadingState(.failure(error))
                         }
                 }
