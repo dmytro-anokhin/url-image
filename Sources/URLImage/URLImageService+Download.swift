@@ -29,12 +29,23 @@ extension URLImageService {
             self.service = service
         }
 
-        func downloadImage(url: URL, options: URLImageOptions) {
+        func downloadImage(url: URL, options: URLImageOptions, completion: DownloadCompletion? = nil) {
 
             let download = Download(url: url, options: options)
 
             service.downloadManager.publisher(for: download)
                 .sink { [weak self] result in
+                    guard let self = self else {
+                        return
+                    }
+
+                    switch result {
+                        case .finished:
+                            break
+
+                        case .failure(let error):
+                            completion?(.failure(error))
+                    }
                 }
                 receiveValue: { [weak self] info in
                     guard let self = self else {
@@ -46,10 +57,11 @@ extension URLImageService {
                             break
                         case .completion(let result):
                             do {
-                                _ = try self.service.decode(result: result, download: download, options: options)
+                                let image = try self.service.decode(result: result, download: download, options: options)
+                                completion?(.success(image))
                             }
                             catch {
-
+                                completion?(.failure(error))
                             }
                     }
                 }
@@ -59,7 +71,9 @@ extension URLImageService {
         private var cancellables = Set<AnyCancellable>()
     }
 
-    public func downloadImage(url: URL, options: URLImageOptions? = nil) {
-        downloadScheduler.downloadImage(url: url, options: options ?? defaultOptions)
+    public typealias DownloadCompletion = (Result<TransientImageType, Error>) -> Void
+
+    public func downloadImage(url: URL, options: URLImageOptions? = nil, completion: DownloadCompletion? = nil) {
+        downloadScheduler.downloadImage(url: url, options: options ?? defaultOptions, completion: completion)
     }
 }
