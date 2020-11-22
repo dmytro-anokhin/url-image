@@ -21,7 +21,7 @@ import ImageDecoder
 extension URLImageService {
 
     /// Keeps track of running downloads
-    final class DownloadScheduler {
+    public final class DownloadScheduler {
 
         unowned let service: URLImageService
 
@@ -29,8 +29,11 @@ extension URLImageService {
             self.service = service
         }
 
-        func downloadImage(url: URL, options: URLImageOptions, completion: DownloadCompletion? = nil) {
+        public typealias DownloadCompletion = (Result<TransientImageType, Error>) -> Void
 
+        public func downloadImage(url: URL, options: URLImageOptions? = nil, completion: DownloadCompletion? = nil) {
+
+            let options = options ?? service.defaultOptions
             let download = Download(url: url, options: options)
 
             service.downloadManager.publisher(for: download)
@@ -69,11 +72,5 @@ extension URLImageService {
         }
 
         private var cancellables = Set<AnyCancellable>()
-    }
-
-    public typealias DownloadCompletion = (Result<TransientImageType, Error>) -> Void
-
-    public func downloadImage(url: URL, options: URLImageOptions? = nil, completion: DownloadCompletion? = nil) {
-        downloadScheduler.downloadImage(url: url, options: options ?? defaultOptions, completion: completion)
     }
 }

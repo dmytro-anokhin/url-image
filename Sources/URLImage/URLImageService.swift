@@ -35,6 +35,8 @@ public final class URLImageService {
                                                 load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
                                                 maxPixelSize: CGSize(width: 300.0, height: 300.0))
 
+    public private(set) lazy var downloadScheduler: DownloadScheduler = DownloadScheduler(service: self)
+
     // MARK: - Internal
 
     let downloadManager = DownloadManager()
@@ -42,8 +44,6 @@ public final class URLImageService {
     let diskCache = DiskCache()
 
     let inMemoryCache = InMemoryCache()
-
-    lazy var downloadScheduler: DownloadScheduler = DownloadScheduler(service: self)
 
     // MARK: - Private
 
