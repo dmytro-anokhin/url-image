@@ -32,44 +32,30 @@ extension URLImageService {
         public typealias DownloadCompletion = (Result<TransientImageType, Error>) -> Void
 
         public func downloadImage(url: URL, options: URLImageOptions? = nil, completion: DownloadCompletion? = nil) {
-
             let options = options ?? service.defaultOptions
             let download = Download(url: url, options: options)
+            let remoteImage = RemoteImage(service: service, download: download, options: options)
 
-            service.downloadManager.publisher(for: download)
-                .sink { [weak self] result in
-                    guard let self = self else {
-                        return
-                    }
-
-                    switch result {
-                        case .finished:
-                            break
-
-                        case .failure(let error):
-                            completion?(.failure(error))
-                    }
+            remoteImage.$loadingState.sink { loadingState in
+                switch loadingState {
+                    case .initial:
+                        break
+                    case .inProgress(_):
+                        break
+                    case .success(let transientImage):
+                        completion?(.success(transientImage))
+                    case .failure(let error):
+                        completion?(.failure(error))
                 }
-                receiveValue: { [weak self] info in
-                    guard let self = self else {
-                        return
-                    }
+            }
+            .store(in: &cancellables)
 
-                    switch info {
-                        case .progress(let progress):
-                            break
-                        case .completion(let result):
-                            do {
-                                let image = try self.service.decode(result: result, download: download, options: options)
-                                completion?(.success(image))
-                            }
-                            catch {
-                                completion?(.failure(error))
-                            }
-                    }
-                }
-                .store(in: &cancellables)
+            remoteImage.load()
+
+            pool[url] = remoteImage
         }
+
+        private var pool: [URL: RemoteImage] = [:]
 
         private var cancellables = Set<AnyCancellable>()
     }

@@ -47,7 +47,7 @@ public final class RemoteImage : RemoteContent {
         self.options = options
     }
 
-    public typealias LoadingState = RemoteContentLoadingState<Image, Float?>
+    public typealias LoadingState = RemoteContentLoadingState<TransientImageType, Float?>
 
     /// External loading state used to update the view
     @Published public private(set) var loadingState: LoadingState = .initial {
@@ -305,14 +305,5 @@ extension RemoteImage {
 
             self.loadingState = loadingState
         }
-    }
-}
-
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-private extension RemoteContentLoadingState where Value == Image {
-
-    static func success(_ transientImage: TransientImageType) -> RemoteContentLoadingState<Value, Progress> {
-        .success(transientImage.image)
     }
 }

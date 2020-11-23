@@ -72,7 +72,9 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                           empty: empty,
                           inProgress: inProgress,
                           failure: failure,
-                          content: content)
+                          content: { transientImage in
+                            content(transientImage.image)
+                          })
     }
 }
 
