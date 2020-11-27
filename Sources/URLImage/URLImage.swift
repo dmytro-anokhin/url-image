@@ -57,11 +57,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         self.failure = failure
         self.content = content
 
-        let download = Download(url: url, options: options)
-
-        remoteImage = RemoteImage(service: URLImageService.shared,
-                                  download: download,
-                                  options: options)
+        remoteImage = URLImageService.shared.makeRemoteImage(url: url, options: options)
     }
 
     let remoteImage: RemoteImage

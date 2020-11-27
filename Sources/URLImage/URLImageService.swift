@@ -37,6 +37,13 @@ public final class URLImageService {
 
     public private(set) lazy var downloadScheduler: DownloadScheduler = DownloadScheduler(service: self)
 
+    public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
+        let options = options ?? defaultOptions
+        let download = Download(url: url, options: options)
+
+        return RemoteImage(service: self, download: download, options: options)
+    }
+
     // MARK: - Internal
 
     let downloadManager = DownloadManager()

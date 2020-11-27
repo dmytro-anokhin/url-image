@@ -29,9 +29,8 @@ public final class DownloadScheduler {
     public typealias DownloadCompletion = (Result<TransientImageType, Error>) -> Void
 
     public func downloadImage(url: URL, options: URLImageOptions? = nil, completion: DownloadCompletion? = nil) {
-        let options = options ?? service.defaultOptions
-        let download = Download(url: url, options: options)
-        let remoteImage = RemoteImage(service: service, download: download, options: options)
+
+        let remoteImage = service.makeRemoteImage(url: url, options: options)
 
         remoteImage.$loadingState.sink { loadingState in
             switch loadingState {
