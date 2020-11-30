@@ -30,7 +30,7 @@ public final class URLImageService {
                                                 expireAfter: 24 * 60 * 60,
                                                 cachePolicy: .returnCacheElseLoad(),
                                                 load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
-                                                maxPixelSize: CGSize(width: 1000.0, height: 1000.0))
+                                                maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
     /// Remove expired images from the disk and in memory caches
     public func cleanup() {
