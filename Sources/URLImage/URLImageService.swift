@@ -35,8 +35,6 @@ public final class URLImageService {
                                                 load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
                                                 maxPixelSize: CGSize(width: 300.0, height: 300.0))
 
-    public private(set) lazy var downloadScheduler: DownloadScheduler = DownloadScheduler(service: self)
-
     public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
         let options = options ?? defaultOptions
         let download = Download(url: url, options: options)
