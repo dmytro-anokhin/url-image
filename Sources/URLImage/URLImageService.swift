@@ -32,30 +32,11 @@ public final class URLImageService {
                                                 load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
                                                 maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
-    /// Remove expired images from the disk and in memory caches
-    public func cleanup() {
-        performPreviousVersionCleanup()
+    public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
+        let options = options ?? defaultOptions
+        let download = Download(url: url, options: options)
 
-        diskCache.cleanup()
-        inMemoryCache.cleanup()
-    }
-
-    /// Remove all cached images from the disk and in-memory caches
-    public func removeAllCachedImages() {
-        diskCache.deleteAll()
-        inMemoryCache.removeAll()
-    }
-
-    /// Remove the image downloaded from the specified URL from the disk and in-memory caches
-    public func removeImageWithURL(_ url: URL) {
-        diskCache.delete(withIdentifier: nil, orURL: url)
-        inMemoryCache.delete(withIdentifier: nil, orURL: url)
-    }
-
-    /// Remove the image cached with the specified identifier from the disk and in-memory caches
-    public func removeImageWithIdentifier(_ identifier: String) {
-        diskCache.delete(withIdentifier: identifier, orURL: nil)
-        inMemoryCache.delete(withIdentifier: identifier, orURL: nil)
+        return RemoteImage(service: self, download: download, options: options)
     }
 
     // MARK: - Internal
@@ -69,32 +50,5 @@ public final class URLImageService {
     // MARK: - Private
 
     private init() {
-    }
-
-    private func performPreviousVersionCleanup() {
-        let cachesURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let directoryURL = cachesURL.appendingPathComponent("URLImage", isDirectory: true)
-
-        // First check if old version exists
-        let versionFileURL = directoryURL.appendingPathComponent("filesCacheVersion")
-
-        guard FileManager.default.fileExists(atPath: versionFileURL.path) else {
-            return
-        }
-
-        let items = [
-            // Files directory
-            directoryURL.appendingPathComponent("files", isDirectory: true),
-            // CoreData files
-            directoryURL.appendingPathComponent("files").appendingPathExtension("db"),
-            directoryURL.appendingPathComponent("files").appendingPathExtension("db-shm"),
-            directoryURL.appendingPathComponent("files").appendingPathExtension("db-wal"),
-            // Version file
-            versionFileURL
-        ]
-
-        for itemURL in items {
-            try? FileManager.default.removeItem(at: itemURL)
-        }
     }
 }
