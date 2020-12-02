@@ -61,6 +61,10 @@ public struct URLImageOptions {
     public struct URLRequestConfiguration {
 
         public var allHTTPHeaderFields: [String : String]?
+
+        public init(allHTTPHeaderFields: [String : String]? = nil) {
+            self.allHTTPHeaderFields = allHTTPHeaderFields
+        }
     }
 
     /// Unique identifier used to identify an image in cache.
