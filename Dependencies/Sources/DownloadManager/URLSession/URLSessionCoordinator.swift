@@ -166,11 +166,14 @@ final class URLSessionCoordinator {
     private func makeDownloadTask(for download: Download, withObserver observer: DownloadTask.Observer) -> DownloadTask {
         let urlSessionTask: URLSessionTask
 
+        var request = URLRequest(url: download.url)
+        request.allHTTPHeaderFields = download.urlRequestConfiguration.allHTTPHeaderFields
+
         switch download.destination {
             case .inMemory:
-                urlSessionTask = urlSession.dataTask(with: download.url)
+                urlSessionTask = urlSession.dataTask(with: request)
             case .onDisk:
-                urlSessionTask = urlSession.downloadTask(with: download.url)
+                urlSessionTask = urlSession.downloadTask(with: request)
         }
 
         urlSessionTask.taskDescription = download.id.uuidString

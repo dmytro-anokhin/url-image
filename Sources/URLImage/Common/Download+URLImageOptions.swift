@@ -17,11 +17,11 @@ extension Download {
 
     init(url: URL, options: URLImageOptions) {
         if options.loadOptions.contains(.inMemory) {
-            self.init(url: url)
+            self.init(url: url, urlRequestConfiguration: options.urlRequestConfiguration)
         }
         else {
             let path = FileManager.default.tmpFilePathInCachesDirectory()
-            self.init(destination: .onDisk(path), url: url)
+            self.init(url: url, destination: .onDisk(path), urlRequestConfiguration: options.urlRequestConfiguration)
         }
     }
 }

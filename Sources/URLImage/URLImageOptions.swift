@@ -8,6 +8,10 @@
 import Foundation
 import CoreGraphics
 
+#if canImport(DownloadManager)
+import DownloadManager
+#endif
+
 
 /// Options to control how the image is downloaded and stored
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -58,15 +62,6 @@ public struct URLImageOptions {
         public static let inMemory: LoadOptions = .init(rawValue: 1 << 3)
     }
 
-    public struct URLRequestConfiguration {
-
-        public var allHTTPHeaderFields: [String : String]?
-
-        public init(allHTTPHeaderFields: [String : String]? = nil) {
-            self.allHTTPHeaderFields = allHTTPHeaderFields
-        }
-    }
-
     /// Unique identifier used to identify an image in cache.
     ///
     /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
@@ -83,7 +78,7 @@ public struct URLImageOptions {
 
     public var loadOptions: LoadOptions
 
-    public var urlRequestConfiguration: URLRequestConfiguration
+    public var urlRequestConfiguration: Download.URLRequestConfiguration
 
     /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
@@ -92,7 +87,7 @@ public struct URLImageOptions {
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
                 load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
-                urlRequest urlRequestConfiguration: URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
+                urlRequest urlRequestConfiguration: Download.URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
                 maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
