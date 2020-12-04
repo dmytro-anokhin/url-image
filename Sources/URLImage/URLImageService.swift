@@ -30,7 +30,7 @@ public final class URLImageService {
                                                 expireAfter: 24 * 60 * 60,
                                                 cachePolicy: .returnCacheElseLoad(),
                                                 load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
-                                                urlRequest: .init(),
+                                                urlRequestConfiguration: .init(),
                                                 maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
     public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {

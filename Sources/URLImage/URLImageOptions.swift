@@ -87,7 +87,7 @@ public struct URLImageOptions {
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
                 load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
-                urlRequest urlRequestConfiguration: Download.URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
+                urlRequestConfiguration: Download.URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
                 maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
