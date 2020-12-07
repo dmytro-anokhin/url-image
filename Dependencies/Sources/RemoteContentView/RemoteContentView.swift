@@ -81,7 +81,7 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
 
                 case .failure(let error):
                     failure(error) {
-                        remoteContent.load()
+                        self.reload()
                     }
             }
         }
@@ -92,9 +92,13 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
         }
         .onDisappear {
             if loadOptions.contains(.cancelOnDisappear) {
-                remoteContent.load()
+                remoteContent.cancel()
             }
         }
+    }
+
+    private func reload() {
+      remoteContent.load()
     }
 
     @ObservedObject private var remoteContent: AnyRemoteContent<Value, Progress>
