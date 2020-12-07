@@ -92,7 +92,7 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
         }
         .onDisappear {
             if loadOptions.contains(.cancelOnDisappear) {
-                remoteContent.load()
+                remoteContent.cancel()
             }
         }
     }
