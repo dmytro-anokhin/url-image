@@ -88,8 +88,11 @@ public struct Download {
 
         public var allHTTPHeaderFields: [String : String]?
 
-        public init(allHTTPHeaderFields: [String : String]? = nil) {
+        public var cachePolicy: URLRequest.CachePolicy
+
+        public init(allHTTPHeaderFields: [String : String]? = nil, cachePolicy: URLRequest.CachePolicy = .useProtocolCachePolicy) {
             self.allHTTPHeaderFields = allHTTPHeaderFields
+            self.cachePolicy = cachePolicy
         }
     }
 
@@ -112,3 +115,5 @@ extension Download : CustomStringConvertible {}
 extension Download : Identifiable {}
 extension Download : Hashable {}
 extension Download : Codable {}
+
+extension URLRequest.CachePolicy : Codable {}
