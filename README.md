@@ -144,6 +144,22 @@ Downloaded images expire after some time. Expired images removed in `cleanup` ro
 
 You can also remove individual or all cached images using `URLImageService`.
 
+## Using URLCache
+
+Alternatively you can use `URLCache`. You can configure the package globally and also per view.
+
+```swift
+URLImageService.shared.defaultOptions.cachePolicy = .useProtocol
+
+// Download using `URLSessionDataTask` 
+URLImageService.shared.defaultOptions.loadOptions.formUnion(.inMemory)
+
+// Set your `NSURLRequest.CachePolicy`
+URLImageService.shared.defaultOptions.urlRequestConfiguration.cachePolicy = .returnCacheDataElseLoad
+```
+
+Using `URLCache` adds support for Cache-Control header. As a trade-off you lose some control, like in-memory caching, download delays, expiry intervals (you get it with Cache-Control header). It also only works for in-memory downloads (using `URLSessionDataTask`).
+
 ## Options
 
 `URLImage` allows controlling various aspects of download and cache using `URLImageOptions` structure. You can set default options using `URLImageService.shared.defaultOptions` property. Here are the main settings:
