@@ -38,6 +38,9 @@ public struct URLImageOptions {
         ///
         /// - `delay`: delay before starting download.
         case ignoreCache(delay: TimeInterval? = nil)
+
+        /// Ignore cached image and use protocol cache policy
+        case useProtocol
     }
 
     /// Controls some aspects of download process

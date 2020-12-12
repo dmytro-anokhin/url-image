@@ -109,6 +109,9 @@ public final class RemoteImage : RemoteContent {
             case .ignoreCache(let delay):
                 // Always download
                 scheduleDownload(afterDelay: delay)
+
+            case .useProtocol:
+                scheduleDownload(secondCacheLookup: false)
         }
     }
 
@@ -189,7 +192,7 @@ extension RemoteImage {
     }
 
     // Second cache lookup is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
-    private func scheduleDownload(afterDelay delay: TimeInterval?, secondCacheLookup: Bool = false) {
+    private func scheduleDownload(afterDelay delay: TimeInterval? = nil, secondCacheLookup: Bool = false) {
         guard let delay = delay else {
             // Start download immediately if no delay needed
             startDownload()

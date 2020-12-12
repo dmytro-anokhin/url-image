@@ -40,6 +40,10 @@ public final class URLImageService {
         return RemoteImage(service: self, download: download, options: options)
     }
 
+    public var diskCacheURL: URL {
+        diskCache.fileIndex.configuration.filesDirectoryURL
+    }
+
     // MARK: - Internal
 
     let downloadManager = DownloadManager()

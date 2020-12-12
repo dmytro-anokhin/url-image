@@ -30,17 +30,19 @@ extension URLImageService {
                 let fileName = UUID().uuidString
                 let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
 
-                diskCache.cacheImageData(data,
-                                         url: download.url,
-                                         identifier: options.identifier,
-                                         fileName: fileName,
-                                         fileExtension: fileExtension,
-                                         expireAfter: options.expiryInterval)
+                if options.shouldCache {
+                    diskCache.cacheImageData(data,
+                                             url: download.url,
+                                             identifier: options.identifier,
+                                             fileName: fileName,
+                                             fileExtension: fileExtension,
+                                             expireAfter: options.expiryInterval)
 
-                inMemoryCache.cacheTransientImage(transientImage,
-                                                  withURL: download.url,
-                                                  identifier: options.identifier,
-                                                  expireAfter: options.expiryInterval)
+                    inMemoryCache.cacheTransientImage(transientImage,
+                                                      withURL: download.url,
+                                                      identifier: options.identifier,
+                                                      expireAfter: options.expiryInterval)
+                }
 
                 return transientImage
 
@@ -62,19 +64,36 @@ extension URLImageService {
                     fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
                 }
 
-                diskCache.cacheImageFile(at: location,
-                                         url: download.url,
-                                         identifier: options.identifier,
-                                         fileName: fileName,
-                                         fileExtension: fileExtension,
-                                         expireAfter: options.expiryInterval)
+                if options.shouldCache {
+                    diskCache.cacheImageFile(at: location,
+                                             url: download.url,
+                                             identifier: options.identifier,
+                                             fileName: fileName,
+                                             fileExtension: fileExtension,
+                                             expireAfter: options.expiryInterval)
 
-                inMemoryCache.cacheTransientImage(transientImage,
-                                                  withURL: download.url,
-                                                  identifier: options.identifier,
-                                                  expireAfter: options.expiryInterval)
+                    inMemoryCache.cacheTransientImage(transientImage,
+                                                      withURL: download.url,
+                                                      identifier: options.identifier,
+                                                      expireAfter: options.expiryInterval)
+                }
+                
 
                 return transientImage
+        }
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+private extension URLImageOptions {
+
+    var shouldCache: Bool {
+        switch cachePolicy {
+            case .useProtocol:
+                return false
+            default:
+                return true
         }
     }
 }
