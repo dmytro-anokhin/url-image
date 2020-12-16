@@ -202,7 +202,7 @@ Ignore cached image and download remote one.
 Some options are can be set globally using `URLImageService.shared.defaultOptions` property. Those are set by default:
 - `expireAfter` to 24 hours;
 - `cachePolicy` to `returnCacheElseLoad` without delays;
-- `maxPixelSize` to 300 by 300 pixels.
+- `maxPixelSize` to 1000 by 1000 pixels (300 by 300 pixels for watchOS).
 
 ## Reporting a Bug
 
