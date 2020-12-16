@@ -25,6 +25,8 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
 - [Options](#options)
+- [Download an Image Without a View](#download-an-image-without-a-view)
+    - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -234,6 +236,10 @@ remoteImage.load() // Start load
 Note: you are responsible for memory management and must keep strong references to both `RemoteImage` and publisher instances.
 
 When downloading image using the `RemoteImage` object all options apply as they do for the `URLImage` object. Be default downloaded image will be cached on the disk. This can speedup displaying images on later stage of your app. Also, this is currently the only supported way to display images in iOS 14 widgets.
+
+### Download an Image in iOS 14 Widget
+
+Unfortunately views in WidgetKit can not run asynchronous operations: https://developer.apple.com/forums/thread/652581. The recommended way is to load your content, including images, in `TimelineProvider`. You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImage` object, and display it in the `URLImage` view. See this gist for sample code: https://gist.github.com/dmytro-anokhin/2d4c2ab6145bc20e74381b1d278a08fb.
 
 ## Reporting a Bug
 
