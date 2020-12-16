@@ -204,6 +204,37 @@ Some options are can be set globally using `URLImageService.shared.defaultOption
 - `cachePolicy` to `returnCacheElseLoad` without delays;
 - `maxPixelSize` to 1000 by 1000 pixels (300 by 300 pixels for watchOS).
 
+## Download an Image Without a View
+
+You may want to download an image without a view. This is possible using `RemoteImage` object. You can create `RemoteImage` instance using `makeRemoteImage(url: URL, options: URLImageOptions? = nil)` factory method. It behaves (uses local cache, expiry intervals, etc.) the same way as `URLImage` object.
+
+```swift
+let remoteImage = URLImageService.shared.makeRemoteImage(url: /* ... */)
+```
+
+You can than observe loading state and receive updates like `URLImage` does.
+
+```swift
+let cancellable = remoteImage.$loadingState.sink { state in
+    switch state {
+        case .initial:
+            // ...
+        case .inProgress(let progress):
+            // ...
+        case .success(let image):
+            // ...
+        case .failure(let error):
+            // ...
+    }
+}
+
+remoteImage.load() // Start load
+```
+
+Note: you are responsible for memory management and must keep strong references to both `RemoteImage` and publisher instances.
+
+When downloading image using the `RemoteImage` object all options apply as they do for the `URLImage` object. Be default downloaded image will be cached on the disk. This can speedup displaying images on later stage of your app. Also, this is currently the only supported way to display images in iOS 14 widgets.
+
 ## Reporting a Bug
 
 Use GitHub issues to report a bug. Include this information when possible:
