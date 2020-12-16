@@ -239,7 +239,9 @@ When downloading image using the `RemoteImage` object all options apply as they 
 
 ### Download an Image in iOS 14 Widget
 
-Unfortunately views in WidgetKit can not run asynchronous operations: https://developer.apple.com/forums/thread/652581. The recommended way is to load your content, including images, in `TimelineProvider`. You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImage` object, and display it in the `URLImage` view. See this gist for sample code: https://gist.github.com/dmytro-anokhin/2d4c2ab6145bc20e74381b1d278a08fb.
+Unfortunately views in WidgetKit can not run asynchronous operations: https://developer.apple.com/forums/thread/652581. The recommended way is to load your content, including images, in `TimelineProvider`.
+
+You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImage` object, and display it in the `URLImage` view. See this gist for the sample code: https://gist.github.com/dmytro-anokhin/2d4c2ab6145bc20e74381b1d278a08fb.
 
 ## Reporting a Bug
 
