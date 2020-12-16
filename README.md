@@ -23,6 +23,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Installation](#installation)
 - [Usage](#usage)
 - [Cache](#cache)
+    - [Using URLCache](#using-urlcache)
 - [Options](#options)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
@@ -144,7 +145,7 @@ Downloaded images expire after some time. Expired images removed in `cleanup` ro
 
 You can also remove individual or all cached images using `URLImageService`.
 
-## Using URLCache
+### Using URLCache
 
 Alternatively you can use `URLCache`. You can configure the package globally and also per view.
 
