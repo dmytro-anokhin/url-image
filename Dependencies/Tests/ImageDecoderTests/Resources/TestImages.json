@@ -33,5 +33,12 @@
         "allDataReceived" : true,
         "frameCount" : 71,
         "tolerance" : 0.5
+    },
+    {
+        "name": "test",
+        "extension" : "base64",
+        "allDataReceived" : true,
+        "frameCount" : 1,
+        "tolerance" : 15
     }
 ]

@@ -62,7 +62,8 @@ let package = Package(
                          .copy("Resources/lenna.png"),
                          .copy("Resources/sea_animation.heics"),
                          .copy("Resources/gif-loop-count.gif"),
-                         .copy("Resources/quicksort.gif")
+                         .copy("Resources/quicksort.gif"),
+                         .copy("Resources/test.base64")
             ]),
         .testTarget(
             name: "FileIndexTests",
