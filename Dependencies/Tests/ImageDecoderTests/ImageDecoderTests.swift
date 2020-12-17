@@ -30,7 +30,14 @@ final class ImageDecoderTests: XCTestCase {
         }
 
         func load() throws -> Data {
-            try Data(contentsOf: url)
+            if `extension` == "base64" {
+                let base64String = try String(contentsOf: url).trimmingCharacters(in: .whitespacesAndNewlines)
+                let base64URL = URL(string: base64String)!
+                return try Data(contentsOf: base64URL)
+            }
+            else {
+                return try Data(contentsOf: url)
+            }
         }
 
         var fileName: String {
@@ -115,7 +122,7 @@ func compare(decoded decodedImage: CGImage, data: Data, tolerance: Float) throws
         return false
     }
 
-    return try CGImage.compare(image: decodedImage, referenceImage: referenceImage, tolerance: 1.0)
+    return try CGImage.compare(image: decodedImage, referenceImage: referenceImage, tolerance: tolerance)
 }
 
 #endif
