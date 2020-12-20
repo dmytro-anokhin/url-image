@@ -15,7 +15,7 @@ A clear and concise description of what the bug is.
 **OS and what device you are using**
  - OS: [e.g. iOS, macOS]
  - Device or simulator [e.g. iPhone simulator, iPad, iPhone 12"]
- - Are you building a widget?
+ - Are you building a widget or an extension?
 
 **Version of URLImage library**
 The version of the library where the bug happens.
