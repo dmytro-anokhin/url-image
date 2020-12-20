@@ -7,12 +7,15 @@ assignees: ''
 
 ---
 
+‼️ Please fill in as much information as possible ‼️
+
 **Summary and/or background**
 A clear and concise description of what the bug is.
 
 **OS and what device you are using**
  - OS: [e.g. iOS, macOS]
- - Device or simulator [e.g. iPhone simulator, iPad Pro 11"]
+ - Device or simulator [e.g. iPhone simulator, iPad, iPhone 12"]
+ - Are you building a widget?
 
 **Version of URLImage library**
 The version of the library where the bug happens.
@@ -30,6 +33,10 @@ The sample code helps a lot. Try isolating the sample code so it compiles withou
 **Test data**
 If you use public resource provide URLs of the images.
 
-**Additional information:**
+**Additional information**
 - [ ] Screenshots or video demonstrating a bug;
 - [ ] Crash log;
+
+**Misc**
+- [ ] I read the documentation and it didn't help;
+- [ ] I searched for similar issues.
