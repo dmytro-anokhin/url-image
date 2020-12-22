@@ -233,7 +233,7 @@ let cancellable = remoteImage.$loadingState.sink { state in
 remoteImage.load() // Start load
 ```
 
-Note: you are responsible for memory management and must keep strong references to both `RemoteImage` and publisher instances.
+Note: you are responsible for memory management and must keep strong references to both `RemoteImage` and publisher instances. You also must import Combine.
 
 When downloading image using the `RemoteImage` object all options apply as they do for the `URLImage` object. Be default downloaded image will be cached on the disk. This can speedup displaying images on later stage of your app. Also, this is currently the only supported way to display images in iOS 14 widgets.
 
