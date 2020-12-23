@@ -36,15 +36,15 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
 
-    let content: (_ image: Image) -> Content
+    let content: (_ transientImage: TransientImageType) -> Content
 
     public init(url: URL,
                 options: URLImageOptions = URLImageService.shared.defaultOptions,
                 empty: @escaping () -> Empty,
                 inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                content: @escaping (_ image: Image) -> Content)
-    {
+                content: @escaping (_ transientImage: TransientImageType) -> Content) {
+
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
 
@@ -66,9 +66,24 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                           empty: empty,
                           inProgress: inProgress,
                           failure: failure,
-                          content: { transientImage in
-                            content(transientImage.image)
-                          })
+                          content: content)
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage {
+
+    init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         empty: @escaping () -> Empty,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ image: Image) -> Content) {
+
+        self.init(url: url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+            content(transientImage.image)
+        }
     }
 }
 
@@ -80,8 +95,22 @@ public extension URLImage where Empty == EmptyView {
          options: URLImageOptions = URLImageService.shared.defaultOptions,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ image: Image) -> Content)
-    {
+         content: @escaping (_ image: Image) -> Content) {
+
+        self.init(url: url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: inProgress,
+                  failure: failure,
+                  content: content)
+    }
+
+    init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+
         self.init(url: url,
                   options: options,
                   empty: { EmptyView() },
@@ -99,8 +128,21 @@ public extension URLImage where Empty == EmptyView,
     init(url: URL,
          options: URLImageOptions = URLImageService.shared.defaultOptions,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ image: Image) -> Content)
-    {
+         content: @escaping (_ image: Image) -> Content) {
+
+        self.init(url: url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: { _ in ActivityIndicator() },
+                  failure: failure,
+                  content: content)
+    }
+
+    init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+
         self.init(url: url,
                   options: options,
                   empty: { EmptyView() },
@@ -118,8 +160,20 @@ public extension URLImage where Empty == EmptyView,
 
     init(url: URL,
          options: URLImageOptions = URLImageService.shared.defaultOptions,
-         content: @escaping (_ image: Image) -> Content)
-    {
+         content: @escaping (_ image: Image) -> Content) {
+
+        self.init(url: url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: { _ in ActivityIndicator() },
+                  failure: { _, _ in EmptyView() },
+                  content: content)
+    }
+
+    init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+
         self.init(url: url,
                   options: options,
                   empty: { EmptyView() },
