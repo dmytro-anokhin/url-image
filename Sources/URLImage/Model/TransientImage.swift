@@ -18,20 +18,22 @@ import ImageDecoder
 public protocol TransientImageType {
 
     var image: Image { get }
+
+    var info: ImageInfo { get }
 }
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct TransientImage: TransientImageType {
+struct TransientImage: TransientImageType {
 
-    public init?(data: Data, maxPixelSize: CGSize?) {
+    init?(data: Data, maxPixelSize: CGSize?) {
         let decoder = ImageDecoder()
         decoder.setData(data, allDataReceived: true)
 
         self.init(decoder: decoder, maxPixelSize: maxPixelSize)
     }
 
-    public init?(location: URL, maxPixelSize: CGSize?) {
+    init?(location: URL, maxPixelSize: CGSize?) {
         guard let decoder = ImageDecoder(url: location) else {
             return nil
         }
@@ -39,8 +41,8 @@ public struct TransientImage: TransientImageType {
         self.init(decoder: decoder, maxPixelSize: maxPixelSize)
     }
 
-    public init?(decoder: ImageDecoder, maxPixelSize: CGSize?) {
-        guard let uti = decoder.uti else {
+    init?(decoder: ImageDecoder, maxPixelSize: CGSize?) {
+        guard decoder.uti != nil else {
             // Not an image data
             return nil
         }
@@ -59,24 +61,9 @@ public struct TransientImage: TransientImageType {
             return nil
         }
 
+        self.decoder = decoder
         self.cgImage = cgImage
-        self.cgOrientation = decoder.frameOrientation(at: 0)
-        self.uti = uti
-        self.maxPixelSize = maxPixelSize
     }
-
-    public var cgImage: CGImage
-
-    public var cgOrientation: CGImagePropertyOrientation?
-
-    public var uti: String
-
-    public var maxPixelSize: CGSize?
-}
-
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public extension TransientImageType where Self == TransientImage {
 
     var image: Image {
         if let cgOrientation = self.cgOrientation {
@@ -86,5 +73,24 @@ public extension TransientImageType where Self == TransientImage {
         else {
             return Image(decorative: self.cgImage, scale: 1.0)
         }
+    }
+
+    var info: ImageInfo {
+        ImageInfo(cgImage: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
+    }
+
+    /// The uniform type identifier (UTI) of the source image.
+    ///
+    /// See [Uniform Type Identifier Concepts](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202) for a list of system-declared and third-party UTIs.
+    var uti: String {
+        decoder.uti!
+    }
+
+    private let decoder: ImageDecoder
+
+    private let cgImage: CGImage
+
+    private var cgOrientation: CGImagePropertyOrientation? {
+        decoder.frameOrientation(at: 0)
     }
 }
