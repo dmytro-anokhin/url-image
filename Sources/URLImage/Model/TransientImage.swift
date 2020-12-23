@@ -19,13 +19,7 @@ public protocol TransientImageType {
 
     var image: Image { get }
 
-    /// Decoded image
-    var cgImage: CGImage { get }
-
-    /// Image size in pixels.
-    ///
-    /// This is the real size, that can be different from decoded `cgImage` size.
-    var size: CGSize { get }
+    var info: ImageInfo { get }
 }
 
 
@@ -67,8 +61,8 @@ struct TransientImage: TransientImageType {
             return nil
         }
 
-        self.cgImage = cgImage
         self.decoder = decoder
+        self.cgImage = cgImage
     }
 
     var image: Image {
@@ -81,10 +75,8 @@ struct TransientImage: TransientImageType {
         }
     }
 
-    let cgImage: CGImage
-
-    var size: CGSize {
-        decoder.frameSize(at: 0) ?? .zero
+    var info: ImageInfo {
+        ImageInfo(image: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
     }
 
     var uti: String {
@@ -92,6 +84,8 @@ struct TransientImage: TransientImageType {
     }
 
     private let decoder: ImageDecoder
+
+    private let cgImage: CGImage
 
     private var cgOrientation: CGImagePropertyOrientation? {
         decoder.frameOrientation(at: 0)

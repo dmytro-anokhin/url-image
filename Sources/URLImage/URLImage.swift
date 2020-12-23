@@ -30,20 +30,28 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     let options: URLImageOptions
 
-    let empty: () -> Empty
+    public var body: some View {
+        RemoteContentView(remoteContent: remoteImage,
+                          loadOptions: RemoteContentViewLoadOptions(options.loadOptions),
+                          empty: empty,
+                          inProgress: inProgress,
+                          failure: failure,
+                          content: content)
+    }
 
-    let inProgress: (_ progress: Float?) -> InProgress
+    private let empty: () -> Empty
+    private let inProgress: (_ progress: Float?) -> InProgress
+    private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
+    private let content: (_ image: TransientImageType) -> Content
 
-    let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
+    private let remoteImage: RemoteImage
 
-    let content: (_ transientImage: TransientImageType) -> Content
-
-    public init(url: URL,
-                options: URLImageOptions = URLImageService.shared.defaultOptions,
-                empty: @escaping () -> Empty,
-                inProgress: @escaping (_ progress: Float?) -> InProgress,
-                failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                content: @escaping (_ transientImage: TransientImageType) -> Content) {
+    private init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         empty: @escaping () -> Empty,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ transientImage: TransientImageType) -> Content) {
 
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
@@ -56,17 +64,6 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         self.content = content
 
         remoteImage = URLImageService.shared.makeRemoteImage(url: url, options: options)
-    }
-
-    let remoteImage: RemoteImage
-
-    public var body: some View {
-        RemoteContentView(remoteContent: remoteImage,
-                          loadOptions: RemoteContentViewLoadOptions(options.loadOptions),
-                          empty: empty,
-                          inProgress: inProgress,
-                          failure: failure,
-                          content: content)
     }
 }
 
@@ -83,6 +80,18 @@ public extension URLImage {
 
         self.init(url: url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
             content(transientImage.image)
+        }
+    }
+
+    init(url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         empty: @escaping () -> Empty,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
+
+        self.init(url: url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+            content(transientImage.image, transientImage.info)
         }
     }
 }
@@ -109,7 +118,7 @@ public extension URLImage where Empty == EmptyView {
          options: URLImageOptions = URLImageService.shared.defaultOptions,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+         content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url: url,
                   options: options,
@@ -141,7 +150,7 @@ public extension URLImage where Empty == EmptyView,
     init(url: URL,
          options: URLImageOptions = URLImageService.shared.defaultOptions,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+         content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url: url,
                   options: options,
@@ -172,7 +181,7 @@ public extension URLImage where Empty == EmptyView,
 
     init(url: URL,
          options: URLImageOptions = URLImageService.shared.defaultOptions,
-         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+         content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url: url,
                   options: options,
@@ -180,26 +189,5 @@ public extension URLImage where Empty == EmptyView,
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
                   content: content)
-    }
-}
-
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-struct URLImage_Previews: PreviewProvider {
-    static var previews: some View {
-        URLImage(url: URL(string: "https://upload.wikimedia.org/wikipedia/en/7/7d/Lenna_%28test_image%29.png")!,
-                 options: URLImageOptions(expireAfter: 60.0,
-                                          cachePolicy: .ignoreCache()),
-                 failure: { error, _ -> Text in
-                    let string = "\(error)"
-                    return Text(string)
-                 },
-                 content: { image in
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .clipped()
-                 })
-            .frame(width: 320.0, height: 320.0)
     }
 }
