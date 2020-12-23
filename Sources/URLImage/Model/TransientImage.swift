@@ -76,9 +76,12 @@ struct TransientImage: TransientImageType {
     }
 
     var info: ImageInfo {
-        ImageInfo(image: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
+        ImageInfo(cgImage: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
     }
 
+    /// The uniform type identifier (UTI) of the source image.
+    ///
+    /// See [Uniform Type Identifier Concepts](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202) for a list of system-declared and third-party UTIs.
     var uti: String {
         decoder.uti!
     }

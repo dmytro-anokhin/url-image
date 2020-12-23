@@ -11,7 +11,7 @@ import CoreGraphics
 public struct ImageInfo {
 
     /// Decoded image
-    public var image: CGImage
+    public var cgImage: CGImage
 
     /// Image size in pixels.
     ///
