@@ -22,6 +22,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Image Information](#image-information)
 - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
 - [Options](#options)
@@ -128,6 +129,10 @@ struct MyView: View {
     }
 }
 ```
+
+## Image Information
+
+You can use `init(url: URL, content: @escaping (_ image: Image, _ info: ImageInfo) -> Content)` initializer if you need information about an image, like size, or access the underlying `CGImage` object.
 
 ## Cache
 
