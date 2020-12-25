@@ -22,10 +22,11 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Image Information](#image-information)
-- [Cache](#cache)
+    - [Basics](#basics)
+    - [Image Information](#image-information)
+    - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
-- [Options](#options)
+    - [Options](#options)
 - [Download an Image Without a View](#download-an-image-without-a-view)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
 - [Reporting a Bug](#reporting-a-bug)
@@ -59,6 +60,8 @@ pod 'URLImage'
 Refer to https://cocoapods.org for information on setup Cocoa Pods for your project.
 
 ## Usage
+
+### Basics
 
 `URLImage` expects URL of the image and the content view:
 
@@ -130,11 +133,11 @@ struct MyView: View {
 }
 ```
 
-## Image Information
+### Image Information
 
 You can use `init(url: URL, content: @escaping (_ image: Image, _ info: ImageInfo) -> Content)` initializer if you need information about an image, like size, or access the underlying `CGImage` object.
 
-## Cache
+### Cache
 
 `URLImage`  uses two caches:
 - In memory cache for quick access;
@@ -168,7 +171,7 @@ URLImageService.shared.defaultOptions.urlRequestConfiguration.cachePolicy = .ret
 
 Using `URLCache` adds support for Cache-Control header. As a trade-off you lose some control, like in-memory caching, download delays, expiry intervals (you get it with Cache-Control header). It also only works for in-memory downloads (using `URLSessionDataTask`).
 
-## Options
+### Options
 
 `URLImage` allows controlling various aspects of download and cache using `URLImageOptions` structure. You can set default options using `URLImageService.shared.defaultOptions` property. Here are the main settings:
 
