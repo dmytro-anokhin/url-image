@@ -23,6 +23,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Installation](#installation)
 - [Usage](#usage)
     - [Basics](#basics)
+    - [States](#states)
     - [Image Information](#image-information)
     - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
@@ -75,6 +76,8 @@ URLImage(url: url,
                  .aspectRatio(contentMode: .fit)
          })
 ```
+
+### States
 
 `URLImage` transitions between 4 states:
 - Empty state, when download has not started yet, or there is nothing to display;
