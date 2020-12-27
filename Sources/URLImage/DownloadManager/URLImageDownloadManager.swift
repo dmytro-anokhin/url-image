@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -17,7 +18,7 @@ final class URLImageDownloadManager {
         self.service = service
     }
 
-    func loadImage(url: URL, options: URLImageOptions? = nil, deliverOn deliveryQueue: DispatchQueue = DispatchQueue.main, completion: @escaping (_ result: Result<ImageInfo, Error>) -> Void) -> Any {
+    func loadImage(url: URL, options: URLImageOptions? = nil, deliverOn deliveryQueue: DispatchQueue = DispatchQueue.main, completion: @escaping (_ result: Result<ImageInfo, Error>) -> Void) -> UUID {
 
         let remoteImage = service.makeRemoteImage(url: url, options: options)
         let cancellable = remoteImage.$loadingState.sink { loadingState in
@@ -40,8 +41,15 @@ final class URLImageDownloadManager {
             }
         }
 
+        let uuid = UUID()
+        registry[uuid] = (remoteImage: remoteImage, cancellable: cancellable)
+
         remoteImage.load()
 
-        return (remoteImage: remoteImage, cancellable: cancellable)
+        return uuid
     }
+
+    private typealias LoadImageInfo = (remoteImage: RemoteImage, cancellable: AnyCancellable)
+
+    private var registry: [UUID: LoadImageInfo] = [:]
 }
