@@ -49,7 +49,7 @@ final class URLImageFetchManager {
         return uuid
     }
 
-    private typealias FetchImageInfo = (remoteImage: RemoteImage, cancellable: AnyCancellable)
+    private typealias ImageFetchInfo = (remoteImage: RemoteImage, cancellable: AnyCancellable)
 
-    private var registry: [UUID: FetchImageInfo] = [:]
+    private var registry: [UUID: ImageFetchInfo] = [:]
 }
