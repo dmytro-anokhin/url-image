@@ -52,7 +52,7 @@ public final class URLImageService {
 
     let inMemoryCache = InMemoryCache()
 
-    private(set) lazy var imageDownloadManager = URLImageDownloadManager(service: self)
+    private(set) lazy var imageFetchManager = URLImageFetchManager(service: self)
 
     // MARK: - Private
 
