@@ -54,6 +54,10 @@ public final class URLImageSessionManager {
         return uuid
     }
 
+    public func status(forURL url: URL) -> ImageDownloadStatus {
+        .none
+    }
+
     private typealias ImageFetchInfo = (remoteImage: RemoteImage, cancellable: AnyCancellable)
 
     private var registry: [UUID: ImageFetchInfo] = [:]
