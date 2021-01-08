@@ -15,10 +15,7 @@ let package = Package(
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "URLImage",
-            targets: ["URLImage"]),
-        .library(
-            name: "URLImageSessionManager",
-            targets: ["URLImageSessionManager"])
+            targets: ["URLImage"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -30,9 +27,6 @@ let package = Package(
         .target(
             name: "URLImage",
             dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex", "Common" ]),
-        .target(
-            name: "URLImageSessionManager",
-            dependencies: [ "URLImage" ]),
         .target(
             name: "RemoteContentView",
             path: "Dependencies/Sources/RemoteContentView"),
