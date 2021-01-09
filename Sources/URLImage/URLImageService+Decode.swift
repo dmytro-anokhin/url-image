@@ -7,6 +7,10 @@
 
 import Foundation
 
+#if canImport(Common)
+import Common
+#endif
+
 #if canImport(DownloadManager)
 import DownloadManager
 #endif
@@ -19,7 +23,7 @@ import ImageDecoder
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
 
-    func decode(result: DownloadResult, download: Download, options: URLImageOptions) throws -> TransientImageType {
+    func decode(result: DownloadResult, download: Download, options: URLImageOptions) throws -> TransientImage {
         switch result {
             case .data(let data):
 
@@ -31,12 +35,12 @@ extension URLImageService {
                 let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
 
                 if options.shouldCache {
-                    diskCache.cacheImageData(data,
-                                             url: download.url,
-                                             identifier: options.identifier,
-                                             fileName: fileName,
-                                             fileExtension: fileExtension,
-                                             expireAfter: options.expiryInterval)
+//                    diskCache.cacheImageData(data,
+//                                             url: download.url,
+//                                             identifier: options.identifier,
+//                                             fileName: fileName,
+//                                             fileExtension: fileExtension,
+//                                             expireAfter: options.expiryInterval)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,
@@ -65,12 +69,12 @@ extension URLImageService {
                 }
 
                 if options.shouldCache {
-                    diskCache.cacheImageFile(at: location,
-                                             url: download.url,
-                                             identifier: options.identifier,
-                                             fileName: fileName,
-                                             fileExtension: fileExtension,
-                                             expireAfter: options.expiryInterval)
+//                    diskCache.cacheImageFile(at: location,
+//                                             url: download.url,
+//                                             identifier: options.identifier,
+//                                             fileName: fileName,
+//                                             fileExtension: fileExtension,
+//                                             expireAfter: options.expiryInterval)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,

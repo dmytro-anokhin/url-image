@@ -15,25 +15,25 @@ extension URLImageService {
     public func cleanup() {
         performPreviousVersionCleanup()
 
-        diskCache.cleanup()
+//        diskCache.cleanup()
         inMemoryCache.cleanup()
     }
 
     /// Remove all cached images from the disk and in-memory caches
     public func removeAllCachedImages() {
-        diskCache.deleteAll()
+//        diskCache.deleteAll()
         inMemoryCache.removeAll()
     }
 
     /// Remove the image downloaded from the specified URL from the disk and in-memory caches
     public func removeImageWithURL(_ url: URL) {
-        diskCache.delete(withIdentifier: nil, orURL: url)
+//        diskCache.delete(withIdentifier: nil, orURL: url)
         inMemoryCache.delete(withIdentifier: nil, orURL: url)
     }
 
     /// Remove the image cached with the specified identifier from the disk and in-memory caches
     public func removeImageWithIdentifier(_ identifier: String) {
-        diskCache.delete(withIdentifier: identifier, orURL: nil)
+//        diskCache.delete(withIdentifier: identifier, orURL: nil)
         inMemoryCache.delete(withIdentifier: identifier, orURL: nil)
     }
 

@@ -8,6 +8,10 @@
 import SwiftUI
 import Combine
 
+#if canImport(Common)
+import Common
+#endif
+
 #if canImport(DownloadManager)
 import DownloadManager
 #endif
@@ -42,7 +46,7 @@ public final class RemoteImage : RemoteContent {
         self.options = options
     }
 
-    public typealias LoadingState = RemoteContentLoadingState<TransientImageType, Float?>
+    public typealias LoadingState = RemoteContentLoadingState<TransientImage, Float?>
 
     /// External loading state used to update the view
     @Published public private(set) var loadingState: LoadingState = .initial {
@@ -265,34 +269,34 @@ extension RemoteImage {
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-        service.diskCache
-            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url, maxPixelSize: options.maxPixelSize)
-            .receive(on: RunLoop.main)
-            .catch { _ in
-                Just(nil)
-            }
-            .sink { [weak self] in
-                guard let self = self else {
-                    return
-                }
-
-                if let transientImage = $0 {
-                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
-                    // Move to in memory cache
-                    self.service.inMemoryCache.cacheTransientImage(transientImage,
-                                                                   withURL: self.download.url,
-                                                                   identifier: self.options.identifier,
-                                                                   expireAfter: self.options.expiryInterval)
-                    // Set image retrieved from cache
-                    self.loadingState = .success(transientImage)
-                    completion(true)
-                }
-                else {
-                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
-                    completion(false)
-                }
-            }
-            .store(in: &cancellables)
+//        service.diskCache
+//            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url, maxPixelSize: options.maxPixelSize)
+//            .receive(on: RunLoop.main)
+//            .catch { _ in
+//                Just(nil)
+//            }
+//            .sink { [weak self] in
+//                guard let self = self else {
+//                    return
+//                }
+//
+//                if let transientImage = $0 {
+//                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
+//                    // Move to in memory cache
+//                    self.service.inMemoryCache.cacheTransientImage(transientImage,
+//                                                                   withURL: self.download.url,
+//                                                                   identifier: self.options.identifier,
+//                                                                   expireAfter: self.options.expiryInterval)
+//                    // Set image retrieved from cache
+//                    self.loadingState = .success(transientImage)
+//                    completion(true)
+//                }
+//                else {
+//                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
+//                    completion(false)
+//                }
+//            }
+//            .store(in: &cancellables)
     }
 
     private func updateLoadingState(_ loadingState: LoadingState) {

@@ -2,38 +2,29 @@
 //  TransientImage.swift
 //  
 //
-//  Created by Dmytro Anokhin on 30/09/2020.
+//  Created by Dmytro Anokhin on 08/01/2021.
 //
 
+import Foundation
 import ImageIO
-import SwiftUI
 
 #if canImport(ImageDecoder)
 import ImageDecoder
 #endif
 
 
-/// Temporary representation used after decoding an image from data or file on disk and before creating an `Image` object.
+/// Temporary representation used after decoding an image from data or file on disk and before creating an image object for display.
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public protocol TransientImageType {
+public struct TransientImage {
 
-    var image: Image { get }
-
-    var info: ImageInfo { get }
-}
-
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-struct TransientImage: TransientImageType {
-
-    init?(data: Data, maxPixelSize: CGSize?) {
+    public init?(data: Data, maxPixelSize: CGSize?) {
         let decoder = ImageDecoder()
         decoder.setData(data, allDataReceived: true)
 
         self.init(decoder: decoder, maxPixelSize: maxPixelSize)
     }
 
-    init?(location: URL, maxPixelSize: CGSize?) {
+    public init?(location: URL, maxPixelSize: CGSize?) {
         guard let decoder = ImageDecoder(url: location) else {
             return nil
         }
@@ -65,32 +56,22 @@ struct TransientImage: TransientImageType {
         self.cgImage = cgImage
     }
 
-    var image: Image {
-        if let cgOrientation = self.cgOrientation {
-            let orientation = Image.Orientation(cgOrientation)
-            return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
-        }
-        else {
-            return Image(decorative: self.cgImage, scale: 1.0)
-        }
-    }
-
-    var info: ImageInfo {
+    public var info: ImageInfo {
         ImageInfo(cgImage: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
     }
 
     /// The uniform type identifier (UTI) of the source image.
     ///
     /// See [Uniform Type Identifier Concepts](https://developer.apple.com/library/archive/documentation/FileManagement/Conceptual/understanding_utis/understand_utis_conc/understand_utis_conc.html#//apple_ref/doc/uid/TP40001319-CH202) for a list of system-declared and third-party UTIs.
-    var uti: String {
+    public var uti: String {
         decoder.uti!
     }
-
-    private let decoder: ImageDecoder
-
-    private let cgImage: CGImage
-
-    private var cgOrientation: CGImagePropertyOrientation? {
+    
+    public var cgOrientation: CGImagePropertyOrientation? {
         decoder.frameOrientation(at: 0)
     }
+
+    public let cgImage: CGImage
+
+    private let decoder: ImageDecoder
 }

@@ -1,13 +1,17 @@
 //
-//  DiskCache.swift
+//  URLImageCache.swift
 //  
 //
-//  Created by Dmytro Anokhin on 02/10/2020.
+//  Created by Dmytro Anokhin on 08/01/2021.
 //
 
 import Foundation
 import CoreGraphics
 import Combine
+
+#if canImport(Common)
+import Common
+#endif
 
 #if canImport(FileIndex)
 import FileIndex
@@ -17,9 +21,13 @@ import FileIndex
 import Log
 #endif
 
+#if canImport(URLImage)
+import URLImage
+#endif
+
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-final class DiskCache {
+public final class URLImageCache: URLImageCacheType {
 
     let fileIndex: FileIndex
 
@@ -27,7 +35,7 @@ final class DiskCache {
         self.fileIndex = fileIndex
     }
 
-    convenience init() {
+    public convenience init() {
         let fileIndexConfiguration = FileIndex.Configuration(name: "URLImage",
                                                              filesDirectoryName: "images",
                                                              baseDirectoryName: "URLImage")
@@ -38,7 +46,7 @@ final class DiskCache {
     func getImage(withIdentifier identifier: String?,
                   orURL url: URL,
                   maxPixelSize: CGSize?,
-                  _ completion: @escaping (_ result: Result<TransientImageType?, Swift.Error>) -> Void
+                  _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void
     ) {
         fileIndexQueue.async { [weak self] in
             guard let self = self else { return }
@@ -63,8 +71,8 @@ final class DiskCache {
         }
     }
 
-    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImageType?, Swift.Error> {
-        return Future<TransientImageType?, Swift.Error> { [weak self] promise in
+    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
+        return Future<TransientImage?, Swift.Error> { [weak self] promise in
             guard let self = self else {
                 return
             }

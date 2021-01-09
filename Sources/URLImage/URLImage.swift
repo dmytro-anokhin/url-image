@@ -42,7 +42,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     private let empty: () -> Empty
     private let inProgress: (_ progress: Float?) -> InProgress
     private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
-    private let content: (_ image: TransientImageType) -> Content
+    private let content: (_ image: TransientImage) -> Content
 
     private let remoteImage: RemoteImage
 
@@ -51,7 +51,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ transientImage: TransientImageType) -> Content) {
+         content: @escaping (_ transientImage: TransientImage) -> Content) {
 
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
@@ -78,7 +78,7 @@ public extension URLImage {
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
-        self.init(url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+        self.init(url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImage) -> Content in
             content(transientImage.image)
         }
     }
@@ -90,7 +90,7 @@ public extension URLImage {
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
-        self.init(url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+        self.init(url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImage) -> Content in
             content(transientImage.image, transientImage.info)
         }
     }

@@ -14,6 +14,11 @@ import DownloadManager
 #endif
 
 
+public protocol URLImageCacheType {
+
+}
+
+
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class URLImageService {
 
@@ -40,15 +45,27 @@ public final class URLImageService {
         return RemoteImage(service: self, download: download, options: options)
     }
 
-    public var diskCacheURL: URL {
-        diskCache.fileIndex.configuration.filesDirectoryURL
+//    public var diskCacheURL: URL {
+//        diskCache.fileIndex.configuration.filesDirectoryURL
+//    }
+
+    public var cache: URLImageCacheType? {
+        get {
+            synchronizationQueue.sync {
+                _cache
+            }
+        }
+
+        set {
+            synchronizationQueue.async(flags: .barrier) {
+                self._cache = newValue
+            }
+        }
     }
 
     // MARK: - Internal
 
     let downloadManager = DownloadManager()
-
-    let diskCache = DiskCache()
 
     let inMemoryCache = InMemoryCache()
 
@@ -56,4 +73,8 @@ public final class URLImageService {
 
     private init() {
     }
+
+    public var _cache: URLImageCacheType? = nil
+
+    private let synchronizationQueue = DispatchQueue(label: "URLImageService.synchronizationQueue")
 }
