@@ -163,8 +163,8 @@ public final class URLImageCache: URLImageCacheType {
 
     // MARK: - Private
 
-    private let fileIndexQueue = DispatchQueue(label: "URLImage.DiskCache.fileIndexQueue", attributes: .concurrent)
-    private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
+    private let fileIndexQueue = DispatchQueue(label: "URLImageCache.fileIndexQueue", attributes: .concurrent)
+    private let decodeQueue = DispatchQueue(label: "URLImageCache.decodeQueue", attributes: .concurrent)
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL?) -> File? {
         if let identifier = identifier {
