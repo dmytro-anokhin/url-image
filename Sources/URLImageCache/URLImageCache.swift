@@ -43,7 +43,7 @@ public final class URLImageCache: URLImageCacheType {
         self.init(fileIndex: fileIndex)
     }
 
-    func getImage(withIdentifier identifier: String?,
+    public func getImage(withIdentifier identifier: String?,
                   orURL url: URL,
                   maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void
@@ -83,7 +83,7 @@ public final class URLImageCache: URLImageCacheType {
         }.eraseToAnyPublisher()
     }
 
-    func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
+    public func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
                 return
@@ -98,7 +98,7 @@ public final class URLImageCache: URLImageCacheType {
         }
     }
 
-    func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
+    public func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
                 return

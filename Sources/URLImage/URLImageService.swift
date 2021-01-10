@@ -9,14 +9,13 @@ import Foundation
 import CoreGraphics
 import Combine
 
+#if canImport(Common)
+import Common
+#endif
+
 #if canImport(DownloadManager)
 import DownloadManager
 #endif
-
-
-public protocol URLImageCacheType {
-
-}
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
