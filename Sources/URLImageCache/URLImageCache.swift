@@ -26,7 +26,7 @@ import URLImage
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public final class URLImageCache: URLImageCacheType {
+public final class URLImageCache {
 
     let fileIndex: FileIndex
 
@@ -40,64 +40,6 @@ public final class URLImageCache: URLImageCacheType {
                                                              baseDirectoryName: "URLImage")
         let fileIndex = FileIndex(configuration: fileIndexConfiguration)
         self.init(fileIndex: fileIndex)
-    }
-
-    public func getImage(withIdentifier identifier: String?,
-                  orURL url: URL,
-                  maxPixelSize: CGSize?,
-                  _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void
-    ) {
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
-                completion(.success(nil))
-                return
-            }
-
-            let location = self.fileIndex.location(of: file)
-
-            self.decodeQueue.async { [weak self] in
-                guard let _ = self else { return }
-
-                if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
-                    completion(.success(transientImage))
-                }
-                else {
-                    completion(.failure(URLImageError.decode))
-                }
-            }
-        }
-    }
-
-    public func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            _ = try? self.fileIndex.write(data,
-                                          originalURL: url,
-                                          identifier: identifier,
-                                          fileName: fileName,
-                                          fileExtension: fileExtension,
-                                          expireAfter: expiryInterval)
-        }
-    }
-
-    public func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            _ = try? self.fileIndex.move(location,
-                                         originalURL: url,
-                                         identifier: identifier,
-                                         fileName: fileName,
-                                         fileExtension: fileExtension,
-                                         expireAfter: expiryInterval)
-        }
     }
 
     // MARK: - Cleanup
@@ -162,6 +104,81 @@ public final class URLImageCache: URLImageCacheType {
         }
         else {
             return nil
+        }
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+extension URLImageCache: URLImageCacheType {
+
+    public func getImage(withIdentifier identifier: String?,
+                         orURL url: URL,
+                         maxPixelSize: CGSize?,
+                         _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else { return }
+
+            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
+                completion(.success(nil))
+                return
+            }
+
+            let location = self.fileIndex.location(of: file)
+
+            self.decodeQueue.async { [weak self] in
+                guard let _ = self else { return }
+
+                if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
+                    completion(.success(transientImage))
+                }
+                else {
+                    completion(.failure(URLImageError.decode))
+                }
+            }
+        }
+    }
+
+    public func cacheImageData(_ data: Data,
+                               url: URL,
+                               identifier: String?,
+                               fileName: String?,
+                               fileExtension: String?,
+                               expireAfter expiryInterval: TimeInterval?) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            _ = try? self.fileIndex.write(data,
+                                          originalURL: url,
+                                          identifier: identifier,
+                                          fileName: fileName,
+                                          fileExtension: fileExtension,
+                                          expireAfter: expiryInterval)
+        }
+    }
+
+    public func cacheImageFile(at location: URL,
+                               url: URL,
+                               identifier: String?,
+                               fileName: String?,
+                               fileExtension: String?,
+                               expireAfter expiryInterval: TimeInterval?) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            _ = try? self.fileIndex.move(location,
+                                         originalURL: url,
+                                         identifier: identifier,
+                                         fileName: fileName,
+                                         fileExtension: fileExtension,
+                                         expireAfter: expiryInterval)
         }
     }
 }

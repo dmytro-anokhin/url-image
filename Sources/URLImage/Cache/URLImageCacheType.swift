@@ -24,6 +24,20 @@ public protocol URLImageCacheType {
     func getImage(withIdentifier identifier: String?,
                   orURL url: URL, maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
+
+    func cacheImageData(_ data: Data,
+                        url: URL,
+                        identifier: String?,
+                        fileName: String?,
+                        fileExtension: String?,
+                        expireAfter expiryInterval: TimeInterval?)
+
+    func cacheImageFile(at location: URL,
+                        url: URL,
+                        identifier: String?,
+                        fileName: String?,
+                        fileExtension: String?,
+                        expireAfter expiryInterval: TimeInterval?)
 }
 
 
