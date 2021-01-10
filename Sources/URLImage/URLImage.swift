@@ -164,6 +164,38 @@ public extension URLImage where Empty == EmptyView,
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
+                                Failure == EmptyView {
+
+    init(_ url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         content: @escaping (_ image: Image) -> Content) {
+
+        self.init(url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: inProgress,
+                  failure: { _, _ in EmptyView() },
+                  content: content)
+    }
+
+    init(_ url: URL,
+         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
+
+        self.init(url,
+                  options: options,
+                  empty: { EmptyView() },
+                  inProgress: inProgress,
+                  failure: { _, _ in EmptyView() },
+                  content: content)
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator,
                                 Failure == EmptyView {
 
