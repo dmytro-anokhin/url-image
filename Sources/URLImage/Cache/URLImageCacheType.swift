@@ -25,3 +25,16 @@ public protocol URLImageCacheType {
                   orURL url: URL, maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
 }
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+extension URLImageCacheType {
+
+    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
+        Future<TransientImage?, Swift.Error> { promise in
+            self.getImage(withIdentifier: identifier, orURL: url, maxPixelSize: maxPixelSize) {
+                promise($0)
+            }
+        }.eraseToAnyPublisher()
+    }
+}

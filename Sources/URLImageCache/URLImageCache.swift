@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreGraphics
-import Combine
 
 #if canImport(Common)
 import Common
@@ -69,18 +68,6 @@ public final class URLImageCache: URLImageCacheType {
                 }
             }
         }
-    }
-
-    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
-        return Future<TransientImage?, Swift.Error> { [weak self] promise in
-            guard let self = self else {
-                return
-            }
-
-            self.getImage(withIdentifier: identifier, orURL: url, maxPixelSize: maxPixelSize) {
-                promise($0)
-            }
-        }.eraseToAnyPublisher()
     }
 
     public func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
