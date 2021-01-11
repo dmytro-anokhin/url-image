@@ -16,12 +16,7 @@ import Common
 public extension TransientImage {
 
     var image: Image {
-        if let cgOrientation = self.cgOrientation {
-            let orientation = Image.Orientation(cgOrientation)
-            return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
-        }
-        else {
-            return Image(decorative: self.cgImage, scale: 1.0)
-        }
+        let orientation = Image.Orientation(cgOrientation)
+        return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
     }
 }

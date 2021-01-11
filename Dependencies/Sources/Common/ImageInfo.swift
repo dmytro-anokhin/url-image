@@ -17,4 +17,9 @@ public struct ImageInfo {
     ///
     /// This is the real size, that can be different from decoded image size.
     public var size: CGSize
+
+    public init(cgImage: CGImage, size: CGSize) {
+        self.cgImage = cgImage
+        self.size = size
+    }
 }
