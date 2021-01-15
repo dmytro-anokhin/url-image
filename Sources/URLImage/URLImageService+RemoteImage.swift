@@ -8,6 +8,10 @@
 import Foundation
 import Combine
 
+#if canImport(DownloadManager)
+import DownloadManager
+#endif
+
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
@@ -79,6 +83,13 @@ extension URLImageService {
             remoteImage.cancel()
             cancellable = nil
         }
+    }
+
+    public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
+        let options = options ?? defaultOptions
+        let download = Download(url: url, options: options)
+
+        return RemoteImage(service: self, download: download, options: options)
     }
 
     public func remoteImagePublisher(_ url: URL, options: URLImageOptions? = nil) -> RemoteImagePublisher {
