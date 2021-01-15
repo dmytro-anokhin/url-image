@@ -33,13 +33,6 @@ public final class URLImageService {
                                                 urlRequestConfiguration: .init(),
                                                 maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
-    public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
-        let options = options ?? defaultOptions
-        let download = Download(url: url, options: options)
-
-        return RemoteImage(service: self, download: download, options: options)
-    }
-
     public var diskCacheURL: URL {
         diskCache.fileIndex.configuration.filesDirectoryURL
     }
