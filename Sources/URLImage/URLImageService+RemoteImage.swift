@@ -1,5 +1,5 @@
 //
-//  URLImageService+FetchImage.swift
+//  URLImageService+RemoteImage.swift
 //  
 //
 //  Created by Dmytro Anokhin on 15/01/2021.
@@ -12,16 +12,16 @@ import Combine
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
 
-    public struct FetchImagePublisher: Publisher {
+    public struct RemoteImagePublisher: Publisher {
 
         public typealias Output = ImageInfo
         public typealias Failure = Error
 
         public func receive<S>(subscriber: S) where S: Subscriber,
-                                             FetchImagePublisher.Failure == S.Failure,
-                                             FetchImagePublisher.Output == S.Input {
+                                                    RemoteImagePublisher.Failure == S.Failure,
+                                                    RemoteImagePublisher.Output == S.Input {
 
-            let subscription = FetchImageSubscription(subscriber: subscriber, remoteImage: remoteImage)
+            let subscription = RemoteImageSubscription(subscriber: subscriber, remoteImage: remoteImage)
             subscriber.receive(subscription: subscription)
         }
 
@@ -32,7 +32,7 @@ extension URLImageService {
         }
     }
 
-    final class FetchImageSubscription<SubscriberType: Subscriber>: Subscription where SubscriberType.Input == ImageInfo,
+    final class RemoteImageSubscription<SubscriberType: Subscriber>: Subscription where SubscriberType.Input == ImageInfo,
                                                                                        SubscriberType.Failure == Error {
 
         private var subscriber: SubscriberType?
@@ -81,8 +81,8 @@ extension URLImageService {
         }
     }
 
-    public func fetchImagePublisher(_ url: URL, options: URLImageOptions? = nil) -> FetchImagePublisher {
+    public func remoteImagePublisher(_ url: URL, options: URLImageOptions? = nil) -> RemoteImagePublisher {
         let remoteImage = makeRemoteImage(url: url, options: options)
-        return FetchImagePublisher(remoteImage: remoteImage)
+        return RemoteImagePublisher(remoteImage: remoteImage)
     }
 }
