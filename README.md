@@ -28,7 +28,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
     - [Options](#options)
-- [Download an Image Without a View](#download-an-image-without-a-view)
+- [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
