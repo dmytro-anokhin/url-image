@@ -5,10 +5,6 @@
 //  Created by Dmytro Anokhin on 08/11/2020.
 //
 
-#if canImport(RemoteContentView)
-import RemoteContentView
-#endif
-
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension RemoteContentViewLoadOptions {

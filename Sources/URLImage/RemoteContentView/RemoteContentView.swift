@@ -8,6 +8,10 @@
 import SwiftUI
 import Combine
 
+#if canImport(Common)
+import Common
+#endif
+
 
 /// Controls how download starts and when it can be cancelled
 public struct RemoteContentViewLoadOptions: OptionSet {
@@ -30,31 +34,29 @@ public struct RemoteContentViewLoadOptions: OptionSet {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Content> : View where Empty : View,
-                                                                                                   InProgress : View,
-                                                                                                   Failure : View,
-                                                                                                   Content : View
-{
+public struct RemoteContentView<Empty, InProgress, Failure, Content> : View where Empty : View,
+                                                                                  InProgress : View,
+                                                                                  Failure : View,
+                                                                                  Content : View {
+
     let loadOptions: RemoteContentViewLoadOptions
 
     let empty: () -> Empty
 
-    let inProgress: (_ progress: Progress) -> InProgress
+    let inProgress: (_ progress: Float?) -> InProgress
 
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
 
-    let content: (_ value: Value) -> Content
+    let content: (_ value: TransientImage) -> Content
 
-    public init<R: RemoteContent>(remoteContent: R,
-                                  loadOptions: RemoteContentViewLoadOptions,
-                                  empty: @escaping () -> Empty,
-                                  inProgress: @escaping (_ progress: Progress) -> InProgress,
-                                  failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                                  content: @escaping (_ value: Value) -> Content) where R.ObjectWillChangePublisher == ObservableObjectPublisher,
-                                                                                        R.Value == Value,
-                                                                                        R.Progress == Progress
-    {
-        self.remoteContent = AnyRemoteContent(remoteContent)
+    public init(remoteContent: RemoteImage,
+                loadOptions: RemoteContentViewLoadOptions,
+                empty: @escaping () -> Empty,
+                inProgress: @escaping (_ progress: Float?) -> InProgress,
+                failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+                content: @escaping (_ value: TransientImage) -> Content) {
+
+        self.remoteContent = remoteContent
 
         self.loadOptions = loadOptions
         self.empty = empty
@@ -97,5 +99,5 @@ public struct RemoteContentView<Value, Progress, Empty, InProgress, Failure, Con
         }
     }
 
-    @ObservedObject private var remoteContent: AnyRemoteContent<Value, Progress>
+    @ObservedObject private var remoteContent: RemoteImage
 }

@@ -20,17 +20,13 @@ import DownloadManager
 import ImageDecoder
 #endif
 
-#if canImport(RemoteContentView)
-import RemoteContentView
-#endif
-
 #if canImport(Log)
 import Log
 #endif
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public final class RemoteImage : RemoteContent {
+public final class RemoteImage : ObservableObject {
 
     /// Reference to URLImageService used to download and cache the image.
     unowned let service: URLImageService

@@ -7,10 +7,6 @@
 
 import SwiftUI
 
-#if canImport(RemoteContentView)
-import RemoteContentView
-#endif
-
 #if canImport(DownloadManager)
 import DownloadManager
 #endif
