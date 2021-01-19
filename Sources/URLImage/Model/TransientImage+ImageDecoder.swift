@@ -52,7 +52,7 @@ public extension TransientImage {
         }
 
         guard let cgImage = decodedCGImage else {
-            // Can not decode image
+            // Can not decode an image
             return nil
         }
 
