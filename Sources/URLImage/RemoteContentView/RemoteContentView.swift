@@ -13,33 +13,14 @@ import Common
 #endif
 
 
-/// Controls how download starts and when it can be cancelled
-public struct RemoteContentViewLoadOptions: OptionSet {
-
-    public let rawValue: Int
-
-    public init(rawValue: Int) {
-        self.rawValue = rawValue
-    }
-
-    /// Start load when the view is created
-    public static let loadImmediately: RemoteContentViewLoadOptions = .init(rawValue: 1 << 0)
-
-    /// Start load when the view appears
-    public static let loadOnAppear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 1)
-
-    /// Cancel load when the view disappears
-    public static let cancelOnDisappear: RemoteContentViewLoadOptions = .init(rawValue: 1 << 2)
-}
-
-
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct RemoteContentView<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                                   InProgress : View,
                                                                                   Failure : View,
                                                                                   Content : View {
 
-    let loadOptions: RemoteContentViewLoadOptions
+    /// Controls how download starts and when it can be cancelled
+    let loadOptions: URLImageOptions.LoadOptions
 
     let empty: () -> Empty
 
@@ -50,7 +31,7 @@ public struct RemoteContentView<Empty, InProgress, Failure, Content> : View wher
     let content: (_ value: TransientImage) -> Content
 
     public init(remoteContent: RemoteImage,
-                loadOptions: RemoteContentViewLoadOptions,
+                loadOptions: URLImageOptions.LoadOptions,
                 empty: @escaping () -> Empty,
                 inProgress: @escaping (_ progress: Float?) -> InProgress,
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
