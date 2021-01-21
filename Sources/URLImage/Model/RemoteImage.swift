@@ -61,7 +61,7 @@ public final class RemoteImage : ObservableObject {
         isLoading = true
 
         switch options.cachePolicy {
-            case .returnCacheElseLoad(let cacheDelay, let downloadDelay):
+            case .returnCacheElseLoad(let downloadDelay):
                 guard !isLoadedSuccessfully else {
                     // Already loaded
                     isLoading = false
@@ -75,7 +75,7 @@ public final class RemoteImage : ObservableObject {
                 }
 
                 // Disk cache lookup
-                scheduleReturnCached(afterDelay: cacheDelay) { [weak self] success in
+                scheduleReturnCached(afterDelay: nil) { [weak self] success in
                     guard let self = self else { return }
 
                     if !success {
@@ -83,7 +83,7 @@ public final class RemoteImage : ObservableObject {
                     }
                 }
 
-            case .returnCacheDontLoad(let delay):
+            case .returnCacheDontLoad:
                 guard !isLoadedSuccessfully else {
                     // Already loaded
                     isLoading = false
@@ -97,7 +97,7 @@ public final class RemoteImage : ObservableObject {
                 }
 
                 // Disk cache lookup
-                scheduleReturnCached(afterDelay: delay) { [weak self] success in
+                scheduleReturnCached(afterDelay: nil) { [weak self] success in
                     guard let self = self else { return }
 
                     if !success {
@@ -106,9 +106,9 @@ public final class RemoteImage : ObservableObject {
                     }
                 }
 
-            case .ignoreCache(let delay):
+            case .ignoreCache(let downloadDelay):
                 // Always download
-                scheduleDownload(afterDelay: delay)
+                scheduleDownload(afterDelay: downloadDelay)
 
             case .useProtocol:
                 scheduleDownload(secondCacheLookup: false)
