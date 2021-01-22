@@ -18,12 +18,18 @@ import DownloadManager
 #endif
 
 
+public enum URLImageCacheKey {
+
+    case identifier(_ identifier: String)
+
+    case url(_ url: URL)
+}
+
+
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public protocol URLImageCache {
 
-    func getImage(withIdentifier identifier: String?,
-                  orURL url: URL, maxPixelSize: CGSize?,
-                  _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
+    func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
 
     func cacheImageData(_ data: Data,
                         url: URL,
@@ -44,9 +50,9 @@ public protocol URLImageCache {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageCache {
 
-    func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
+    func getImagePublisher(_ key: URLImageCacheKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in
-            self.getImage(withIdentifier: identifier, orURL: url, maxPixelSize: maxPixelSize) {
+            self.getImage(key, maxPixelSize: maxPixelSize) {
                 promise($0)
             }
         }.eraseToAnyPublisher()

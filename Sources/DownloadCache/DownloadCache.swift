@@ -82,11 +82,21 @@ public final class DownloadCache {
                 return
             }
 
-            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
-                return
+            let file: File?
+
+            if let identifier = identifier {
+                file = self.fileIndex.get(identifier).first
+            }
+            else if let url = url {
+                file = self.fileIndex.get(url).first
+            }
+            else {
+                file = nil
             }
 
-            self.fileIndex.delete(file)
+            if let file = file {
+                self.fileIndex.delete(file)
+            }
         }
     }
 
@@ -94,48 +104,44 @@ public final class DownloadCache {
 
     private let fileIndexQueue = DispatchQueue(label: "DownloadCache.fileIndexQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "DownloadCache.decodeQueue", attributes: .concurrent)
-
-    private func getFile(withIdentifier identifier: String?, orURL url: URL?) -> File? {
-        if let identifier = identifier {
-            return fileIndex.get(identifier).first
-        }
-        else if let url = url {
-            return fileIndex.get(url).first
-        }
-        else {
-            return nil
-        }
-    }
 }
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension DownloadCache: URLImageCache {
 
-    public func getImage(withIdentifier identifier: String?,
-                         orURL url: URL,
-                         maxPixelSize: CGSize?,
-                         _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
+    public func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
 
         fileIndexQueue.async { [weak self] in
-            guard let self = self else { return }
-
-            guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
-                completion(.success(nil))
+            guard let self = self else {
                 return
             }
 
-            let location = self.fileIndex.location(of: file)
+            let file: File?
 
-            self.decodeQueue.async { [weak self] in
-                guard let _ = self else { return }
+            switch key {
+                case .identifier(let identifier):
+                    file = self.fileIndex.get(identifier).first
+                case .url(let url):
+                    file = self.fileIndex.get(url).first
+            }
 
-                if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
-                    completion(.success(transientImage))
+            if let file = file {
+                let location = self.fileIndex.location(of: file)
+
+                self.decodeQueue.async { [weak self] in
+                    guard let _ = self else { return }
+
+                    if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
+                        completion(.success(transientImage))
+                    }
+                    else {
+                        completion(.failure(URLImageError.decode))
+                    }
                 }
-                else {
-                    completion(.failure(URLImageError.decode))
-                }
+            }
+            else {
+                completion(.success(nil))
             }
         }
     }
