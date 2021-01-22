@@ -37,7 +37,7 @@ public final class URLImageService {
                                                 urlRequestConfiguration: .init(),
                                                 maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
-    public var cache: URLImageCacheType? {
+    public var cache: URLImageCache? {
         get {
             synchronizationQueue.sync {
                 _cache
@@ -62,7 +62,7 @@ public final class URLImageService {
     private init() {
     }
 
-    public var _cache: URLImageCacheType? = nil
+    public var _cache: URLImageCache? = nil
 
     private let synchronizationQueue = DispatchQueue(label: "URLImageService.synchronizationQueue")
 }

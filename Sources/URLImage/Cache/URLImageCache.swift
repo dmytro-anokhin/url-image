@@ -1,5 +1,5 @@
 //
-//  URLImageCacheType.swift
+//  URLImageCache.swift
 //  
 //
 //  Created by Dmytro Anokhin on 10/01/2021.
@@ -19,7 +19,7 @@ import DownloadManager
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public protocol URLImageCacheType {
+public protocol URLImageCache {
 
     func getImage(withIdentifier identifier: String?,
                   orURL url: URL, maxPixelSize: CGSize?,
@@ -42,7 +42,7 @@ public protocol URLImageCacheType {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension URLImageCacheType {
+extension URLImageCache {
 
     func getImagePublisher(withIdentifier identifier: String?, orURL url: URL, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in
