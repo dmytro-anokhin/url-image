@@ -8,10 +8,6 @@
 import Foundation
 import CoreGraphics
 
-#if canImport(Common)
-import Common
-#endif
-
 #if canImport(FileIndex)
 import FileIndex
 #endif
@@ -141,42 +137,6 @@ extension DownloadCache: URLImageCache {
                         completion(.success(object))
                     } catch {
                         completion(.failure(error))
-                    }
-                }
-            }
-            else {
-                completion(.success(nil))
-            }
-        }
-    }
-
-    public func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
-
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            let file: File?
-
-            switch key {
-                case .identifier(let identifier):
-                    file = self.fileIndex.get(identifier).first
-                case .url(let url):
-                    file = self.fileIndex.get(url).first
-            }
-
-            if let file = file {
-                let location = self.fileIndex.location(of: file)
-
-                self.decodeQueue.async { [weak self] in
-                    guard let _ = self else { return }
-
-                    if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
-                        completion(.success(transientImage))
-                    }
-                    else {
-                        completion(.failure(URLImageError.decode))
                     }
                 }
             }

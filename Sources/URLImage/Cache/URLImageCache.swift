@@ -36,8 +36,6 @@ public protocol URLImageCache {
                      open: @escaping (_ fileURL: URL) throws -> T?,
                      completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
 
-    func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
-
     func cacheImageData(_ data: Data,
                         url: URL,
                         identifier: String?,
@@ -59,8 +57,15 @@ extension URLImageCache {
 
     func getImagePublisher(_ key: URLImageCacheKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in
-            self.getImage(key, maxPixelSize: maxPixelSize) {
-                promise($0)
+            self.getImage(key) { fileURL -> TransientImage in
+                guard let transientImage = TransientImage(location: fileURL, maxPixelSize: maxPixelSize) else {
+                    throw URLImageError.decode
+                }
+
+                return transientImage
+            }
+            completion: { result in
+                promise(result)
             }
         }.eraseToAnyPublisher()
     }
