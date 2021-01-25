@@ -33,7 +33,7 @@ public protocol URLImageCache {
     ///
     /// The `load` closure is used to delegate decoding image file.
     func getImage<T>(_ key: URLImageCacheKey,
-                     open: @escaping (_ fileURL: URL) throws -> T?,
+                     open: @escaping (_ location: URL) throws -> T?,
                      completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
 
     func cacheImageData(_ data: Data,
@@ -57,8 +57,8 @@ extension URLImageCache {
 
     func getImagePublisher(_ key: URLImageCacheKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in
-            self.getImage(key) { fileURL -> TransientImage in
-                guard let transientImage = TransientImage(location: fileURL, maxPixelSize: maxPixelSize) else {
+            self.getImage(key) { location -> TransientImage in
+                guard let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) else {
                     throw URLImageError.decode
                 }
 

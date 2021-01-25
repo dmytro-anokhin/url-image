@@ -107,7 +107,7 @@ public final class DownloadCache {
 extension DownloadCache: URLImageCache {
 
     public func getImage<T>(_ key: URLImageCacheKey,
-                            open: @escaping (_ fileURL: URL) throws -> T?,
+                            open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 
         fileIndexQueue.async { [weak self] in
