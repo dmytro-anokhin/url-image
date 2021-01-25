@@ -110,6 +110,46 @@ public final class DownloadCache {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension DownloadCache: URLImageCache {
 
+    public func getImage<T>(_ key: URLImageCacheKey,
+                            open: @escaping (_ fileURL: URL) throws -> T?,
+                            completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            let file: File?
+
+            switch key {
+                case .identifier(let identifier):
+                    file = self.fileIndex.get(identifier).first
+                case .url(let url):
+                    file = self.fileIndex.get(url).first
+            }
+
+            if let file = file {
+                let location = self.fileIndex.location(of: file)
+
+                self.decodeQueue.async { [weak self] in
+                    guard let _ = self else { // Just a sanity check if the cache object is still exists
+                        return
+                    }
+
+                    do {
+                        let object = try open(location)
+                        completion(.success(object))
+                    } catch {
+                        completion(.failure(error))
+                    }
+                }
+            }
+            else {
+                completion(.success(nil))
+            }
+        }
+    }
+
     public func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void) {
 
         fileIndexQueue.async { [weak self] in

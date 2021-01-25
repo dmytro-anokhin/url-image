@@ -29,6 +29,13 @@ public enum URLImageCacheKey {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public protocol URLImageCache {
 
+    /// Get image from the cache.
+    ///
+    /// The `load` closure is used to delegate decoding image file.
+    func getImage<T>(_ key: URLImageCacheKey,
+                     open: @escaping (_ fileURL: URL) throws -> T?,
+                     completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
+
     func getImage(_ key: URLImageCacheKey, maxPixelSize: CGSize?, _ completion: @escaping (_ result: Result<TransientImage?, Swift.Error>) -> Void)
 
     func cacheImageData(_ data: Data,
