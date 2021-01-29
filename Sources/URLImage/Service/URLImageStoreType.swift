@@ -1,5 +1,5 @@
 //
-//  URLImageCache.swift
+//  URLImageStoreType.swift
 //  
 //
 //  Created by Dmytro Anokhin on 10/01/2021.
@@ -27,7 +27,7 @@ public enum URLImageKey {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public protocol URLImageCache {
+public protocol URLImageStoreType {
 
     /// Get image from the cache.
     ///
@@ -53,7 +53,7 @@ public protocol URLImageCache {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension URLImageCache {
+extension URLImageStoreType {
 
     func getImagePublisher(_ key: URLImageKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in

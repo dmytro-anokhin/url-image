@@ -104,7 +104,7 @@ public final class URLImageStore {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension URLImageStore: URLImageCache {
+extension URLImageStore: URLImageStoreType {
 
     public func getImage<T>(_ key: URLImageKey,
                             open: @escaping (_ location: URL) throws -> T?,
