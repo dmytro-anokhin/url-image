@@ -26,6 +26,24 @@ public enum URLImageStoreKey {
 }
 
 
+public struct URLImageStoreInfo {
+
+    /// Original URL of the image
+    public var url: URL
+
+    public var identifier: String?
+
+    /// Image file name should be used if present
+    public var fileName: String?
+
+    /// Image file extension should be used if present
+    public var fileExtension: String? // TODO: Replace with UTI and move file extension logic to the store
+
+    /// Time interval after which the image is considered expired and must be deleted
+    public var expiryInterval: TimeInterval?
+}
+
+
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public protocol URLImageStoreType {
 
@@ -36,19 +54,9 @@ public protocol URLImageStoreType {
                      open: @escaping (_ location: URL) throws -> T?,
                      completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
 
-    func cacheImageData(_ data: Data,
-                        url: URL,
-                        identifier: String?,
-                        fileName: String?,
-                        fileExtension: String?,
-                        expireAfter expiryInterval: TimeInterval?)
+    func cacheImageData(_ data: Data, info: URLImageStoreInfo)
 
-    func copyImageFile(from location: URL,
-                       url: URL,
-                       identifier: String?,
-                       fileName: String?,
-                       fileExtension: String?,
-                       expireAfter expiryInterval: TimeInterval?)
+    func copyImageFile(from location: URL, info: URLImageStoreInfo)
 }
 
 

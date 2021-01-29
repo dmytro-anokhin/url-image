@@ -146,12 +146,7 @@ extension URLImageStore: URLImageStoreType {
         }
     }
 
-    public func cacheImageData(_ data: Data,
-                               url: URL,
-                               identifier: String?,
-                               fileName: String?,
-                               fileExtension: String?,
-                               expireAfter expiryInterval: TimeInterval?) {
+    public func cacheImageData(_ data: Data, info: URLImageStoreInfo) {
 
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
@@ -159,20 +154,15 @@ extension URLImageStore: URLImageStoreType {
             }
 
             _ = try? self.fileIndex.write(data,
-                                          originalURL: url,
-                                          identifier: identifier,
-                                          fileName: fileName,
-                                          fileExtension: fileExtension,
-                                          expireAfter: expiryInterval)
+                                          originalURL: info.url,
+                                          identifier: info.identifier,
+                                          fileName: info.fileName,
+                                          fileExtension: info.fileExtension,
+                                          expireAfter: info.expiryInterval)
         }
     }
 
-    public func copyImageFile(from location: URL,
-                               url: URL,
-                               identifier: String?,
-                               fileName: String?,
-                               fileExtension: String?,
-                               expireAfter expiryInterval: TimeInterval?) {
+    public func copyImageFile(from location: URL, info: URLImageStoreInfo) {
 
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
@@ -180,11 +170,11 @@ extension URLImageStore: URLImageStoreType {
             }
 
             _ = try? self.fileIndex.move(location,
-                                         originalURL: url,
-                                         identifier: identifier,
-                                         fileName: fileName,
-                                         fileExtension: fileExtension,
-                                         expireAfter: expiryInterval)
+                                         originalURL: info.url,
+                                         identifier: info.identifier,
+                                         fileName: info.fileName,
+                                         fileExtension: info.fileExtension,
+                                         expireAfter: info.expiryInterval)
         }
     }
 }
