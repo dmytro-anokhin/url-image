@@ -17,8 +17,8 @@ let package = Package(
             name: "URLImage",
             targets: ["URLImage"]),
         .library(
-            name: "DownloadCache",
-            targets: ["DownloadCache"])
+            name: "URLImageStore",
+            targets: ["URLImageStore"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -31,7 +31,7 @@ let package = Package(
             name: "URLImage",
             dependencies: [ "DownloadManager", "ImageDecoder", "FileIndex", "Common", "Log" ]),
         .target(
-            name: "DownloadCache",
+            name: "URLImageStore",
             dependencies: [ "URLImage", "FileIndex", "Log" ]),
         .target(
             name: "ImageDecoder",

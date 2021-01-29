@@ -1,5 +1,5 @@
 //
-//  DownloadCache.swift
+//  URLImageStore.swift
 //  
 //
 //  Created by Dmytro Anokhin on 08/01/2021.
@@ -22,7 +22,7 @@ import URLImage
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public final class DownloadCache {
+public final class URLImageStore {
 
     let fileIndex: FileIndex
 
@@ -98,13 +98,13 @@ public final class DownloadCache {
 
     // MARK: - Private
 
-    private let fileIndexQueue = DispatchQueue(label: "DownloadCache.fileIndexQueue", attributes: .concurrent)
-    private let decodeQueue = DispatchQueue(label: "DownloadCache.decodeQueue", attributes: .concurrent)
+    private let fileIndexQueue = DispatchQueue(label: "URLImageStore.fileIndexQueue", attributes: .concurrent)
+    private let decodeQueue = DispatchQueue(label: "URLImageStore.decodeQueue", attributes: .concurrent)
 }
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension DownloadCache: URLImageCache {
+extension URLImageStore: URLImageCache {
 
     public func getImage<T>(_ key: URLImageCacheKey,
                             open: @escaping (_ location: URL) throws -> T?,
