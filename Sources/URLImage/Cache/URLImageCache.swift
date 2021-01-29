@@ -18,7 +18,7 @@ import DownloadManager
 #endif
 
 
-public enum URLImageCacheKey {
+public enum URLImageKey {
 
     case identifier(_ identifier: String)
 
@@ -32,7 +32,7 @@ public protocol URLImageCache {
     /// Get image from the cache.
     ///
     /// The `load` closure is used to delegate decoding image file.
-    func getImage<T>(_ key: URLImageCacheKey,
+    func getImage<T>(_ key: URLImageKey,
                      open: @escaping (_ location: URL) throws -> T?,
                      completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
 
@@ -55,7 +55,7 @@ public protocol URLImageCache {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageCache {
 
-    func getImagePublisher(_ key: URLImageCacheKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
+    func getImagePublisher(_ key: URLImageKey, maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
         Future<TransientImage?, Swift.Error> { promise in
             self.getImage(key) { location -> TransientImage in
                 guard let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) else {
