@@ -69,7 +69,7 @@ extension URLImageService {
                 }
 
                 if options.shouldCache {
-//                    diskCache.cacheImageFile(at: location,
+//                    diskCache.copyImageFile(from: location,
 //                                             url: download.url,
 //                                             identifier: options.identifier,
 //                                             fileName: fileName,

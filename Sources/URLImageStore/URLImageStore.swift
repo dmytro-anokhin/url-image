@@ -106,7 +106,7 @@ public final class URLImageStore {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageStore: URLImageStoreType {
 
-    public func getImage<T>(_ key: URLImageKey,
+    public func getImage<T>(_ key: URLImageStoreKey,
                             open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 
@@ -167,7 +167,7 @@ extension URLImageStore: URLImageStoreType {
         }
     }
 
-    public func cacheImageFile(at location: URL,
+    public func copyImageFile(from location: URL,
                                url: URL,
                                identifier: String?,
                                fileName: String?,
