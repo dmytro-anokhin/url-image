@@ -265,34 +265,46 @@ extension RemoteImage {
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-//        service.diskCache
-//            .getImagePublisher(withIdentifier: options.identifier, orURL: download.url, maxPixelSize: options.maxPixelSize)
-//            .receive(on: RunLoop.main)
-//            .catch { _ in
-//                Just(nil)
-//            }
-//            .sink { [weak self] in
-//                guard let self = self else {
-//                    return
-//                }
-//
-//                if let transientImage = $0 {
-//                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
-//                    // Move to in memory cache
-//                    self.service.inMemoryCache.cacheTransientImage(transientImage,
-//                                                                   withURL: self.download.url,
-//                                                                   identifier: self.options.identifier,
-//                                                                   expireAfter: self.options.expiryInterval)
-//                    // Set image retrieved from cache
-//                    self.loadingState = .success(transientImage)
-//                    completion(true)
-//                }
-//                else {
-//                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
-//                    completion(false)
-//                }
-//            }
-//            .store(in: &cancellables)
+        guard let store = service.store else {
+            completion(false)
+            return
+        }
+
+        var keys: [URLImageStoreKey] = []
+
+        if let identifier = options.identifier {
+            keys.append(.identifier(identifier))
+        }
+
+        keys.append(.url(download.url))
+
+        store.getImagePublisher(keys, maxPixelSize: options.maxPixelSize)
+            .receive(on: RunLoop.main)
+            .catch { _ in
+                Just(nil)
+            }
+            .sink { [weak self] in
+                guard let self = self else {
+                    return
+                }
+
+                if let transientImage = $0 {
+                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
+                    // Move to in memory cache
+                    self.service.inMemoryCache.cacheTransientImage(transientImage,
+                                                                   withURL: self.download.url,
+                                                                   identifier: self.options.identifier,
+                                                                   expireAfter: self.options.expiryInterval)
+                    // Set image retrieved from cache
+                    self.loadingState = .success(transientImage)
+                    completion(true)
+                }
+                else {
+                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
+                    completion(false)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     private func updateLoadingState(_ loadingState: LoadingState) {
