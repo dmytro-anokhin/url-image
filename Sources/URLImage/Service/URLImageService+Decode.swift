@@ -31,16 +31,13 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                let fileName = UUID().uuidString
-                let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
+                var info = URLImageStoreInfo(url: download.url, identifier: options.identifier, fileName: nil, fileExtension: nil, expiryInterval: options.expiryInterval)
+
+                info.fileName = UUID().uuidString
+                info.fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
 
                 if options.shouldCache {
-//                    diskCache.cacheImageData(data,
-//                                             url: download.url,
-//                                             identifier: options.identifier,
-//                                             fileName: fileName,
-//                                             fileExtension: fileExtension,
-//                                             expireAfter: options.expiryInterval)
+                    store?.cacheImageData(data, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,
@@ -58,23 +55,19 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                let fileName = UUID().uuidString
-                let fileExtension: String?
+                var info = URLImageStoreInfo(url: download.url, identifier: options.identifier, fileName: nil, fileExtension: nil, expiryInterval: options.expiryInterval)
+
+                info.fileName = UUID().uuidString
 
                 if !location.pathExtension.isEmpty {
-                    fileExtension = location.pathExtension
+                    info.fileExtension = location.pathExtension
                 }
                 else {
-                    fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
+                    info.fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
                 }
 
                 if options.shouldCache {
-//                    diskCache.copyImageFile(from: location,
-//                                             url: download.url,
-//                                             identifier: options.identifier,
-//                                             fileName: fileName,
-//                                             fileExtension: fileExtension,
-//                                             expireAfter: options.expiryInterval)
+                    store?.copyImageFile(from: location, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,
