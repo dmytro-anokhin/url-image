@@ -106,7 +106,7 @@ public final class URLImageStore {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageStore: URLImageStoreType {
 
-    public func getImage<T>(_ key: URLImageStoreKey,
+    public func getImage<T>(_ keys: [URLImageStoreKey],
                             open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 
@@ -115,13 +115,19 @@ extension URLImageStore: URLImageStoreType {
                 return
             }
 
-            let file: File?
+            var file: File?
 
-            switch key {
-                case .identifier(let identifier):
-                    file = self.fileIndex.get(identifier).first
-                case .url(let url):
-                    file = self.fileIndex.get(url).first
+            for key in keys {
+                switch key {
+                    case .identifier(let identifier):
+                        file = self.fileIndex.get(identifier).first
+                    case .url(let url):
+                        file = self.fileIndex.get(url).first
+                }
+
+                if file != nil {
+                    break
+                }
             }
 
             if let file = file {
