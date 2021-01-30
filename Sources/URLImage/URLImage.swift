@@ -47,7 +47,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     private let remoteImage: RemoteImage
 
     private init(url: URL,
-         options: URLImageOptions = URLImageService.shared.defaultOptions,
+         options: URLImageOptions,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -78,7 +78,7 @@ public extension URLImage {
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
-        self.init(url: url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+        self.init(url: url, options: options, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
             content(transientImage.image)
         }
     }
@@ -90,7 +90,7 @@ public extension URLImage {
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
-        self.init(url: url, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
+        self.init(url: url, options: options, empty: empty, inProgress: inProgress, failure: failure) { (transientImage: TransientImageType) -> Content in
             content(transientImage.image, transientImage.info)
         }
     }
