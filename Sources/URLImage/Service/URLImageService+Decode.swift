@@ -37,7 +37,7 @@ extension URLImageService {
                 info.fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
 
                 if options.shouldCache {
-                    store?.cacheImageData(data, info: info)
+                    store?.storeImageData(data, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,
@@ -67,7 +67,7 @@ extension URLImageService {
                 }
 
                 if options.shouldCache {
-                    store?.copyImageFile(from: location, info: info)
+                    store?.moveImageFile(from: location, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,
                                                       withURL: download.url,

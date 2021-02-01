@@ -47,19 +47,20 @@ public struct URLImageStoreInfo {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public protocol URLImageStoreType {
 
-    /// Get image from the cache.
+    /// Get image from the strore.
     ///
     /// - parameters:
     ///     - keys: An array of keys used to lookup the image
-    ///     - open: A closure used to open the image file by delegating its decoding
-    ///
+    ///     - open: A closure used to open the image file by delegating its decoding to the calling routine
     func getImage<T>(_ keys: [URLImageStoreKey],
                      open: @escaping (_ location: URL) throws -> T?,
                      completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void)
 
-    func cacheImageData(_ data: Data, info: URLImageStoreInfo)
+    /// Write image data to the store.
+    func storeImageData(_ data: Data, info: URLImageStoreInfo)
 
-    func copyImageFile(from location: URL, info: URLImageStoreInfo)
+    /// Move image file from the temporary location to the store.
+    func moveImageFile(from location: URL, info: URLImageStoreInfo)
 }
 
 

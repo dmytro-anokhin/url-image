@@ -152,7 +152,7 @@ extension URLImageStore: URLImageStoreType {
         }
     }
 
-    public func cacheImageData(_ data: Data, info: URLImageStoreInfo) {
+    public func storeImageData(_ data: Data, info: URLImageStoreInfo) {
 
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
@@ -168,7 +168,7 @@ extension URLImageStore: URLImageStoreType {
         }
     }
 
-    public func copyImageFile(from location: URL, info: URLImageStoreInfo) {
+    public func moveImageFile(from location: URL, info: URLImageStoreInfo) {
 
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
