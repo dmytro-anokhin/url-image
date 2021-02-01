@@ -44,11 +44,11 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     private init(_ url: URL,
                  service: URLImageService,
-         options: URLImageOptions,
-         empty: @escaping () -> Empty,
-         inProgress: @escaping (_ progress: Float?) -> InProgress,
-         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ transientImage: TransientImage) -> Content) {
+                 options: URLImageOptions,
+                 empty: @escaping () -> Empty,
+                 inProgress: @escaping (_ progress: Float?) -> InProgress,
+                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+                 content: @escaping (_ transientImage: TransientImage) -> Content) {
 
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
