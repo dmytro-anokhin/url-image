@@ -69,7 +69,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage {
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -88,7 +88,7 @@ public extension URLImage {
     }
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -112,7 +112,7 @@ public extension URLImage {
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -128,7 +128,7 @@ public extension URLImage where Empty == EmptyView {
     }
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -150,7 +150,7 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
@@ -165,7 +165,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
@@ -186,7 +186,7 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image) -> Content) {
@@ -201,7 +201,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
@@ -223,7 +223,7 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          content: @escaping (_ image: Image) -> Content) {
 
@@ -237,7 +237,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService,
+         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
