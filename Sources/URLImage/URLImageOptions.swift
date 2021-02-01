@@ -84,11 +84,11 @@ public struct URLImageOptions {
     public var maxPixelSize: CGSize?
 
     public init(identifier: String? = nil,
-                expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
-                cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
-                load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
-                urlRequestConfiguration: Download.URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
-                maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
+                expireAfter expiryInterval: TimeInterval?,
+                cachePolicy: CachePolicy,
+                load loadOptions: LoadOptions,
+                urlRequestConfiguration: Download.URLRequestConfiguration,
+                maxPixelSize: CGSize?) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
