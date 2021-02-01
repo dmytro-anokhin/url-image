@@ -20,6 +20,10 @@ import Log
 import URLImage
 #endif
 
+#if canImport(ImageDecoder)
+import ImageDecoder
+#endif
+
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class URLImageStore {
@@ -159,11 +163,14 @@ extension URLImageStore: URLImageStoreType {
                 return
             }
 
+            let fileName = UUID().uuidString
+            let fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: info.uti)
+
             _ = try? self.fileIndex.write(data,
                                           originalURL: info.url,
                                           identifier: info.identifier,
-                                          fileName: info.fileName,
-                                          fileExtension: info.fileExtension,
+                                          fileName: fileName,
+                                          fileExtension: fileExtension,
                                           expireAfter: info.expiryInterval)
         }
     }
@@ -175,11 +182,20 @@ extension URLImageStore: URLImageStoreType {
                 return
             }
 
+            let fileName = UUID().uuidString
+            let fileExtension: String?
+
+            if !location.pathExtension.isEmpty {
+                fileExtension = location.pathExtension
+            } else {
+                fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: info.uti)
+            }
+
             _ = try? self.fileIndex.move(location,
                                          originalURL: info.url,
                                          identifier: info.identifier,
-                                         fileName: info.fileName,
-                                         fileExtension: info.fileExtension,
+                                         fileName: fileName,
+                                         fileExtension: fileExtension,
                                          expireAfter: info.expiryInterval)
         }
     }

@@ -15,10 +15,6 @@ import Common
 import DownloadManager
 #endif
 
-#if canImport(ImageDecoder)
-import ImageDecoder
-#endif
-
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
@@ -31,12 +27,12 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                var info = URLImageStoreInfo(url: download.url, identifier: options.identifier, fileName: nil, fileExtension: nil, expiryInterval: options.expiryInterval)
-
-                info.fileName = UUID().uuidString
-                info.fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
-
                 if options.shouldCache {
+                    let info = URLImageStoreInfo(url: download.url,
+                                                 identifier: options.identifier,
+                                                 uti: transientImage.uti,
+                                                 expiryInterval: options.expiryInterval)
+
                     store?.storeImageData(data, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,
@@ -55,18 +51,12 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                var info = URLImageStoreInfo(url: download.url, identifier: options.identifier, fileName: nil, fileExtension: nil, expiryInterval: options.expiryInterval)
-
-                info.fileName = UUID().uuidString
-
-                if !location.pathExtension.isEmpty {
-                    info.fileExtension = location.pathExtension
-                }
-                else {
-                    info.fileExtension = ImageDecoder.preferredFileExtension(forTypeIdentifier: transientImage.uti)
-                }
-
                 if options.shouldCache {
+                    let info = URLImageStoreInfo(url: download.url,
+                                                 identifier: options.identifier,
+                                                 uti: transientImage.uti,
+                                                 expiryInterval: options.expiryInterval)
+
                     store?.moveImageFile(from: location, info: info)
 
                     inMemoryCache.cacheTransientImage(transientImage,

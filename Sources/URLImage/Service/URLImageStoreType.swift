@@ -31,13 +31,11 @@ public struct URLImageStoreInfo {
     /// Original URL of the image
     public var url: URL
 
+    /// Optional unique identifier of the image
     public var identifier: String?
 
-    /// Image file name should be used if present
-    public var fileName: String?
-
-    /// Image file extension should be used if present
-    public var fileExtension: String? // TODO: Replace with UTI and move file extension logic to the store
+    /// The uniform type identifier (UTI) of the image.
+    public var uti: String
 
     /// Time interval after which the image is considered expired and must be deleted
     public var expiryInterval: TimeInterval?
