@@ -31,9 +31,9 @@ public final class URLImageService {
     ///
     /// In this example `myOptions` will retain default values set using this property.
     public var defaultOptions = URLImageOptions(identifier: nil,
-                                                expireAfter: 24 * 60 * 60,
+                                                expiryInterval: 24 * 60 * 60,
                                                 cachePolicy: .returnCacheElseLoad(),
-                                                load: [ .loadImmediately, .loadOnAppear, .cancelOnDisappear ],
+                                                loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
                                                 urlRequestConfiguration: .init(),
                                                 maxPixelSize: URLImageService.suggestedMaxPixelSize)
 

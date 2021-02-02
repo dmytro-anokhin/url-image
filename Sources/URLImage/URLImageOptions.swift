@@ -84,9 +84,9 @@ public struct URLImageOptions {
     public var maxPixelSize: CGSize?
 
     public init(identifier: String? = nil,
-                expireAfter expiryInterval: TimeInterval?,
+                expiryInterval: TimeInterval?,
                 cachePolicy: CachePolicy,
-                load loadOptions: LoadOptions,
+                loadOptions: LoadOptions,
                 urlRequestConfiguration: Download.URLRequestConfiguration,
                 maxPixelSize: CGSize?) {
         self.identifier = identifier

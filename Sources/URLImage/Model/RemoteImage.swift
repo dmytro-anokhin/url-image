@@ -40,6 +40,12 @@ public final class RemoteImage : ObservableObject {
         self.service = service
         self.download = download
         self.options = options
+
+        log_debug(nil, #function, download.url.absoluteString)
+    }
+
+    deinit {
+        log_debug(nil, #function, download.url.absoluteString)
     }
 
     public typealias LoadingState = RemoteContentLoadingState<TransientImage, Float?>
