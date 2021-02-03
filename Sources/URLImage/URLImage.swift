@@ -78,7 +78,7 @@ public extension URLImage {
 
         self.init(url,
                   service: service,
-                  options: options ?? service.defaultOptions,
+                  options: options ?? URLImageOptions.default,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -97,7 +97,7 @@ public extension URLImage {
 
         self.init(url,
                   service: service,
-                  options: options ?? service.defaultOptions,
+                  options: options ?? URLImageOptions.default,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,

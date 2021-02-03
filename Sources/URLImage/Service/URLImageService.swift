@@ -19,23 +19,9 @@ import DownloadManager
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public final class URLImageService {
+public class URLImageService {
 
     public static let shared = URLImageService()
-
-    /// The default options
-    ///
-    /// The default options are used to provide default values to properties when `URLImageOptions` is created. This allows to customize individual properties of the `URLImageOptions` object retaining default values.
-    ///
-    ///     let myOptions = URLImageOptions(identifier: "MyImage")
-    ///
-    /// In this example `myOptions` will retain default values set using this property.
-    public var defaultOptions = URLImageOptions(identifier: nil,
-                                                expiryInterval: 24 * 60 * 60,
-                                                cachePolicy: .returnCacheElseLoad(),
-                                                loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
-                                                urlRequestConfiguration: .init(),
-                                                maxPixelSize: URLImageService.suggestedMaxPixelSize)
 
     public var store: URLImageStoreType? {
         get {
@@ -60,6 +46,7 @@ public final class URLImageService {
     // MARK: - Private
 
     private init() {
+        URLImageOptions.default.maxPixelSize = suggestedMaxPixelSize
     }
 
     public var _store: URLImageStoreType? = nil

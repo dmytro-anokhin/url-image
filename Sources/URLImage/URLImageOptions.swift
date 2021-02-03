@@ -62,6 +62,13 @@ public struct URLImageOptions {
         public static let inMemory: LoadOptions = .init(rawValue: 1 << 3)
     }
 
+    public static var `default` = URLImageOptions(identifier: nil,
+                                                  expiryInterval: 24 * 60 * 60,
+                                                  cachePolicy: .returnCacheElseLoad(),
+                                                  loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
+                                                  urlRequestConfiguration: .init(),
+                                                  maxPixelSize: nil)
+
     /// Unique identifier used to identify an image in cache.
     ///
     /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.

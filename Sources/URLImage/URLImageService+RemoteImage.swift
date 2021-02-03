@@ -90,7 +90,7 @@ extension URLImageService {
     }
 
     public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
-        let options = options ?? defaultOptions
+        let options = options ?? URLImageOptions.default
         let download = Download(url: url, options: options)
 
         return RemoteImage(service: self, download: download, options: options)

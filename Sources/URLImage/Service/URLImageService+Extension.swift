@@ -11,7 +11,7 @@ import CoreGraphics
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
 
-    static var suggestedMaxPixelSize: CGSize? {
+    var suggestedMaxPixelSize: CGSize? {
         #if os(watchOS)
             return CGSize(width: 300.0, height: 300.0)
         #else
