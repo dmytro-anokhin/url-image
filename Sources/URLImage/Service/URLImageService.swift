@@ -46,7 +46,6 @@ public class URLImageService {
     // MARK: - Private
 
     private init() {
-        URLImageOptions.default.maxPixelSize = suggestedMaxPixelSize
     }
 
     public var _store: URLImageStoreType? = nil
