@@ -66,8 +66,8 @@ public final class RemoteImage : ObservableObject {
 
         isLoading = true
 
-        switch options.cachePolicy {
-            case .returnCacheElseLoad(let downloadDelay):
+        switch options.fetchPolicy {
+            case .returnStoreElseLoad(let downloadDelay):
                 guard !isLoadedSuccessfully else {
                     // Already loaded
                     isLoading = false
@@ -89,7 +89,7 @@ public final class RemoteImage : ObservableObject {
                     }
                 }
 
-            case .returnCacheDontLoad:
+            case .returnStoreDontLoad:
                 guard !isLoadedSuccessfully else {
                     // Already loaded
                     isLoading = false
@@ -112,12 +112,12 @@ public final class RemoteImage : ObservableObject {
                     }
                 }
 
-            case .ignoreCache(let downloadDelay):
+            case .ignoreStore(let downloadDelay):
                 // Always download
                 scheduleDownload(afterDelay: downloadDelay)
 
-            case .useProtocol:
-                scheduleDownload(secondCacheLookup: false)
+//            case .useProtocol:
+//                scheduleDownload(secondCacheLookup: false)
         }
     }
 

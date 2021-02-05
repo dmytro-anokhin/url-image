@@ -34,29 +34,6 @@ public struct URLImageOptions {
         case ignoreStore(downloadDelay: TimeInterval? = nil)
     }
 
-    public enum CachePolicy {
-
-        /// Return an image from cache or download it
-        ///
-        /// - `downloadDelay`: delay before starting download.
-        ///
-        /// There is no delay for in memory cache lookup.
-        case returnCacheElseLoad(downloadDelay: TimeInterval? = nil)
-
-        /// Return an image from cache, do not download it
-        ///
-        /// There is no delay for in memory cache lookup.
-        case returnCacheDontLoad
-
-        /// Ignore cached image and download remote one
-        ///
-        /// - `downloadDelay`: delay before starting download.
-        case ignoreCache(downloadDelay: TimeInterval? = nil)
-
-        /// Ignore cached image and use protocol cache policy
-        case useProtocol
-    }
-
     /// Controls some aspects of download process
     public struct LoadOptions: OptionSet {
 
@@ -81,7 +58,6 @@ public struct URLImageOptions {
 
     public static var `default` = URLImageOptions(identifier: nil,
                                                   expiryInterval: 24 * 60 * 60,
-                                                  cachePolicy: .returnCacheElseLoad(),
                                                   fetchPolicy: .returnStoreElseLoad(),
                                                   loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
                                                   urlRequestConfiguration: .init(),
@@ -98,9 +74,6 @@ public struct URLImageOptions {
     /// Time interval after which the cached image expires and can be deleted.
     public var expiryInterval: TimeInterval?
 
-    /// The cache policy controls how the image loaded from cache
-    public var cachePolicy: CachePolicy
-
     /// The fetch policy defines when to load or use stored image.
     ///
     /// Fetch policy is only valid when there is a store on the service object.
@@ -115,14 +88,12 @@ public struct URLImageOptions {
 
     public init(identifier: String? = nil,
                 expiryInterval: TimeInterval?,
-                cachePolicy: CachePolicy,
                 fetchPolicy: FetchPolicy,
                 loadOptions: LoadOptions,
                 urlRequestConfiguration: Download.URLRequestConfiguration,
                 maxPixelSize: CGSize?) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
-        self.cachePolicy = cachePolicy
         self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration

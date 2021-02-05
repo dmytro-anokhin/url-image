@@ -76,11 +76,12 @@ extension URLImageService {
 private extension URLImageOptions {
 
     var shouldCache: Bool {
-        switch cachePolicy {
-            case .useProtocol:
-                return false
-            default:
-                return true
-        }
+        return true
+//        switch cachePolicy {
+//            case .useProtocol:
+//                return false
+//            default:
+//                return true
+//        }
     }
 }
