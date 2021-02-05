@@ -17,6 +17,23 @@ import DownloadManager
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImageOptions {
 
+    /// The `FetchPolicy` allows to choose between returning stored image or downloading the remote one.
+    public enum FetchPolicy {
+
+        /// Return an image from the store or download it
+        ///
+        /// - `downloadDelay`: delay before starting download.
+        case returnStoreElseLoad(downloadDelay: TimeInterval? = nil)
+
+        /// Return an image from the store, do not download it
+        case returnStoreDontLoad
+
+        /// Ignore stored image and download the remote one
+        ///
+        /// - `downloadDelay`: delay before starting download.
+        case ignoreStore(downloadDelay: TimeInterval? = nil)
+    }
+
     public enum CachePolicy {
 
         /// Return an image from cache or download it
@@ -65,6 +82,7 @@ public struct URLImageOptions {
     public static var `default` = URLImageOptions(identifier: nil,
                                                   expiryInterval: 24 * 60 * 60,
                                                   cachePolicy: .returnCacheElseLoad(),
+                                                  fetchPolicy: .returnStoreElseLoad(),
                                                   loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
                                                   urlRequestConfiguration: .init(),
                                                   maxPixelSize: nil)
@@ -83,6 +101,11 @@ public struct URLImageOptions {
     /// The cache policy controls how the image loaded from cache
     public var cachePolicy: CachePolicy
 
+    /// The fetch policy defines when to load or use stored image.
+    ///
+    /// Fetch policy is only valid when there is a store on the service object.
+    public var fetchPolicy: FetchPolicy
+
     public var loadOptions: LoadOptions
 
     public var urlRequestConfiguration: Download.URLRequestConfiguration
@@ -93,12 +116,14 @@ public struct URLImageOptions {
     public init(identifier: String? = nil,
                 expiryInterval: TimeInterval?,
                 cachePolicy: CachePolicy,
+                fetchPolicy: FetchPolicy,
                 loadOptions: LoadOptions,
                 urlRequestConfiguration: Download.URLRequestConfiguration,
                 maxPixelSize: CGSize?) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
+        self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration
         self.maxPixelSize = maxPixelSize
