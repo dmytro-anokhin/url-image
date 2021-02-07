@@ -50,5 +50,5 @@ public class URLImageService {
 
     public var _store: URLImageStoreType? = nil
 
-    private let synchronizationQueue = DispatchQueue(label: "URLImageService.synchronizationQueue")
+    private let synchronizationQueue = DispatchQueue(label: "URLImageService.synchronizationQueue", attributes: .concurrent)
 }
