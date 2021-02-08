@@ -17,25 +17,39 @@ import Common
 import DownloadManager
 #endif
 
+@propertyWrapper
+public final class Synchronized<Value> {
+
+    public var wrappedValue: Value {
+        get {
+            synchronizationQueue.sync {
+                value
+            }
+        }
+
+        set {
+            synchronizationQueue.async(flags: .barrier) {
+                self.value = newValue
+            }
+        }
+    }
+
+    public init(wrappedValue: Value) {
+        value = wrappedValue
+    }
+
+    private let synchronizationQueue = DispatchQueue(label: "Synchronized.synchronizationQueue.\(UUID().uuidString)", attributes: .concurrent)
+
+    private var value: Value
+}
+
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public class URLImageService {
 
     public static let shared = URLImageService()
 
-    public var store: URLImageStoreType? {
-        get {
-            synchronizationQueue.sync {
-                _store
-            }
-        }
-
-        set {
-            synchronizationQueue.async(flags: .barrier) {
-                self._store = newValue
-            }
-        }
-    }
+    @Synchronized public var store: URLImageStoreType?
 
     // MARK: - Internal
 
@@ -47,8 +61,4 @@ public class URLImageService {
 
     private init() {
     }
-
-    public var _store: URLImageStoreType? = nil
-
-    private let synchronizationQueue = DispatchQueue(label: "URLImageService.synchronizationQueue", attributes: .concurrent)
 }
