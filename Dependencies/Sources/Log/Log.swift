@@ -15,7 +15,7 @@ public let log_detailed = 3
 let log_none = Int.min
 let log_all = Int.max
 
-private let log_detail = log_all
+private let log_detail = log_none
 
 
 @inline(__always)
