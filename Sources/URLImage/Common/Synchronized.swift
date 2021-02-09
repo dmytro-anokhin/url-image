@@ -8,7 +8,9 @@
 import Foundation
 
 
-/// Provides synchronization of the wrapped value using concurrent queue with barrier
+/// Provides synchronization of the wrapped value using concurrent queue with barrier.
+///
+/// `Synchronized` provides getter/setter synchronization, thread safety of the wrapped value is up to its implementation.
 @propertyWrapper
 public final class Synchronized<Value> {
 
