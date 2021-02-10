@@ -33,7 +33,7 @@ extension URLImageService {
                                                  uti: transientImage.uti,
                                                  expiryInterval: options.expiryInterval)
 
-                    store?.storeImageData(data, info: info)
+                    fileStore?.storeImageData(data, info: info)
                     inMemoryStore?.store(transientImage, info: info)
                 }
 
@@ -53,7 +53,7 @@ extension URLImageService {
                                                  uti: transientImage.uti,
                                                  expiryInterval: options.expiryInterval)
 
-                    store?.moveImageFile(from: location, info: info)
+                    fileStore?.moveImageFile(from: location, info: info)
                     inMemoryStore?.store(transientImage, info: info)
                 }
 
@@ -62,6 +62,6 @@ extension URLImageService {
     }
 
     private var shouldStore: Bool {
-        store != nil || inMemoryStore != nil
+        fileStore != nil || inMemoryStore != nil
     }
 }

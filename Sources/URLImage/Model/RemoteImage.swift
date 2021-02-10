@@ -276,7 +276,7 @@ extension RemoteImage {
     private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
-        guard let store = service.store else {
+        guard let store = service.fileStore else {
             completion(false)
             return
         }
