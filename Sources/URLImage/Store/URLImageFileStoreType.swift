@@ -1,5 +1,5 @@
 //
-//  URLImageStoreType.swift
+//  URLImageFileStoreType.swift
 //  
 //
 //  Created by Dmytro Anokhin on 10/01/2021.
@@ -9,7 +9,7 @@ import Foundation
 
 
 /// Type that declares requirements for a persistent store to store image files.
-public protocol URLImageStoreType {
+public protocol URLImageFileStoreType {
 
     /// Get image from the strore.
     ///

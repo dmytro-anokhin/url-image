@@ -1,5 +1,5 @@
 //
-//  URLImageStore.swift
+//  URLImageFileStore.swift
 //  
 //
 //  Created by Dmytro Anokhin on 08/01/2021.
@@ -26,7 +26,7 @@ import ImageDecoder
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public final class URLImageStore {
+public final class URLImageFileStore {
 
     let fileIndex: FileIndex
 
@@ -108,7 +108,7 @@ public final class URLImageStore {
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-extension URLImageStore: URLImageStoreType {
+extension URLImageFileStore: URLImageFileStoreType {
 
     public func getImage<T>(_ keys: [URLImageStoreKey],
                             open: @escaping (_ location: URL) throws -> T?,
