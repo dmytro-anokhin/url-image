@@ -23,15 +23,15 @@ public class URLImageService {
 
     public static let shared = URLImageService()
 
+    // Store properties are synchronized to make accessors thread safe. Avoid changing a store after the app finished launching, because this could lead to unexpected side effects.
+
     @Synchronized public var store: URLImageStoreType?
 
-    @Synchronized public var inMemory: URLImageInMemoryStoreType?
+    @Synchronized public var inMemoryStore: URLImageInMemoryStoreType?
 
     // MARK: - Internal
 
     let downloadManager = DownloadManager()
-
-    let inMemoryCache = InMemoryCache()
 
     // MARK: - Private
 

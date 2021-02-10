@@ -27,18 +27,14 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                if options.shouldCache {
+                if shouldStore {
                     let info = URLImageStoreInfo(url: download.url,
                                                  identifier: options.identifier,
                                                  uti: transientImage.uti,
                                                  expiryInterval: options.expiryInterval)
 
                     store?.storeImageData(data, info: info)
-
-                    inMemoryCache.cacheTransientImage(transientImage,
-                                                      withURL: download.url,
-                                                      identifier: options.identifier,
-                                                      expireAfter: options.expiryInterval)
+                    inMemoryStore?.store(transientImage, info: info)
                 }
 
                 return transientImage
@@ -51,37 +47,21 @@ extension URLImageService {
                     throw URLImageError.decode
                 }
 
-                if options.shouldCache {
+                if shouldStore {
                     let info = URLImageStoreInfo(url: download.url,
                                                  identifier: options.identifier,
                                                  uti: transientImage.uti,
                                                  expiryInterval: options.expiryInterval)
 
                     store?.moveImageFile(from: location, info: info)
-
-                    inMemoryCache.cacheTransientImage(transientImage,
-                                                      withURL: download.url,
-                                                      identifier: options.identifier,
-                                                      expireAfter: options.expiryInterval)
+                    inMemoryStore?.store(transientImage, info: info)
                 }
-                
 
                 return transientImage
         }
     }
-}
 
-
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-private extension URLImageOptions {
-
-    var shouldCache: Bool {
-        return true
-//        switch cachePolicy {
-//            case .useProtocol:
-//                return false
-//            default:
-//                return true
-//        }
+    private var shouldStore: Bool {
+        store != nil || inMemoryStore != nil
     }
 }

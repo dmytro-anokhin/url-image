@@ -14,6 +14,11 @@ import URLImage
 
 public final class URLImageInMemoryStore: URLImageInMemoryStoreType {
 
+    public init() {
+    }
+
+    // MARK: - URLImageInMemoryStoreType
+
     public func getImage<T>(_ keys: [URLImageStoreKey]) -> T? {
         for key in keys.map({ KeyWrapper(key: $0) }) {
             guard let object = cache.object(forKey: key) else {

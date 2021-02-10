@@ -74,7 +74,7 @@ public final class RemoteImage : ObservableObject {
                     return
                 }
 
-                guard !loadFromInMemory() else {
+                guard !loadFromInMemoryStore() else {
                     // Loaded from the in-memory cache
                     isLoading = false
                     return
@@ -96,7 +96,7 @@ public final class RemoteImage : ObservableObject {
                     return
                 }
 
-                guard !loadFromInMemory() else {
+                guard !loadFromInMemoryStore() else {
                     // Loaded from the in-memory cache
                     isLoading = false
                     return
@@ -168,8 +168,13 @@ extension RemoteImage {
     /// Rerturn an image from the in memory cache.
     ///
     /// Sets `loadingState` to `.success` if an image is in the in-memory cache and returns `true`. Otherwise returns `false` without changing the state.
-    private func loadFromInMemory() -> Bool {
-        guard let transientImage = service.inMemoryCache.getImage(withIdentifier: options.identifier, orURL: download.url) else {
+    private func loadFromInMemoryStore() -> Bool {
+        guard let store = service.inMemoryStore else {
+            log_debug(self, #function, "Not using in memory store for \(download.url)", detail: log_normal)
+            return false
+        }
+
+        guard let transientImage: TransientImage = store.getImage(storeKeys) else {
             log_debug(self, #function, "Image for \(download.url) not in the in memory cache", detail: log_normal)
             return false
         }
@@ -276,15 +281,7 @@ extension RemoteImage {
             return
         }
 
-        var keys: [URLImageStoreKey] = []
-
-        if let identifier = options.identifier {
-            keys.append(.identifier(identifier))
-        }
-
-        keys.append(.url(download.url))
-
-        store.getImagePublisher(keys, maxPixelSize: options.maxPixelSize)
+        store.getImagePublisher(storeKeys, maxPixelSize: options.maxPixelSize)
             .receive(on: RunLoop.main)
             .catch { _ in
                 Just(nil)
@@ -296,11 +293,14 @@ extension RemoteImage {
 
                 if let transientImage = $0 {
                     log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
-                    // Move to in memory cache
-                    self.service.inMemoryCache.cacheTransientImage(transientImage,
-                                                                   withURL: self.download.url,
-                                                                   identifier: self.options.identifier,
-                                                                   expireAfter: self.options.expiryInterval)
+                    // Store in memory
+                    let info = URLImageStoreInfo(url: self.download.url,
+                                                 identifier: self.options.identifier,
+                                                 uti: transientImage.uti,
+                                                 expiryInterval: self.options.expiryInterval)
+
+                    self.service.inMemoryStore?.store(transientImage, info: info)
+
                     // Set image retrieved from cache
                     self.loadingState = .success(transientImage)
                     completion(true)
@@ -321,5 +321,19 @@ extension RemoteImage {
 
             self.loadingState = loadingState
         }
+    }
+
+    /// Helper to return `URLImageStoreKey` objects based on `URLImageOptions` and `Download` properties
+    private var storeKeys: [URLImageStoreKey] {
+        var keys: [URLImageStoreKey] = []
+
+        // Identifier must precede URL
+        if let identifier = options.identifier {
+            keys.append(.identifier(identifier))
+        }
+
+        keys.append(.url(download.url))
+
+        return keys
     }
 }
