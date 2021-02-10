@@ -25,6 +25,8 @@ public class URLImageService {
 
     @Synchronized public var store: URLImageStoreType?
 
+    @Synchronized public var inMemory: URLImageInMemoryStoreType?
+
     // MARK: - Internal
 
     let downloadManager = DownloadManager()

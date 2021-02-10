@@ -17,3 +17,6 @@ public enum URLImageStoreKey {
     /// URL of an image
     case url(_ url: URL)
 }
+
+
+extension URLImageStoreKey: Hashable {}
