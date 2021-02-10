@@ -32,7 +32,7 @@ public final class URLImageInMemoryStore: URLImageInMemoryStoreType {
     }
 
     public func store<T>(_ image: T, info: URLImageStoreInfo) {
-        let imageWrapper = ImageWrapper(image: image, info: info)
+        let imageWrapper = ObjectWrapper(image: image, info: info)
 
         let urlKey = URLImageStoreKey.url(info.url)
         let urlKeyWrapper = KeyWrapper(key: urlKey)
@@ -68,7 +68,7 @@ public final class URLImageInMemoryStore: URLImageInMemoryStoreType {
         }
     }
 
-    private final class ImageWrapper {
+    private final class ObjectWrapper {
 
         let image: Any
 
@@ -80,5 +80,5 @@ public final class URLImageInMemoryStore: URLImageInMemoryStoreType {
         }
     }
 
-    private let cache = NSCache<KeyWrapper, ImageWrapper>()
+    private let cache = NSCache<KeyWrapper, ObjectWrapper>()
 }
