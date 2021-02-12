@@ -23,18 +23,18 @@ public class URLImageService {
 
     public static let shared = URLImageService()
 
+    public init(fileStore: URLImageFileStoreType? = nil, inMemoryStore: URLImageInMemoryStoreType? = nil) {
+        self.fileStore = fileStore
+        self.inMemoryStore = inMemoryStore
+    }
+
     // Stores properties are synchronized to make accessors thread safe. Avoid changing a store after the app finished launching, this could lead to unexpected side effects.
 
     @Synchronized public var fileStore: URLImageFileStoreType?
-    
+
     @Synchronized public var inMemoryStore: URLImageInMemoryStoreType?
 
     // MARK: - Internal
 
     let downloadManager = DownloadManager()
-
-    // MARK: - Private
-
-    private init() {
-    }
 }

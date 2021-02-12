@@ -17,22 +17,60 @@ import Common
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+private struct URLImageEnvironmentKey: EnvironmentKey {
+
+    static let defaultValue: URLImageService = URLImageService.shared
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension EnvironmentValues {
+
+    var urlImageService: URLImageService {
+        get {
+            self[URLImageEnvironmentKey.self]
+        }
+
+        set {
+            self[URLImageEnvironmentKey.self] = newValue
+        }
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                          InProgress : View,
                                                                          Failure : View,
                                                                          Content : View
 {
-    let url: URL
+    @Environment(\.urlImageService) var service: URLImageService
 
-    let options: URLImageOptions
+    private final class RemoteImageProxy {
+
+        let url: URL
+
+        let options: URLImageOptions
+
+        var service: URLImageService!
+
+        private(set) lazy var remoteImage: RemoteImage = service.makeRemoteImage(url: url, options: options)
+
+        init(url: URL, options: URLImageOptions) {
+            self.url = url
+            self.options = options
+        }
+    }
 
     public var body: some View {
-        RemoteContentView(remoteContent: remoteImage,
-                          loadOptions: options.loadOptions,
-                          empty: empty,
-                          inProgress: inProgress,
-                          failure: failure,
-                          content: content)
+        proxy.service = service
+
+        return RemoteContentView(remoteContent: proxy.remoteImage,
+                                 loadOptions: proxy.options.loadOptions,
+                                 empty: empty,
+                                 inProgress: inProgress,
+                                 failure: failure,
+                                 content: content)
     }
 
     private let empty: () -> Empty
@@ -40,10 +78,9 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
     private let content: (_ image: TransientImage) -> Content
 
-    private let remoteImage: RemoteImage
+    private let proxy: RemoteImageProxy
 
     private init(_ url: URL,
-                 service: URLImageService,
                  options: URLImageOptions,
                  empty: @escaping () -> Empty,
                  inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -53,14 +90,12 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
 
-        self.url = url
-        self.options = options
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
 
-        remoteImage = service.makeRemoteImage(url: url, options: options)
+        proxy = RemoteImageProxy(url: url, options: options)
     }
 }
 
@@ -69,7 +104,6 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage {
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -77,7 +111,6 @@ public extension URLImage {
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options ?? URLImageOptions.default,
                   empty: empty,
                   inProgress: inProgress,
@@ -88,7 +121,6 @@ public extension URLImage {
     }
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -96,7 +128,6 @@ public extension URLImage {
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options ?? URLImageOptions.default,
                   empty: empty,
                   inProgress: inProgress,
@@ -112,14 +143,12 @@ public extension URLImage {
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
@@ -128,14 +157,12 @@ public extension URLImage where Empty == EmptyView {
     }
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
@@ -150,13 +177,11 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
@@ -165,13 +190,11 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
@@ -186,13 +209,11 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
@@ -201,13 +222,11 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
@@ -223,12 +242,10 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
@@ -237,12 +254,10 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         service: URLImageService = .shared,
          options: URLImageOptions? = nil,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  service: service,
                   options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
