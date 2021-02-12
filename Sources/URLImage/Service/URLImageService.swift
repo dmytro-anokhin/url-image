@@ -21,18 +21,14 @@ import DownloadManager
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public class URLImageService {
 
-    public static let shared = URLImageService()
-
     public init(fileStore: URLImageFileStoreType? = nil, inMemoryStore: URLImageInMemoryStoreType? = nil) {
         self.fileStore = fileStore
         self.inMemoryStore = inMemoryStore
     }
 
-    // Stores properties are synchronized to make accessors thread safe. Avoid changing a store after the app finished launching, this could lead to unexpected side effects.
+    public let fileStore: URLImageFileStoreType?
 
-    @Synchronized public var fileStore: URLImageFileStoreType?
-
-    @Synchronized public var inMemoryStore: URLImageInMemoryStoreType?
+    public let inMemoryStore: URLImageInMemoryStoreType?
 
     // MARK: - Internal
 
