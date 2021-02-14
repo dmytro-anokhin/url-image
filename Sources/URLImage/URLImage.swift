@@ -33,7 +33,8 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
         return RemoteImageContainerView(remoteImage: remoteImage,
                                         loadOptions: options.loadOptions,
-                                        empty: empty, inProgress: inProgress,
+                                        empty: empty,
+                                        inProgress: inProgress,
                                         failure: failure,
                                         content: content)
     }
