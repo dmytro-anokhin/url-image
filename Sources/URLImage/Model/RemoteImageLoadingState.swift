@@ -1,5 +1,5 @@
 //
-//  RemoteContentLoadingState.swift
+//  RemoteImageLoadingState.swift
 //  
 //
 //  Created by Dmytro Anokhin on 19/08/2020.
@@ -14,7 +14,7 @@
 ///
 /// This dual purpose allows the view to use switch statement in its `body` and return different view in each case.
 ///
-public enum RemoteContentLoadingState<Value, Progress> {
+public enum RemoteImageLoadingState<Value, Progress> {
 
     case initial
 
@@ -26,7 +26,7 @@ public enum RemoteContentLoadingState<Value, Progress> {
 }
 
 
-public extension RemoteContentLoadingState {
+public extension RemoteImageLoadingState {
 
     var isInProgress: Bool {
         switch self {

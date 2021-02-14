@@ -1,5 +1,5 @@
 //
-//  RemoteContentView.swift
+//  RemoteImageView.swift
 //  
 //
 //  Created by Dmytro Anokhin on 09/08/2020.
@@ -14,10 +14,10 @@ import Common
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct RemoteContentView<Empty, InProgress, Failure, Content> : View where Empty : View,
-                                                                                  InProgress : View,
-                                                                                  Failure : View,
-                                                                                  Content : View {
+public struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty : View,
+                                                                                InProgress : View,
+                                                                                Failure : View,
+                                                                                Content : View {
 
     /// Controls how download starts and when it can be cancelled
     let loadOptions: URLImageOptions.LoadOptions
@@ -37,7 +37,7 @@ public struct RemoteContentView<Empty, InProgress, Failure, Content> : View wher
                 failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
                 content: @escaping (_ value: TransientImage) -> Content) {
 
-        self.remoteContent = remoteContent
+        self.remoteImage = remoteContent
 
         self.loadOptions = loadOptions
         self.empty = empty
@@ -52,7 +52,7 @@ public struct RemoteContentView<Empty, InProgress, Failure, Content> : View wher
 
     public var body: some View {
         ZStack {
-            switch remoteContent.loadingState {
+            switch remoteImage.loadingState {
                 case .initial:
                     empty()
 
@@ -64,21 +64,21 @@ public struct RemoteContentView<Empty, InProgress, Failure, Content> : View wher
 
                 case .failure(let error):
                     failure(error) {
-                        remoteContent.load()
+                        remoteImage.load()
                     }
             }
         }
         .onAppear {
             if loadOptions.contains(.loadOnAppear) {
-                remoteContent.load()
+                remoteImage.load()
             }
         }
         .onDisappear {
             if loadOptions.contains(.cancelOnDisappear) {
-                remoteContent.cancel()
+                remoteImage.cancel()
             }
         }
     }
 
-    @ObservedObject private var remoteContent: RemoteImage
+    @ObservedObject private var remoteImage: RemoteImage
 }

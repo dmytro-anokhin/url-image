@@ -43,7 +43,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     public var body: some View {
         proxy.service = service
 
-        return RemoteContentView(remoteContent: proxy.remoteImage,
+        return RemoteImageView(remoteContent: proxy.remoteImage,
                                  loadOptions: proxy.options.loadOptions,
                                  empty: empty,
                                  inProgress: inProgress,
