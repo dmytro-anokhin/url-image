@@ -24,39 +24,24 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 {
     @Environment(\.urlImageService) var service: URLImageService
 
-    private final class RemoteImageProxy {
+    let url: URL
 
-        let url: URL
-
-        let options: URLImageOptions
-
-        var service: URLImageService!
-
-        private(set) lazy var remoteImage: RemoteImage = service.makeRemoteImage(url: url, options: options)
-
-        init(url: URL, options: URLImageOptions) {
-            self.url = url
-            self.options = options
-        }
-    }
+    let options: URLImageOptions
 
     public var body: some View {
-        proxy.service = service
+        let remoteImage = service.makeRemoteImage(url: url, options: options)
 
-        return RemoteImageView(remoteContent: proxy.remoteImage,
-                                 loadOptions: proxy.options.loadOptions,
-                                 empty: empty,
-                                 inProgress: inProgress,
-                                 failure: failure,
-                                 content: content)
+        return RemoteImageContainerView(remoteImage: remoteImage,
+                                        loadOptions: options.loadOptions,
+                                        empty: empty, inProgress: inProgress,
+                                        failure: failure,
+                                        content: content)
     }
 
     private let empty: () -> Empty
     private let inProgress: (_ progress: Float?) -> InProgress
     private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
     private let content: (_ image: TransientImage) -> Content
-
-    private let proxy: RemoteImageProxy
 
     private init(_ url: URL,
                  options: URLImageOptions,
@@ -68,12 +53,13 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
                "Options must specify how to load the image")
 
+        self.url = url
+        self.options = options
+
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
-
-        proxy = RemoteImageProxy(url: url, options: options)
     }
 }
 
