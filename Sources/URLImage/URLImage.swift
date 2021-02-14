@@ -51,7 +51,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                  content: @escaping (_ transientImage: TransientImage) -> Content) {
 
         assert(options.loadOptions.contains(.loadImmediately) || options.loadOptions.contains(.loadOnAppear),
-               "Options must specify how to load the image")
+               "Options must specify when to load the image")
 
         self.url = url
         self.options = options
