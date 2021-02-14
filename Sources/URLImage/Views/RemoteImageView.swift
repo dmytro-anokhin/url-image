@@ -14,10 +14,10 @@ import Common
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty : View,
-                                                                                InProgress : View,
-                                                                                Failure : View,
-                                                                                Content : View {
+struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty : View,
+                                                                         InProgress : View,
+                                                                         Failure : View,
+                                                                         Content : View {
 
     /// Controls how download starts and when it can be cancelled
     let loadOptions: URLImageOptions.LoadOptions
