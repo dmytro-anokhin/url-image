@@ -23,11 +23,8 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
     let loadOptions: URLImageOptions.LoadOptions
 
     let empty: () -> Empty
-
     let inProgress: (_ progress: Float?) -> InProgress
-
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
-
     let content: (_ value: TransientImage) -> Content
 
     public init(remoteContent: RemoteImage,
