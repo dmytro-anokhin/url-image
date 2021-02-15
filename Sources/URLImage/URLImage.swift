@@ -69,14 +69,14 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options ?? URLImageOptions.default,
+                  options: options,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -86,14 +86,14 @@ public extension URLImage {
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options ?? URLImageOptions.default,
+                  options: options,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -108,7 +108,7 @@ public extension URLImage {
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
@@ -122,7 +122,7 @@ public extension URLImage where Empty == EmptyView {
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
@@ -142,7 +142,7 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image) -> Content) {
 
@@ -155,7 +155,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
@@ -174,7 +174,7 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image) -> Content) {
 
@@ -187,7 +187,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
@@ -207,7 +207,7 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
@@ -219,7 +219,7 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
+         options: URLImageOptions = URLImageOptions(),
          content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,

@@ -89,9 +89,7 @@ extension URLImageService {
         }
     }
 
-    public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
-        let options = options ?? URLImageOptions.default
-
+    public func makeRemoteImage(url: URL, options: URLImageOptions) -> RemoteImage {
         let inMemory = fileStore == nil
 
         let destination = makeDownloadDestination(inMemory: inMemory)
@@ -102,7 +100,7 @@ extension URLImageService {
         return RemoteImage(service: self, download: download, options: options)
     }
 
-    public func remoteImagePublisher(_ url: URL, options: URLImageOptions? = nil) -> RemoteImagePublisher {
+    public func remoteImagePublisher(_ url: URL, options: URLImageOptions) -> RemoteImagePublisher {
         let remoteImage = makeRemoteImage(url: url, options: options)
         return RemoteImagePublisher(remoteImage: remoteImage)
     }

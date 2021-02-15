@@ -48,12 +48,6 @@ public struct URLImageOptions {
         public static let cancelOnDisappear: LoadOptions = .init(rawValue: 1 << 2)
     }
 
-    public static var `default` = URLImageOptions(identifier: nil,
-                                                  fetchPolicy: .returnStoreElseLoad(),
-                                                  loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
-                                                  urlRequestConfiguration: nil,
-                                                  maxPixelSize: nil)
-
     /// Unique identifier used to identify an image in cache.
     ///
     /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
@@ -73,10 +67,10 @@ public struct URLImageOptions {
     public var maxPixelSize: CGSize?
 
     public init(identifier: String? = nil,
-                fetchPolicy: FetchPolicy,
-                loadOptions: LoadOptions,
-                urlRequestConfiguration: Download.URLRequestConfiguration?,
-                maxPixelSize: CGSize?) {
+                fetchPolicy: FetchPolicy = .returnStoreElseLoad(),
+                loadOptions: LoadOptions = [ .loadOnAppear, .cancelOnDisappear ],
+                urlRequestConfiguration: Download.URLRequestConfiguration? = nil,
+                maxPixelSize: CGSize? = nil) {
         self.identifier = identifier
         self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
