@@ -27,11 +27,6 @@ public struct URLImageOptions {
 
         /// Return an image from the store, do not download it
         case returnStoreDontLoad
-
-        /// Ignore stored image and download the remote one
-        ///
-        /// - `downloadDelay`: delay before starting download.
-        case ignoreStore(downloadDelay: TimeInterval? = nil)
     }
 
     /// Controls some aspects of download process

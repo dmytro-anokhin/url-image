@@ -112,10 +112,6 @@ public final class RemoteImage : ObservableObject {
                         self.isLoading = false
                     }
                 }
-
-            case .ignoreStore(let downloadDelay):
-                // Always download
-                scheduleDownload(afterDelay: downloadDelay)
         }
     }
 
