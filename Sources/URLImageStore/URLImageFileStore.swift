@@ -171,7 +171,7 @@ extension URLImageFileStore: URLImageFileStoreType {
                                           identifier: info.identifier,
                                           fileName: fileName,
                                           fileExtension: fileExtension,
-                                          expireAfter: info.expiryInterval)
+                                          expireAfter: nil)
         }
     }
 
@@ -196,7 +196,7 @@ extension URLImageFileStore: URLImageFileStoreType {
                                          identifier: info.identifier,
                                          fileName: fileName,
                                          fileExtension: fileExtension,
-                                         expireAfter: info.expiryInterval)
+                                         expireAfter: nil)
         }
     }
 }

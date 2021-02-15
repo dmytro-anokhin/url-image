@@ -19,7 +19,4 @@ public struct URLImageStoreInfo {
 
     /// The uniform type identifier (UTI) of the image.
     public var uti: String
-
-    /// Time interval after which the image is considered expired and must be deleted
-    public var expiryInterval: TimeInterval?
 }

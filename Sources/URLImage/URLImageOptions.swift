@@ -54,7 +54,6 @@ public struct URLImageOptions {
     }
 
     public static var `default` = URLImageOptions(identifier: nil,
-                                                  expiryInterval: 24 * 60 * 60,
                                                   fetchPolicy: .returnStoreElseLoad(),
                                                   loadOptions: [ .loadOnAppear, .cancelOnDisappear ],
                                                   urlRequestConfiguration: nil,
@@ -68,12 +67,7 @@ public struct URLImageOptions {
     /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
     public var identifier: String?
 
-    /// Time interval after which the cached image expires and can be deleted.
-    public var expiryInterval: TimeInterval?
-
     /// The fetch policy defines when to load or use stored image.
-    ///
-    /// Fetch policy is only valid when there is a store on the service object.
     public var fetchPolicy: FetchPolicy
 
     public var loadOptions: LoadOptions
@@ -84,13 +78,11 @@ public struct URLImageOptions {
     public var maxPixelSize: CGSize?
 
     public init(identifier: String? = nil,
-                expiryInterval: TimeInterval?,
                 fetchPolicy: FetchPolicy,
                 loadOptions: LoadOptions,
                 urlRequestConfiguration: Download.URLRequestConfiguration?,
                 maxPixelSize: CGSize?) {
         self.identifier = identifier
-        self.expiryInterval = expiryInterval
         self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration

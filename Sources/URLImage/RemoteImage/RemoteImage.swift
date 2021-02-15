@@ -294,8 +294,7 @@ extension RemoteImage {
                     // Store in memory
                     let info = URLImageStoreInfo(url: self.download.url,
                                                  identifier: self.options.identifier,
-                                                 uti: transientImage.uti,
-                                                 expiryInterval: self.options.expiryInterval)
+                                                 uti: transientImage.uti)
 
                     self.service.inMemoryStore?.store(transientImage, info: info)
 

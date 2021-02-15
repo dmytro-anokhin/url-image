@@ -30,8 +30,7 @@ extension URLImageService {
                 if shouldStore {
                     let info = URLImageStoreInfo(url: download.url,
                                                  identifier: options.identifier,
-                                                 uti: transientImage.uti,
-                                                 expiryInterval: options.expiryInterval)
+                                                 uti: transientImage.uti)
 
                     fileStore?.storeImageData(data, info: info)
                     inMemoryStore?.store(transientImage, info: info)
@@ -50,8 +49,7 @@ extension URLImageService {
                 if shouldStore {
                     let info = URLImageStoreInfo(url: download.url,
                                                  identifier: options.identifier,
-                                                 uti: transientImage.uti,
-                                                 expiryInterval: options.expiryInterval)
+                                                 uti: transientImage.uti)
 
                     fileStore?.moveImageFile(from: location, info: info)
                     inMemoryStore?.store(transientImage, info: info)
