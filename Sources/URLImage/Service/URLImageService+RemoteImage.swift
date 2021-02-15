@@ -91,7 +91,13 @@ extension URLImageService {
 
     public func makeRemoteImage(url: URL, options: URLImageOptions? = nil) -> RemoteImage {
         let options = options ?? URLImageOptions.default
-        let download = Download(url: url, options: options)
+
+        let inMemory = fileStore == nil
+
+        let destination = makeDownloadDestination(inMemory: inMemory)
+        let urlRequestConfiguration = options.urlRequestConfiguration ?? makeURLRequestConfiguration(inMemory: inMemory)
+
+        let download = Download(url: url, destination: destination, urlRequestConfiguration: urlRequestConfiguration)
 
         return RemoteImage(service: self, download: download, options: options)
     }
@@ -99,5 +105,26 @@ extension URLImageService {
     public func remoteImagePublisher(_ url: URL, options: URLImageOptions? = nil) -> RemoteImagePublisher {
         let remoteImage = makeRemoteImage(url: url, options: options)
         return RemoteImagePublisher(remoteImage: remoteImage)
+    }
+
+    /// Creates download destination depending if download must happen in memory or on disk
+    private func makeDownloadDestination(inMemory: Bool) -> Download.Destination {
+        if inMemory {
+            return .inMemory
+        }
+        else {
+            let path = FileManager.default.tmpFilePathInCachesDirectory()
+            return .onDisk(path)
+        }
+    }
+
+    private func makeURLRequestConfiguration(inMemory: Bool) -> Download.URLRequestConfiguration {
+        if inMemory {
+            return Download.URLRequestConfiguration()
+        }
+        else {
+            return Download.URLRequestConfiguration(allHTTPHeaderFields: nil,
+                                                    cachePolicy: .reloadIgnoringLocalCacheData)
+        }
     }
 }
