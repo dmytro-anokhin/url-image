@@ -110,6 +110,48 @@ public final class URLImageFileStore {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageFileStore: URLImageFileStoreType {
 
+    public func removeAllImages() {
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            self.fileIndex.deleteAll()
+        }
+    }
+
+    public func removeImageWithURL(_ url: URL) {
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            log_debug(self, #function, { "url = " + url.absoluteString }(), detail: log_normal)
+
+            guard let file = self.fileIndex.get(url).first else {
+                return
+            }
+
+            self.fileIndex.delete(file)
+        }
+    }
+
+    public func removeImageWithIdentifier(_ identifier: String) {
+        fileIndexQueue.async(flags: .barrier) { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            log_debug(self, #function, { "identifier = " + identifier }(), detail: log_normal)
+
+            guard let file = self.fileIndex.get(identifier).first else {
+                return
+            }
+
+            self.fileIndex.delete(file)
+        }
+    }
+
     public func getImage<T>(_ keys: [URLImageStoreKey],
                             open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {

@@ -9,7 +9,7 @@ import Foundation
 
 
 /// Type that declares requirements for a persistent store to store image files.
-public protocol URLImageFileStoreType {
+public protocol URLImageFileStoreType: URLImageStoreType {
 
     /// Get image from the strore.
     ///

@@ -9,7 +9,7 @@ import Foundation
 
 
 /// The `URLImageInMemoryStoreType` describes an object used to store images in-memory for fast access.
-public protocol URLImageInMemoryStoreType {
+public protocol URLImageInMemoryStoreType: URLImageStoreType {
 
     func getImage<T>(_ keys: [URLImageStoreKey]) -> T?
 
