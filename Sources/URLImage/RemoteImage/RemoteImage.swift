@@ -28,7 +28,7 @@ import Log
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public final class RemoteImage : ObservableObject {
 
-    /// Reference to URLImageService used to download and cache the image.
+    /// Reference to URLImageService used to download and store the image.
     unowned let service: URLImageService
 
     /// Download object describes how the image should be downloaded.
@@ -45,7 +45,7 @@ public final class RemoteImage : ObservableObject {
     }
 
     deinit {
-        log_debug(nil, #function, download.url.absoluteString)
+        log_debug(nil, #function, download.url.absoluteString, detail: log_detailed)
     }
 
     public typealias LoadingState = RemoteImageLoadingState<TransientImage, Float?>
@@ -75,17 +75,17 @@ public final class RemoteImage : ObservableObject {
                 }
 
                 guard !loadFromInMemoryStore() else {
-                    // Loaded from the in-memory cache
+                    // Loaded from the in-memory store
                     isLoading = false
                     return
                 }
 
-                // Disk cache lookup
-                scheduleReturnCached(afterDelay: nil) { [weak self] success in
+                // Disk lookup
+                scheduleReturnStored(afterDelay: nil) { [weak self] success in
                     guard let self = self else { return }
 
                     if !success {
-                        self.scheduleDownload(afterDelay: downloadDelay, secondCacheLookup: true)
+                        self.scheduleDownload(afterDelay: downloadDelay, secondStoreLookup: true)
                     }
                 }
 
@@ -97,16 +97,17 @@ public final class RemoteImage : ObservableObject {
                 }
 
                 guard !loadFromInMemoryStore() else {
-                    // Loaded from the in-memory cache
+                    // Loaded from the in-memory store
                     isLoading = false
                     return
                 }
 
-                // Disk cache lookup
-                scheduleReturnCached(afterDelay: nil) { [weak self] success in
+                // Disk lookup
+                scheduleReturnStored(afterDelay: nil) { [weak self] success in
                     guard let self = self else { return }
 
                     if !success {
+                        // Complete
                         self.loadingState = .initial
                         self.isLoading = false
                     }
@@ -115,9 +116,6 @@ public final class RemoteImage : ObservableObject {
             case .ignoreStore(let downloadDelay):
                 // Always download
                 scheduleDownload(afterDelay: downloadDelay)
-
-//            case .useProtocol:
-//                scheduleDownload(secondCacheLookup: false)
         }
     }
 
@@ -137,8 +135,8 @@ public final class RemoteImage : ObservableObject {
 
         cancellables.removeAll()
 
-        delayedReturnCached?.cancel()
-        delayedReturnCached = nil
+        delayedReturnStored?.cancel()
+        delayedReturnStored = nil
 
         delayedDownload?.cancel()
         delayedDownload = nil
@@ -148,7 +146,7 @@ public final class RemoteImage : ObservableObject {
     private var isLoading: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
-    private var delayedReturnCached: DispatchWorkItem?
+    private var delayedReturnStored: DispatchWorkItem?
     private var delayedDownload: DispatchWorkItem?
 }
 
@@ -165,9 +163,9 @@ extension RemoteImage {
         }
     }
 
-    /// Rerturn an image from the in memory cache.
+    /// Rerturn an image from the in memory store.
     ///
-    /// Sets `loadingState` to `.success` if an image is in the in-memory cache and returns `true`. Otherwise returns `false` without changing the state.
+    /// Sets `loadingState` to `.success` if an image is in the in-memory store and returns `true`. Otherwise returns `false` without changing the state.
     private func loadFromInMemoryStore() -> Bool {
         guard let store = service.inMemoryStore else {
             log_debug(self, #function, "Not using in memory store for \(download.url)", detail: log_normal)
@@ -175,35 +173,35 @@ extension RemoteImage {
         }
 
         guard let transientImage: TransientImage = store.getImage(storeKeys) else {
-            log_debug(self, #function, "Image for \(download.url) not in the in memory cache", detail: log_normal)
+            log_debug(self, #function, "Image for \(download.url) not in the in memory store", detail: log_normal)
             return false
         }
 
-        // Set image retrieved from cache
+        // Complete
         self.loadingState = .success(transientImage)
-        log_debug(self, #function, "Image for \(download.url) is in the in memory cache", detail: log_normal)
+        log_debug(self, #function, "Image for \(download.url) is in the in memory store", detail: log_normal)
 
         return true
     }
 
-    private func scheduleReturnCached(afterDelay delay: TimeInterval?, completion: @escaping (_ success: Bool) -> Void) {
+    private func scheduleReturnStored(afterDelay delay: TimeInterval?, completion: @escaping (_ success: Bool) -> Void) {
         guard let delay = delay else {
-            // Read from cache immediately if no delay needed
-            returnCached(completion)
+            // Read from store immediately if no delay needed
+            returnStored(completion)
             return
         }
 
-        delayedReturnCached?.cancel()
-        delayedReturnCached = DispatchWorkItem { [weak self] in
+        delayedReturnStored?.cancel()
+        delayedReturnStored = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
-            self.returnCached(completion)
+            self.returnStored(completion)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnCached!)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnStored!)
     }
 
-    // Second cache lookup is necessary, for some caching policies, for a case if the same image was downloaded by another instance of RemoteImage.
-    private func scheduleDownload(afterDelay delay: TimeInterval? = nil, secondCacheLookup: Bool = false) {
+    // Second store lookup is necessary, for a case if the same image was downloaded by another instance of RemoteImage
+    private func scheduleDownload(afterDelay delay: TimeInterval? = nil, secondStoreLookup: Bool = false) {
         guard let delay = delay else {
             // Start download immediately if no delay needed
             startDownload()
@@ -214,8 +212,8 @@ extension RemoteImage {
         delayedDownload = DispatchWorkItem { [weak self] in
             guard let self = self else { return }
 
-            if secondCacheLookup {
-                self.returnCached { [weak self] success in
+            if secondStoreLookup {
+                self.returnStored { [weak self] success in
                     guard let self = self else { return }
 
                     if !success {
@@ -273,7 +271,7 @@ extension RemoteImage {
             .store(in: &cancellables)
     }
 
-    private func returnCached(_ completion: @escaping (_ success: Bool) -> Void) {
+    private func returnStored(_ completion: @escaping (_ success: Bool) -> Void) {
         loadingState = .inProgress(nil)
 
         guard let store = service.fileStore else {
@@ -292,7 +290,7 @@ extension RemoteImage {
                 }
 
                 if let transientImage = $0 {
-                    log_debug(self, #function, "Image for \(self.download.url) is in the disk cache", detail: log_normal)
+                    log_debug(self, #function, "Image for \(self.download.url) is in the disk store", detail: log_normal)
                     // Store in memory
                     let info = URLImageStoreInfo(url: self.download.url,
                                                  identifier: self.options.identifier,
@@ -301,12 +299,12 @@ extension RemoteImage {
 
                     self.service.inMemoryStore?.store(transientImage, info: info)
 
-                    // Set image retrieved from cache
+                    // Complete
                     self.loadingState = .success(transientImage)
                     completion(true)
                 }
                 else {
-                    log_debug(self, #function, "Image for \(self.download.url) not in the disk cache", detail: log_normal)
+                    log_debug(self, #function, "Image for \(self.download.url) not in the disk store", detail: log_normal)
                     completion(false)
                 }
             }
