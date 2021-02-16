@@ -33,7 +33,7 @@ public struct DownloadPublisher: Publisher {
         self.manager = manager
     }
 
-    private unowned let manager: DownloadManager
+    private let manager: DownloadManager
 }
 
 
