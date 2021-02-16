@@ -9,8 +9,8 @@ import Foundation
 import CoreGraphics
 import Combine
 
-#if canImport(Common)
-import Common
+#if canImport(Model)
+import Model
 #endif
 
 

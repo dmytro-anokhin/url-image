@@ -34,7 +34,7 @@ Pod::Spec.new do |spec|
     ss.source_files = 'Dependencies/Sources/FileIndex/**/*.{swift}'
     ss.dependency 'URLImage/Log'
     ss.dependency 'URLImage/PlainDatabase'
-    ss.dependency 'URLImage/Common'
+    ss.dependency 'URLImage/Model'
   end
 
   spec.subspec 'PlainDatabase' do |ss|
@@ -46,8 +46,8 @@ Pod::Spec.new do |spec|
     ss.dependency 'URLImage/Log'
   end
 
-  spec.subspec 'Common' do |ss|
-    ss.source_files = 'Dependencies/Sources/Common/**/*.{swift}'
+  spec.subspec 'Model' do |ss|
+    ss.source_files = 'Dependencies/Sources/Model/**/*.{swift}'
   end
 
   spec.subspec 'Log' do |ss|

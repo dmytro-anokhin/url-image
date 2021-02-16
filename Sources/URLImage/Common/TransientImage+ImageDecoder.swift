@@ -9,8 +9,8 @@ import Foundation
 import CoreGraphics
 import ImageIO
 
-#if canImport(Common)
-import Common
+#if canImport(Model)
+import Model
 #endif
 
 #if canImport(ImageDecoder)
