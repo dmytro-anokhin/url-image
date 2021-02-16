@@ -100,7 +100,7 @@ extension URLImageService {
         return RemoteImage(service: self, download: download, options: options)
     }
 
-    public func remoteImagePublisher(_ url: URL, options: URLImageOptions) -> RemoteImagePublisher {
+    public func remoteImagePublisher(_ url: URL, options: URLImageOptions = URLImageOptions()) -> RemoteImagePublisher {
         let remoteImage = makeRemoteImage(url: url, options: options)
         return RemoteImagePublisher(remoteImage: remoteImage)
     }
