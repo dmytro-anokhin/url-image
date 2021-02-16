@@ -9,10 +9,6 @@ import Foundation
 import CoreGraphics
 import ImageIO
 
-#if canImport(Model)
-import Model
-#endif
-
 #if canImport(ImageDecoder)
 import ImageDecoder
 #endif
@@ -42,23 +38,16 @@ public extension TransientImage {
             return nil
         }
 
-        let decodedCGImage: CGImage?
-
-        if let sizeForDrawing = maxPixelSize {
-            let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
-            decodedCGImage = decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)
-        } else {
-            decodedCGImage = decoder.createFrameImage(at: 0)
-        }
-
-        guard let cgImage = decodedCGImage else {
+        guard let size = decoder.frameSize(at: 0) else {
             // Can not decode an image
             return nil
         }
 
-        let info = ImageInfo(cgImage: cgImage, size: decoder.frameSize(at: 0) ?? .zero)
+        let proxy = CGImageProxy(decoder: decoder, maxPixelSize: maxPixelSize)
+
+        let info = ImageInfo(proxy: proxy, size: size)
         let cgOrientation: CGImagePropertyOrientation = decoder.frameOrientation(at: 0) ?? .up
 
-        self.init(cgImage: cgImage, info: info, uti: uti, cgOrientation: cgOrientation)
+        self.init(proxy: proxy, info: info, uti: uti, cgOrientation: cgOrientation)
     }
 }

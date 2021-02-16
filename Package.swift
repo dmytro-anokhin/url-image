@@ -52,6 +52,7 @@ let package = Package(
             path: "Dependencies/Sources/Log"),
         .target(
             name: "Model",
+            dependencies: [ "ImageDecoder" ],
             path: "Dependencies/Sources/Model"),
         .testTarget(
             name: "URLImageTests",
