@@ -230,3 +230,22 @@ public extension URLImage where Empty == EmptyView,
                   content: content)
     }
 }
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage where Empty == InProgress,
+                                InProgress == Failure,
+                                Failure == Content {
+
+    init(_ url: URL,
+         options: URLImageOptions? = nil,
+         _ content: @escaping (_ image: Image?, _ progress: Float?, _ error: Error?) -> Content) {
+
+        self.init(url,
+                  options: options,
+                  empty: { content(nil, nil, nil) },
+                  inProgress: { content(nil, $0, nil) },
+                  failure: { error, _ in content(nil, nil, error) },
+                  content: { content($0, nil, nil) })
+    }
+}
