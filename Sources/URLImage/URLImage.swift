@@ -20,8 +20,8 @@ import Model
 public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                          InProgress : View,
                                                                          Failure : View,
-                                                                         Content : View
-{
+                                                                         Content : View {
+
     @Environment(\.urlImageService) var service: URLImageService
 
     @Environment(\.urlImageOptions) var urlImageOptions: URLImageOptions
