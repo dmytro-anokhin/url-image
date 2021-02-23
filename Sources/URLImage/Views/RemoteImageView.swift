@@ -27,12 +27,12 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
     let content: (_ value: TransientImage) -> Content
 
-    public init(remoteContent: RemoteImage,
-                loadOptions: URLImageOptions.LoadOptions,
-                empty: @escaping () -> Empty,
-                inProgress: @escaping (_ progress: Float?) -> InProgress,
-                failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                content: @escaping (_ value: TransientImage) -> Content) {
+    init(remoteContent: RemoteImage,
+         loadOptions: URLImageOptions.LoadOptions,
+         empty: @escaping () -> Empty,
+         inProgress: @escaping (_ progress: Float?) -> InProgress,
+         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         content: @escaping (_ value: TransientImage) -> Content) {
 
         self.remoteImage = remoteContent
 
@@ -47,7 +47,7 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
         }
     }
 
-    public var body: some View {
+    var body: some View {
         ZStack {
             switch remoteImage.loadingState {
                 case .initial:
