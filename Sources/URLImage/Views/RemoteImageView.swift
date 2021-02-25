@@ -19,24 +19,19 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
                                                                          Failure : View,
                                                                          Content : View {
 
-    /// Controls how download starts and when it can be cancelled
-    let loadOptions: URLImageOptions.LoadOptions
-
     let empty: () -> Empty
     let inProgress: (_ progress: Float?) -> InProgress
     let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
     let content: (_ value: TransientImage) -> Content
 
-    init(remoteContent: RemoteImage,
-         loadOptions: URLImageOptions.LoadOptions,
+    init(remoteImage: RemoteImage,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ value: TransientImage) -> Content) {
 
-        self.remoteImage = remoteContent
+        self.remoteImage = remoteImage
 
-        self.loadOptions = loadOptions
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure

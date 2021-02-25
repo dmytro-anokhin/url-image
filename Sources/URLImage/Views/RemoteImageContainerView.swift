@@ -44,8 +44,7 @@ struct RemoteImageContainerView<Empty, InProgress, Failure, Content> : View wher
     private let content: (_ image: TransientImage) -> Content
 
     var body: some View {
-        let view = RemoteImageView(remoteContent: remoteImage,
-                                   loadOptions: loadOptions,
+        let view = RemoteImageView(remoteImage: remoteImage,
                                    empty: empty,
                                    inProgress: inProgress,
                                    failure: failure,
