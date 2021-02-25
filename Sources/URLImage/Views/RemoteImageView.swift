@@ -41,10 +41,6 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
-
-        if loadOptions.contains(.loadImmediately) {
-            remoteContent.load()
-        }
     }
 
     var body: some View {
@@ -63,16 +59,6 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
                     failure(error) {
                         remoteImage.load()
                     }
-            }
-        }
-        .onAppear {
-            if loadOptions.contains(.loadOnAppear) {
-                remoteImage.load()
-            }
-        }
-        .onDisappear {
-            if loadOptions.contains(.cancelOnDisappear) {
-                remoteImage.cancel()
             }
         }
     }

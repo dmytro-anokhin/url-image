@@ -44,11 +44,27 @@ struct RemoteImageContainerView<Empty, InProgress, Failure, Content> : View wher
     private let content: (_ image: TransientImage) -> Content
 
     var body: some View {
-        RemoteImageView(remoteContent: remoteImage,
-                        loadOptions: loadOptions,
-                        empty: empty,
-                        inProgress: inProgress,
-                        failure: failure,
-                        content: content)
+        let view = RemoteImageView(remoteContent: remoteImage,
+                                   loadOptions: loadOptions,
+                                   empty: empty,
+                                   inProgress: inProgress,
+                                   failure: failure,
+                                   content: content)
+            .onAppear {
+                if loadOptions.contains(.loadOnAppear) {
+                    remoteImage.load()
+                }
+            }
+            .onDisappear {
+                if loadOptions.contains(.cancelOnDisappear) {
+                    remoteImage.cancel()
+                }
+            }
+
+        if loadOptions.contains(.loadImmediately) {
+            remoteImage.load()
+        }
+
+        return view
     }
 }
