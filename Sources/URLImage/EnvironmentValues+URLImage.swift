@@ -25,6 +25,7 @@ private struct URLImageOptionsEnvironmentKey: EnvironmentKey {
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension EnvironmentValues {
 
+    /// Service used by instances of the `URLImage` view
     var urlImageService: URLImageService {
         get {
             self[URLImageServiceEnvironmentKey.self]
@@ -35,6 +36,7 @@ public extension EnvironmentValues {
         }
     }
 
+    /// Options object used by instances of the `URLImage` view
     var urlImageOptions: URLImageOptions {
         get {
             self[URLImageOptionsEnvironmentKey.self]
