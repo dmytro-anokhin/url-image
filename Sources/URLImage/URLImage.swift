@@ -24,10 +24,14 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     @Environment(\.urlImageService) var service: URLImageService
 
+    /// Options passed in the environment.
     @Environment(\.urlImageOptions) var urlImageOptions: URLImageOptions
 
     let url: URL
 
+    /// Options passed when the view is created.
+    ///
+    /// If present, this options override the options in the environment.
     let options: URLImageOptions?
 
     public var body: some View {
