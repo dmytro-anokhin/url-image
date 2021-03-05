@@ -39,7 +39,7 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
     }
 
     var body: some View {
-        ZStack {
+        Group {
             switch remoteImage.loadingState {
                 case .initial:
                     empty()
