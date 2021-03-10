@@ -36,7 +36,7 @@ public final class RemoteImage : ObservableObject {
 
     let options: URLImageOptions
 
-    public init(service: URLImageService, download: Download, options: URLImageOptions) {
+    init(service: URLImageService, download: Download, options: URLImageOptions) {
         self.service = service
         self.download = download
         self.options = options
