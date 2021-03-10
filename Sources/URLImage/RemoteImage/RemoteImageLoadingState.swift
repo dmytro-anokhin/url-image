@@ -5,6 +5,10 @@
 //  Created by Dmytro Anokhin on 19/08/2020.
 //
 
+#if canImport(Model)
+import Model
+#endif
+
 
 /// The state of the loading process.
 ///
@@ -14,18 +18,20 @@
 ///
 /// This dual purpose allows the view to use switch statement in its `body` and return different view in each case.
 ///
-public enum RemoteImageLoadingState<Value, Progress> {
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+public enum RemoteImageLoadingState {
 
     case initial
 
-    case inProgress(_ progress: Progress)
+    case inProgress(_ progress: Float?)
 
-    case success(_ value: Value)
+    case success(_ value: TransientImage)
 
     case failure(_ error: Error)
 }
 
 
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 public extension RemoteImageLoadingState {
 
     var isInProgress: Bool {

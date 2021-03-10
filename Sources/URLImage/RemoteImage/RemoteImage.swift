@@ -48,7 +48,7 @@ public final class RemoteImage : ObservableObject {
         log_debug(nil, #function, download.url.absoluteString, detail: log_detailed)
     }
 
-    public typealias LoadingState = RemoteImageLoadingState<TransientImage, Float?>
+    public typealias LoadingState = RemoteImageLoadingState
 
     /// External loading state used to update the view
     @Published public private(set) var loadingState: LoadingState = .initial {
