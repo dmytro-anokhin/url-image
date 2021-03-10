@@ -38,12 +38,12 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         let urlImageOptions = self.options ?? self.urlImageOptions
         let remoteImage = service.makeRemoteImage(url: url, options: urlImageOptions)
 
-        return RemoteImageContainerView(remoteImage: remoteImage,
-                                        loadOptions: urlImageOptions.loadOptions,
-                                        empty: empty,
-                                        inProgress: inProgress,
-                                        failure: failure,
-                                        content: content)
+        return RemoteImageView(remoteImage: remoteImage,
+                               loadOptions: urlImageOptions.loadOptions,
+                               empty: empty,
+                               inProgress: inProgress,
+                               failure: failure,
+                               content: content)
     }
 
     private let empty: () -> Empty

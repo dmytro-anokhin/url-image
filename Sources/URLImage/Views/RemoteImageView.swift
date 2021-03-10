@@ -18,6 +18,9 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
                                                                          InProgress : View,
                                                                          Failure : View,
                                                                          Content : View {
+    @ObservedObject private(set) var remoteImage: RemoteImage
+
+    let loadOptions: URLImageOptions.LoadOptions
 
     let empty: () -> Empty
     let inProgress: (_ progress: Float?) -> InProgress
@@ -25,17 +28,23 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
     let content: (_ value: TransientImage) -> Content
 
     init(remoteImage: RemoteImage,
+         loadOptions: URLImageOptions.LoadOptions,
          empty: @escaping () -> Empty,
          inProgress: @escaping (_ progress: Float?) -> InProgress,
          failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          content: @escaping (_ value: TransientImage) -> Content) {
 
         self.remoteImage = remoteImage
+        self.loadOptions = loadOptions
 
         self.empty = empty
         self.inProgress = inProgress
         self.failure = failure
         self.content = content
+
+        if loadOptions.contains(.loadImmediately) {
+            remoteImage.load()
+        }
     }
 
     var body: some View {
@@ -56,7 +65,15 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
                     }
             }
         }
+        .onAppear {
+            if loadOptions.contains(.loadOnAppear) {
+                remoteImage.load()
+            }
+        }
+        .onDisappear {
+            if loadOptions.contains(.cancelOnDisappear) {
+                remoteImage.cancel()
+            }
+        }
     }
-
-    @ObservedObject private var remoteImage: RemoteImage
 }
