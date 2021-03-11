@@ -42,6 +42,54 @@ public final class URLImageFileStore {
         self.init(fileIndex: fileIndex)
     }
 
+    // MARK: - Access Image Files
+
+    public func getImageLocation(_ identifier: String,
+                                 completionQueue: DispatchQueue? = nil,
+                                 completion: @escaping (_ location: URL?) -> Void) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            guard let file = self.fileIndex.get(identifier).first else {
+                completion(nil)
+                return
+            }
+
+            let location = self.fileIndex.location(of: file)
+            let queue = completionQueue ?? DispatchQueue.global()
+
+            queue.async {
+                completion(location)
+            }
+        }
+    }
+
+    public func getImageLocation(_ url: URL,
+                                 completionQueue: DispatchQueue? = nil,
+                                 completion: @escaping (_ location: URL?) -> Void) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            guard let file = self.fileIndex.get(url).first else {
+                completion(nil)
+                return
+            }
+
+            let location = self.fileIndex.location(of: file)
+            let queue = completionQueue ?? DispatchQueue.global()
+
+            queue.async {
+                completion(location)
+            }
+        }
+    }
+
     // MARK: - Cleanup
 
     func cleanup() {
