@@ -47,47 +47,13 @@ public final class URLImageFileStore {
     public func getImageLocation(_ identifier: String,
                                  completionQueue: DispatchQueue? = nil,
                                  completion: @escaping (_ location: URL?) -> Void) {
-
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            guard let file = self.fileIndex.get(identifier).first else {
-                completion(nil)
-                return
-            }
-
-            let location = self.fileIndex.location(of: file)
-            let queue = completionQueue ?? DispatchQueue.global()
-
-            queue.async {
-                completion(location)
-            }
-        }
+        getImageLocation([ .identifier(identifier) ], completionQueue: completionQueue, completion: completion)
     }
 
     public func getImageLocation(_ url: URL,
                                  completionQueue: DispatchQueue? = nil,
                                  completion: @escaping (_ location: URL?) -> Void) {
-
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
-                return
-            }
-
-            guard let file = self.fileIndex.get(url).first else {
-                completion(nil)
-                return
-            }
-
-            let location = self.fileIndex.location(of: file)
-            let queue = completionQueue ?? DispatchQueue.global()
-
-            queue.async {
-                completion(location)
-            }
-        }
+        getImageLocation([ .url(url) ], completionQueue: completionQueue, completion: completion)
     }
 
     // MARK: - Cleanup
@@ -152,6 +118,44 @@ public final class URLImageFileStore {
 
     private let fileIndexQueue = DispatchQueue(label: "URLImageStore.fileIndexQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "URLImageStore.decodeQueue", attributes: .concurrent)
+
+    private func getImageLocation(_ keys: [URLImageStoreKey],
+                                  completionQueue: DispatchQueue? = nil,
+                                  completion: @escaping (_ location: URL?) -> Void) {
+
+        fileIndexQueue.async { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            var file: File?
+
+            for key in keys {
+                switch key {
+                    case .identifier(let identifier):
+                        file = self.fileIndex.get(identifier).first
+                    case .url(let url):
+                        file = self.fileIndex.get(url).first
+                }
+
+                if file != nil {
+                    break
+                }
+            }
+
+            if let file = file {
+                let location = self.fileIndex.location(of: file)
+                let queue = completionQueue ?? DispatchQueue.global()
+
+                queue.async {
+                    completion(location)
+                }
+            }
+            else {
+                completion(nil)
+            }
+        }
+    }
 }
 
 
@@ -204,44 +208,21 @@ extension URLImageFileStore: URLImageFileStoreType {
                             open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 
-        fileIndexQueue.async { [weak self] in
-            guard let self = self else {
+        getImageLocation(keys, completionQueue: decodeQueue) { [weak self] location in
+            guard let _ = self else { // Just a sanity check if the cache object is still exists
                 return
             }
 
-            var file: File?
-
-            for key in keys {
-                switch key {
-                    case .identifier(let identifier):
-                        file = self.fileIndex.get(identifier).first
-                    case .url(let url):
-                        file = self.fileIndex.get(url).first
-                }
-
-                if file != nil {
-                    break
-                }
-            }
-
-            if let file = file {
-                let location = self.fileIndex.location(of: file)
-
-                self.decodeQueue.async { [weak self] in
-                    guard let _ = self else { // Just a sanity check if the cache object is still exists
-                        return
-                    }
-
-                    do {
-                        let object = try open(location)
-                        completion(.success(object))
-                    } catch {
-                        completion(.failure(error))
-                    }
-                }
-            }
-            else {
+            guard let location = location else {
                 completion(.success(nil))
+                return
+            }
+
+            do {
+                let object = try open(location)
+                completion(.success(object))
+            } catch {
+                completion(.failure(error))
             }
         }
     }
