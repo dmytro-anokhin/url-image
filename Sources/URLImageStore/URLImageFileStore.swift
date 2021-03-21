@@ -42,7 +42,19 @@ public final class URLImageFileStore {
         self.init(fileIndex: fileIndex)
     }
 
-    // MARK: - Access Image Files
+    // MARK: - Access Images
+
+    public func getImage(_ identifier: String,
+                         completionQueue: DispatchQueue? = nil,
+                         completion: @escaping (_ image: CGImage?) -> Void) {
+        fatalError("Not implemented")
+    }
+
+    public func getImage(_ url: URL,
+                         completionQueue: DispatchQueue? = nil,
+                         completion: @escaping (_ image: CGImage?) -> Void) {
+        fatalError("Not implemented")
+    }
 
     public func getImageLocation(_ identifier: String,
                                  completionQueue: DispatchQueue? = nil,
