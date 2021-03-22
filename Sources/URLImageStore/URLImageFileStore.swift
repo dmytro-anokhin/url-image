@@ -45,15 +45,17 @@ public final class URLImageFileStore {
     // MARK: - Access Images
 
     public func getImage(_ identifier: String,
+                         maxPixelSize: CGSize? = nil,
                          completionQueue: DispatchQueue? = nil,
                          completion: @escaping (_ image: CGImage?) -> Void) {
-        fatalError("Not implemented")
+        getImage([ .identifier(identifier) ], maxPixelSize: maxPixelSize, completionQueue: completionQueue, completion: completion)
     }
 
     public func getImage(_ url: URL,
+                         maxPixelSize: CGSize? = nil,
                          completionQueue: DispatchQueue? = nil,
                          completion: @escaping (_ image: CGImage?) -> Void) {
-        fatalError("Not implemented")
+        getImage([ .url(url) ], maxPixelSize: maxPixelSize, completionQueue: completionQueue, completion: completion)
     }
 
     public func getImageLocation(_ identifier: String,
@@ -167,6 +169,41 @@ public final class URLImageFileStore {
                 completion(nil)
             }
         }
+    }
+
+    private func getImage(_ keys: [URLImageStoreKey],
+                          maxPixelSize: CGSize? = nil,
+                          completionQueue: DispatchQueue? = nil,
+                          completion: @escaping (_ image: CGImage?) -> Void) {
+        getImage(keys,
+                 open: { location -> CGImage? in
+                    guard let decoder = ImageDecoder(url: location) else {
+                        return nil
+                    }
+
+                    if let sizeForDrawing = maxPixelSize {
+                        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
+                        return decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)!
+                    } else {
+                        return decoder.createFrameImage(at: 0)!
+                    }
+                 },
+                 completion: { result in
+                    let queue = completionQueue ?? DispatchQueue.global()
+
+                    switch result {
+
+                        case .success(let image):
+                            queue.async {
+                                completion(image)
+                            }
+
+                        case .failure:
+                            queue.async {
+                                completion(nil)
+                            }
+                    }
+                 })
     }
 }
 
