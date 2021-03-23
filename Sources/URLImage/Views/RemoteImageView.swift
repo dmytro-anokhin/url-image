@@ -29,10 +29,10 @@ struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty :
 
     init(remoteImage: RemoteImage,
          loadOptions: URLImageOptions.LoadOptions,
-         empty: @escaping () -> Empty,
-         inProgress: @escaping (_ progress: Float?) -> InProgress,
-         failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-         content: @escaping (_ value: TransientImage) -> Content) {
+         @ViewBuilder empty: @escaping () -> Empty,
+         @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
+         @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+         @ViewBuilder content: @escaping (_ value: TransientImage) -> Content) {
 
         self.remoteImage = remoteImage
         self.loadOptions = loadOptions
