@@ -12,6 +12,7 @@ import CoreGraphics
 import Model
 #endif
 
+
 /// The `URLImageInMemoryStoreType` describes an object used to store images in-memory for fast access.
 public protocol URLImageInMemoryStoreType: URLImageStoreType {
 
