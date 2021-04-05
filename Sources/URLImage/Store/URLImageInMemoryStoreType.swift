@@ -16,7 +16,7 @@ import Model
 /// The `URLImageInMemoryStoreType` describes an object used to store images in-memory for fast access.
 public protocol URLImageInMemoryStoreType: URLImageStoreType {
 
-    func getImage<T>(_ keys: [URLImageStoreKey]) -> T?
+    func getImage<T>(_ keys: [URLImageKey]) -> T?
 
     func store<T>(_ image: T, info: URLImageStoreInfo)
 }

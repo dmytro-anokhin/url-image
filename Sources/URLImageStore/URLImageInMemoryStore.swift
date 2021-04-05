@@ -21,9 +21,9 @@ public final class URLImageInMemoryStore {
 
     private final class KeyWrapper: NSObject {
 
-        let key: URLImageStoreKey
+        let key: URLImageKey
 
-        init(key: URLImageStoreKey) {
+        init(key: URLImageKey) {
             self.key = key
         }
 
@@ -63,18 +63,18 @@ extension URLImageInMemoryStore: URLImageInMemoryStoreType {
     }
 
     public func removeImageWithURL(_ url: URL) {
-        let key = URLImageStoreKey.url(url)
+        let key = URLImageKey.url(url)
         let keyWrapper = KeyWrapper(key: key)
         cache.removeObject(forKey: keyWrapper)
     }
 
     public func removeImageWithIdentifier(_ identifier: String) {
-        let key = URLImageStoreKey.identifier(identifier)
+        let key = URLImageKey.identifier(identifier)
         let keyWrapper = KeyWrapper(key: key)
         cache.removeObject(forKey: keyWrapper)
     }
 
-    public func getImage<T>(_ keys: [URLImageStoreKey]) -> T? {
+    public func getImage<T>(_ keys: [URLImageKey]) -> T? {
         for key in keys.map({ KeyWrapper(key: $0) }) {
             guard let object = cache.object(forKey: key) else {
                 continue
@@ -89,12 +89,12 @@ extension URLImageInMemoryStore: URLImageInMemoryStoreType {
     public func store<T>(_ image: T, info: URLImageStoreInfo) {
         let imageWrapper = ObjectWrapper(image: image, info: info)
 
-        let urlKey = URLImageStoreKey.url(info.url)
+        let urlKey = URLImageKey.url(info.url)
         let urlKeyWrapper = KeyWrapper(key: urlKey)
         cache.setObject(imageWrapper, forKey: urlKeyWrapper)
 
         if let identifier = info.identifier {
-            let identifierKey = URLImageStoreKey.identifier(identifier)
+            let identifierKey = URLImageKey.identifier(identifier)
             let identifierKeyWrapper = KeyWrapper(key: identifierKey)
             cache.setObject(imageWrapper, forKey: identifierKeyWrapper)
         }

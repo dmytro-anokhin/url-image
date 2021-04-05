@@ -133,7 +133,7 @@ public final class URLImageFileStore {
     private let fileIndexQueue = DispatchQueue(label: "URLImageStore.fileIndexQueue", attributes: .concurrent)
     private let decodeQueue = DispatchQueue(label: "URLImageStore.decodeQueue", attributes: .concurrent)
 
-    private func getImageLocation(_ keys: [URLImageStoreKey],
+    private func getImageLocation(_ keys: [URLImageKey],
                                   completionQueue: DispatchQueue? = nil,
                                   completion: @escaping (_ location: URL?) -> Void) {
 
@@ -171,7 +171,7 @@ public final class URLImageFileStore {
         }
     }
 
-    private func getImage(_ keys: [URLImageStoreKey],
+    private func getImage(_ keys: [URLImageKey],
                           maxPixelSize: CGSize? = nil,
                           completionQueue: DispatchQueue? = nil,
                           completion: @escaping (_ image: CGImage?) -> Void) {
@@ -253,7 +253,7 @@ extension URLImageFileStore: URLImageFileStoreType {
         }
     }
 
-    public func getImage<T>(_ keys: [URLImageStoreKey],
+    public func getImage<T>(_ keys: [URLImageKey],
                             open: @escaping (_ location: URL) throws -> T?,
                             completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 

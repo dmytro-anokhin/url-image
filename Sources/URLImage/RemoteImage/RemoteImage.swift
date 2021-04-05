@@ -168,7 +168,7 @@ extension RemoteImage {
             return false
         }
 
-        guard let transientImage: TransientImage = store.getImage(storeKeys) else {
+        guard let transientImage: TransientImage = store.getImage(keys) else {
             log_debug(self, #function, "Image for \(download.url) not in the in memory store", detail: log_normal)
             return false
         }
@@ -275,7 +275,7 @@ extension RemoteImage {
             return
         }
 
-        store.getImagePublisher(storeKeys, maxPixelSize: options.maxPixelSize)
+        store.getImagePublisher(keys, maxPixelSize: options.maxPixelSize)
             .receive(on: RunLoop.main)
             .catch { _ in
                 Just(nil)
@@ -317,8 +317,8 @@ extension RemoteImage {
     }
 
     /// Helper to return `URLImageStoreKey` objects based on `URLImageOptions` and `Download` properties
-    private var storeKeys: [URLImageStoreKey] {
-        var keys: [URLImageStoreKey] = []
+    private var keys: [URLImageKey] {
+        var keys: [URLImageKey] = []
 
         // Identifier must precede URL
         if let identifier = options.identifier {

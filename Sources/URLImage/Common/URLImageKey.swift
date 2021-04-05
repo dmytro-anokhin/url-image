@@ -1,5 +1,5 @@
 //
-//  URLImageStoreKey.swift
+//  URLImageKey.swift
 //  
 //
 //  Created by Dmytro Anokhin on 09/02/2021.
@@ -8,8 +8,8 @@
 import Foundation
 
 
-/// Various key types used to store and access images in a store.
-public enum URLImageStoreKey {
+/// Various key types used to access images.
+public enum URLImageKey {
 
     /// Unique identifier as a string
     case identifier(_ identifier: String)
@@ -19,4 +19,4 @@ public enum URLImageStoreKey {
 }
 
 
-extension URLImageStoreKey: Hashable {}
+extension URLImageKey: Hashable {}
