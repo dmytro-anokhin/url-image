@@ -19,7 +19,7 @@ import DownloadManager
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageService {
 
-    func decode(result: DownloadResult, download: Download, options: URLImageOptions) throws -> TransientImage {
+    func decode(result: DownloadResult, download: Download, identifier: String?, options: URLImageOptions) throws -> TransientImage {
         switch result {
             case .data(let data):
 
@@ -28,10 +28,7 @@ extension URLImageService {
                 }
 
                 if shouldStore {
-                    let info = URLImageStoreInfo(url: download.url,
-                                                 identifier: options.identifier,
-                                                 uti: transientImage.uti)
-
+                    let info = URLImageStoreInfo(url: download.url, identifier: identifier, uti: transientImage.uti)
                     fileStore?.storeImageData(data, info: info)
                     inMemoryStore?.store(transientImage, info: info)
                 }
@@ -47,10 +44,7 @@ extension URLImageService {
                 }
 
                 if shouldStore {
-                    let info = URLImageStoreInfo(url: download.url,
-                                                 identifier: options.identifier,
-                                                 uti: transientImage.uti)
-
+                    let info = URLImageStoreInfo(url: download.url, identifier: identifier, uti: transientImage.uti)
                     fileStore?.moveImageFile(from: location, info: info)
                     inMemoryStore?.store(transientImage, info: info)
                 }

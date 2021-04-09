@@ -48,14 +48,6 @@ public struct URLImageOptions {
         public static let cancelOnDisappear: LoadOptions = .init(rawValue: 1 << 2)
     }
 
-    /// Unique identifier used to identify an image in cache.
-    ///
-    /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
-    /// For images that don't have a persistent URL create an identifier and store it with your model.
-    ///
-    /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
-    public var identifier: String?
-
     /// The fetch policy defines when to load or use stored image.
     public var fetchPolicy: FetchPolicy
 
@@ -66,12 +58,10 @@ public struct URLImageOptions {
     /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
 
-    public init(identifier: String? = nil,
-                fetchPolicy: FetchPolicy = .returnStoreElseLoad(downloadDelay: 0.25),
+    public init(fetchPolicy: FetchPolicy = .returnStoreElseLoad(downloadDelay: 0.25),
                 loadOptions: LoadOptions = [ .loadOnAppear, .cancelOnDisappear ],
                 urlRequestConfiguration: Download.URLRequestConfiguration? = nil,
                 maxPixelSize: CGSize? = nil) {
-        self.identifier = identifier
         self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration

@@ -29,6 +29,14 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     let url: URL
 
+    /// Unique identifier used to identify an image in cache.
+    ///
+    /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
+    /// For images that don't have a persistent URL create an identifier and store it with your model.
+    ///
+    /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
+    let identifier: String?
+
     /// Options passed when the view is created.
     ///
     /// If present, this options override the options in the environment.
@@ -36,7 +44,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     public var body: some View {
         let urlImageOptions = self.options ?? self.urlImageOptions
-        let remoteImage = service.makeRemoteImage(url: url, options: urlImageOptions)
+        let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
 
         return RemoteImageView(remoteImage: remoteImage,
                                loadOptions: urlImageOptions.loadOptions,
@@ -52,6 +60,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     private let content: (_ image: TransientImage) -> Content
 
     private init(_ url: URL,
+                 identifier: String? = nil,
                  options: URLImageOptions? = nil,
                  @ViewBuilder empty: @escaping () -> Empty,
                  @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
@@ -59,6 +68,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
                  @ViewBuilder content: @escaping (_ transientImage: TransientImage) -> Content) {
 
         self.url = url
+        self.identifier = identifier
         self.options = options
 
         self.empty = empty

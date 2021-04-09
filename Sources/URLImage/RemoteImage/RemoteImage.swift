@@ -34,11 +34,14 @@ public final class RemoteImage : ObservableObject {
     /// Download object describes how the image should be downloaded.
     let download: Download
 
+    let identifier: String?
+
     let options: URLImageOptions
 
-    init(service: URLImageService, download: Download, options: URLImageOptions) {
+    init(service: URLImageService, download: Download, identifier: String?, options: URLImageOptions) {
         self.service = service
         self.download = download
+        self.identifier = identifier
         self.options = options
 
         log_debug(nil, #function, download.url.absoluteString)
@@ -255,6 +258,7 @@ extension RemoteImage {
                         do {
                             let transientImage = try self.service.decode(result: result,
                                                                          download: self.download,
+                                                                         identifier: self.identifier,
                                                                          options: self.options)
                             self.updateLoadingState(.success(transientImage))
                         }
@@ -289,7 +293,7 @@ extension RemoteImage {
                     log_debug(self, #function, "Image for \(self.download.url) is in the disk store", detail: log_normal)
                     // Store in memory
                     let info = URLImageStoreInfo(url: self.download.url,
-                                                 identifier: self.options.identifier,
+                                                 identifier: self.identifier,
                                                  uti: transientImage.uti)
 
                     self.service.inMemoryStore?.store(transientImage, info: info)
@@ -321,7 +325,7 @@ extension RemoteImage {
         var keys: [URLImageKey] = []
 
         // Identifier must precede URL
-        if let identifier = options.identifier {
+        if let identifier = identifier {
             keys.append(.identifier(identifier))
         }
 
