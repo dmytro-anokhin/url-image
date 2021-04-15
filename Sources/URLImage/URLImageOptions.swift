@@ -7,6 +7,7 @@
 
 import Foundation
 import CoreGraphics
+import SwiftUI
 
 #if canImport(DownloadManager)
 import DownloadManager
@@ -86,17 +87,27 @@ public struct URLImageOptions {
     /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
 
+    /// Animation to apply when the image is loaded from the cache. Default: no animation
+    public var loadCachedAnimation: Animation?
+
+    /// Animation to apply when the image is loaded from a network response. Default: no animation
+    public var loadFromNetworkAnimation: Animation?
+
     public init(identifier: String? = nil,
                 expireAfter expiryInterval: TimeInterval? = URLImageService.shared.defaultOptions.expiryInterval,
                 cachePolicy: CachePolicy = URLImageService.shared.defaultOptions.cachePolicy,
                 load loadOptions: LoadOptions = URLImageService.shared.defaultOptions.loadOptions,
                 urlRequestConfiguration: Download.URLRequestConfiguration = URLImageService.shared.defaultOptions.urlRequestConfiguration,
-                maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize) {
+                maxPixelSize: CGSize? = URLImageService.shared.defaultOptions.maxPixelSize,
+                loadCachedAnimation: Animation? = nil,
+                loadFromNetworkAnimation: Animation? = nil) {
         self.identifier = identifier
         self.expiryInterval = expiryInterval
         self.cachePolicy = cachePolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration
         self.maxPixelSize = maxPixelSize
+        self.loadCachedAnimation = loadCachedAnimation
+        self.loadFromNetworkAnimation = loadFromNetworkAnimation
     }
 }

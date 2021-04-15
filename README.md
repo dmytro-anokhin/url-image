@@ -190,6 +190,14 @@ Time interval after which the cached image expires and can be deleted. Images ar
 
 Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
 
+**`loadCachedAnimation: Animation?`**
+
+Animation to apply when the image is loaded from the cache. By default, there is no animation.
+
+**`loadFromNetworkAnimation: Animation?`**
+
+Animation to apply when the image is loaded from the network. By default, there is no animation.
+
 **`cachePolicy: CachePolicy`**
 
 The cache policy controls how the image loaded from cache.

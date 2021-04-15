@@ -169,7 +169,9 @@ extension RemoteImage {
         }
 
         // Set image retrieved from cache
-        self.loadingState = .success(transientImage)
+        withAnimation(self.options.loadCachedAnimation) {
+            self.loadingState = .success(transientImage)
+        }
         log_debug(self, #function, "Image for \(download.url) is in the in memory cache", detail: log_normal)
 
         return true
@@ -251,7 +253,9 @@ extension RemoteImage {
                             let transientImage = try self.service.decode(result: result,
                                                                          download: self.download,
                                                                          options: self.options)
-                            self.updateLoadingState(.success(transientImage))
+                            withAnimation(self.options.loadFromNetworkAnimation) {
+                                self.updateLoadingState(.success(transientImage))
+                            }
                         }
                         catch {
                             // This route happens when download succeeds, but decoding fails
@@ -284,7 +288,9 @@ extension RemoteImage {
                                                                    identifier: self.options.identifier,
                                                                    expireAfter: self.options.expiryInterval)
                     // Set image retrieved from cache
-                    self.loadingState = .success(transientImage)
+                    withAnimation(self.options.loadCachedAnimation) {
+                        self.loadingState = .success(transientImage)
+                    }
                     completion(true)
                 }
                 else {
