@@ -267,7 +267,7 @@ extension RemoteImage {
 
         service.diskCache
             .getImagePublisher(withIdentifier: options.identifier, orURL: download.url, maxPixelSize: options.maxPixelSize)
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .catch { _ in
                 Just(nil)
             }
