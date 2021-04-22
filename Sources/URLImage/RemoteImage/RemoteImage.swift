@@ -280,7 +280,7 @@ extension RemoteImage {
         }
 
         store.getImagePublisher(keys, maxPixelSize: options.maxPixelSize)
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .catch { _ in
                 Just(nil)
             }
