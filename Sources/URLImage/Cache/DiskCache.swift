@@ -1,6 +1,6 @@
 //
 //  DiskCache.swift
-//  
+//
 //
 //  Created by Dmytro Anokhin on 02/10/2020.
 //
@@ -25,6 +25,12 @@ final class DiskCache {
 
     init(fileIndex: FileIndex) {
         self.fileIndex = fileIndex
+
+        fileIndexQueue.name = "URLImage.DiskCache.fileIndexQueue"
+        fileIndexQueue.maxConcurrentOperationCount = 4
+
+        decodeQueue.name = "URLImage.DiskCache.decodeQueue"
+        decodeQueue.maxConcurrentOperationCount = 4
     }
 
     convenience init() {
@@ -40,7 +46,7 @@ final class DiskCache {
                   maxPixelSize: CGSize?,
                   _ completion: @escaping (_ result: Result<TransientImageType?, Swift.Error>) -> Void
     ) {
-        fileIndexQueue.async { [weak self] in
+        fileIndexQueue.addOperation { [weak self] in
             guard let self = self else { return }
 
             guard let file = self.getFile(withIdentifier: identifier, orURL: url) else {
@@ -50,7 +56,7 @@ final class DiskCache {
 
             let location = self.fileIndex.location(of: file)
 
-            self.decodeQueue.async { [weak self] in
+            self.decodeQueue.addOperation { [weak self] in
                 guard let _ = self else { return }
 
                 if let transientImage = TransientImage(location: location, maxPixelSize: maxPixelSize) {
@@ -76,7 +82,7 @@ final class DiskCache {
     }
 
     func cacheImageData(_ data: Data, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        fileIndexQueue.async { [weak self] in
+        fileIndexQueue.addOperation { [weak self] in
             guard let self = self else {
                 return
             }
@@ -91,7 +97,7 @@ final class DiskCache {
     }
 
     func cacheImageFile(at location: URL, url: URL, identifier: String?, fileName: String?, fileExtension: String?, expireAfter expiryInterval: TimeInterval?) {
-        fileIndexQueue.async { [weak self] in
+        fileIndexQueue.addOperation { [weak self] in
             guard let self = self else {
                 return
             }
@@ -108,7 +114,7 @@ final class DiskCache {
     // MARK: - Cleanup
 
     func cleanup() {
-        fileIndexQueue.async(flags: .barrier) { [weak self] in
+        fileIndexQueue.addBarrierBlock { [weak self] in
             guard let self = self else {
                 return
             }
@@ -118,7 +124,7 @@ final class DiskCache {
     }
 
     func deleteAll() {
-        fileIndexQueue.async(flags: .barrier) { [weak self] in
+        fileIndexQueue.addBarrierBlock { [weak self] in
             guard let self = self else {
                 return
             }
@@ -128,7 +134,7 @@ final class DiskCache {
     }
 
     func delete(withIdentifier identifier: String?, orURL url: URL?) {
-        fileIndexQueue.async(flags: .barrier) { [weak self] in
+        fileIndexQueue.addBarrierBlock { [weak self] in
             log_debug(self, #function, {
                 if let identifier = identifier {
                     return "identifier = " + identifier
@@ -155,8 +161,11 @@ final class DiskCache {
 
     // MARK: - Private
 
-    private let fileIndexQueue = DispatchQueue(label: "URLImage.DiskCache.fileIndexQueue", attributes: .concurrent)
-    private let decodeQueue = DispatchQueue(label: "URLImage.DiskCache.decodeQueue", attributes: .concurrent)
+    /// The queue used to access file index
+    private let fileIndexQueue = OperationQueue()
+
+    /// The queue used to decode images
+    private let decodeQueue = OperationQueue()
 
     private func getFile(withIdentifier identifier: String?, orURL url: URL?) -> File? {
         if let identifier = identifier {
