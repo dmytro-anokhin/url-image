@@ -130,8 +130,11 @@ public final class URLImageFileStore {
 
     // MARK: - Private
 
-    private let fileIndexQueue = DispatchQueue(label: "URLImageStore.fileIndexQueue", attributes: .concurrent)
-    private let decodeQueue = DispatchQueue(label: "URLImageStore.decodeQueue", attributes: .concurrent)
+    /// The queue used to access file index
+    private let fileIndexQueue = DispatchQueue(label: "URLImageStore.fileIndexQueue")
+
+    /// The queue used to decode images
+    private let decodeQueue = DispatchQueue(label: "URLImageStore.decodeQueue")
 
     private func getImageLocation(_ keys: [URLImageKey],
                                   completionQueue: DispatchQueue? = nil,
