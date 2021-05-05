@@ -37,13 +37,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
     let identifier: String?
 
-    /// Options passed when the view is created.
-    ///
-    /// If present, this options override the options in the environment.
-    let options: URLImageOptions?
-
     public var body: some View {
-        let urlImageOptions = self.options ?? self.urlImageOptions
         let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
 
         return RemoteImageView(remoteImage: remoteImage,
@@ -61,7 +55,6 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
     private init(_ url: URL,
                  identifier: String? = nil,
-                 options: URLImageOptions? = nil,
                  @ViewBuilder empty: @escaping () -> Empty,
                  @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
                  @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -69,7 +62,6 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 
         self.url = url
         self.identifier = identifier
-        self.options = options
 
         self.empty = empty
         self.inProgress = inProgress
@@ -83,14 +75,12 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -100,14 +90,12 @@ public extension URLImage {
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -122,13 +110,11 @@ public extension URLImage {
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -136,13 +122,11 @@ public extension URLImage where Empty == EmptyView {
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -156,12 +140,10 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -169,12 +151,10 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -188,12 +168,10 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -201,12 +179,10 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -221,11 +197,9 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
@@ -233,11 +207,9 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
-         options: URLImageOptions? = nil,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
-                  options: options,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
