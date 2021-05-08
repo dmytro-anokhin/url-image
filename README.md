@@ -42,40 +42,37 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager or CocoaPods.
+`URLImage` can be installed using Swift Package Manager.
 
-### Using Swift Package Manager
+1. In Xcode open **File/Swift Packages/Add Package Dependency...** menu.
 
-Use the package URL to search for the `URLImage` package: https://github.com/dmytro-anokhin/url-image.
+2. Copy and paste the package URL:
 
-For how-to integrate package dependencies refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
-
-### Using Cocoa Pods
-
-Add the `URLImage` pod to your Podfile:
-
-```rb
-pod 'URLImage'
+```
+https://github.com/dmytro-anokhin/url-image
 ```
 
-Refer to https://cocoapods.org for information on setup Cocoa Pods for your project.
+For more details refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
 
 ## Usage
 
 ### Basics
 
-`URLImage` expects URL of the image and the content view:
+You can create `URLImage` with URL and a [`ViewBuilder`](https://developer.apple.com/documentation/swiftui/viewbuilder).
 
 ```swift
 import URLImage // Import the package module
 
-URLImage(url: url,
-         content: { image in
-             image
-                 .resizable()
-                 .aspectRatio(contentMode: .fit)
-         })
+let url: URL = //...
+
+URLImage(url) { image in
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
 ```
+
+*Note: first argument of the `URLImage` initialiser is of `URL` type, if you have a `String` you must first create a `URL` object.*
 
 ### States
 
