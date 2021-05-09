@@ -51,6 +51,7 @@ public struct URLImageOptions {
     /// The fetch policy defines when to load or use stored image.
     public var fetchPolicy: FetchPolicy
 
+    /// The load options specifies when to start or cancel loading.
     public var loadOptions: LoadOptions
 
     public var urlRequestConfiguration: Download.URLRequestConfiguration?
