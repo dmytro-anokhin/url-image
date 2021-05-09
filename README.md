@@ -22,10 +22,11 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Basics](#basics)
     - [View Customization](#view-customization)
     - [Options](#options)
     - [Image Information](#image-information)
+- [Cache](#cache) 
+    - [Store Use cases](#store-use-cases) 
     - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
     - [Options](#options)
@@ -56,8 +57,6 @@ https://github.com/dmytro-anokhin/url-image
 For more details refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
 
 ## Usage
-
-### Basics
 
 You can create `URLImage` with URL and a [`ViewBuilder`](https://developer.apple.com/documentation/swiftui/viewbuilder) to display downloaded image.
 
@@ -128,6 +127,23 @@ URLImage(url) { image in
 ))
 ```
 
+Setting `URLImageOptions` in the environment value allows to set options for a whole or a part of your views hierarchy.
+
+```swift
+@main
+struct MyApp: App {
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environment(\.urlImageOptions, URLImageOptions(
+                    maxPixelSize: CGSize(width: 600.0, height: 600.0)
+                ))
+        }
+    }
+}
+```
+
 *Note for migration from v2 to v3: `URLImageOptions` are now passed in the environment, instead of as an argument.*
 
 ### Image Information
@@ -148,91 +164,44 @@ URLImage(item.imageURL) { image, info in
 }
 ```
 
+## Cache
 
+`URLImage` can also cache images to lower network bandwith or for offline use.
 
----
----
----
----
----
+By default, `URLImage` uses protocol cache policy, i.e. Cache-Control HTTP header and `URLCache`. This corresponds to how images work on web and requires network connection.
 
-
-### Cache
-
-`URLImage`  uses two caches:
-- In memory cache for quick access;
-- Local disk cache.
-
-Downloaded images stored in user caches folder. This allows OS to take care of cleaning up files. It is also a good idea to perform manual cleanup time to time.
-
-You can remove expired images by calling `cleanup` as a part of your startup routine. This will also remove image files from the previous `URLImage` version if you used it.
+Alternatively, if you want to view images offline, you must configure the file store. When configured, `URLImage` will no longer use protocol cache policy, and instead follow `URLImageOptions.FetchPolicy` setting.
 
 ```swift
-URLImageService.shared.cleanup()
+import URLImage
+import URLImageStore
+
+@main
+struct MyApp: App {
+
+    var body: some Scene {
+
+        let fileStore = URLImageFileStore()
+        let inMemoryStore = URLImageInMemoryStore()
+        let urlImageService = URLImageService(fileStore: fileStore, inMemoryStore: inMemoryStore)
+
+        return WindowGroup {
+            FeedListView()
+                .environment(\.urlImageService, urlImageService)
+        }
+    }
+}
 ```
 
-Downloaded images expire after some time. Expired images removed in `cleanup` routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`.
+*Note for migration from v2 to v3: previous versions always had store configured and used `URLImageOptions.FetchPolicy` setting, in v3 you can choose between system or configure custom cache.*
 
-You can also remove individual or all cached images using `URLImageService`.
+### Store Use Cases
 
-### Using URLCache
+You may ask when to use protocol or custom cache. `URLImage` designed to serve two use cases:
 
-Alternatively you can use `URLCache`. You can configure the package globally and also per view.
+Use protocol cache policy when an app can only work connected to the internet. Ecommerce apps, such as shopping, travel, event reservation apps, etc., work like this. Following protocol cache policy you can be sure that images are cached in a way that your CDN defines, can still be accessed quickly, and don't take unnecessary space on user devices.
 
-```swift
-URLImageService.shared.defaultOptions.cachePolicy = .useProtocol
-
-// Download using `URLSessionDataTask` 
-URLImageService.shared.defaultOptions.loadOptions.formUnion(.inMemory)
-
-// Set your `NSURLRequest.CachePolicy`
-URLImageService.shared.defaultOptions.urlRequestConfiguration.cachePolicy = .returnCacheDataElseLoad
-```
-
-Using `URLCache` adds support for Cache-Control header. As a trade-off you lose some control, like in-memory caching, download delays, expiry intervals (you get it with Cache-Control header). It also only works for in-memory downloads (using `URLSessionDataTask`).
-
-### Options
-
-`URLImage` allows controlling various aspects of download and cache using `URLImageOptions` structure. You can set default options using `URLImageService.shared.defaultOptions` property. Here are the main settings:
-
-**`identifier: String?`**
-
-By default an image is identified by its URL. Alternatively, you can provide a string identifier to override this.
-
-**`expiryInterval: TimeInterval?`**
-
-Time interval after which the cached image expires and can be deleted. Images are deleted as part of cleanup routine described in [Cache](#cache) paragraph.
-
-**`maxPixelSize: CGSize?`**
-
-Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
-
-**`cachePolicy: CachePolicy`**
-
-The cache policy controls how the image loaded from cache.
-
-### Cache Policy
-
-Cache policy, `URLImageOptions.CachePolicy` type, allows to specify how `URLImage` utilizes it's cache, similar to `NSURLRequest.CachePolicy`. This type also allows to specify delays for accessing disk cache and starting download.
-
-**`returnCacheElseLoad`**
-    
-Return an image from cache or download it.
-
-**`returnCacheDontLoad`**
-
-Return an image from cache, do not download it.
-
-**`ignoreCache`**
-
-Ignore cached image and download remote one.
-
----
-
-Some options are can be set globally using `URLImageService.shared.defaultOptions` property. Those are set by default:
-- `expireAfter` to 24 hours;
-- `cachePolicy` to `returnCacheElseLoad` without delays;
-- `maxPixelSize` to 1000 by 1000 pixels (300 by 300 pixels for watchOS).
+Configure `URLImageStore` for content that needs to be accessed offline or downloaded in background. This can be a reader app, you probably want to download articles before user opens them, maybe while the app is in the background. This content should stay for a considerably long period of time.
 
 ## Fetching an Image
 
