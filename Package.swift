@@ -16,6 +16,9 @@ let package = Package(
         .library(
             name: "URLImage",
             targets: ["URLImage"]),
+        .library(
+            name: "URLImageStore",
+            targets: ["URLImageStore"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -26,16 +29,16 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "URLImage",
-            dependencies: [ "RemoteContentView", "DownloadManager", "ImageDecoder", "FileIndex", "Common" ]),
+            dependencies: [ "DownloadManager", "ImageDecoder", "FileIndex", "Model", "Log" ]),
         .target(
-            name: "RemoteContentView",
-            path: "Dependencies/Sources/RemoteContentView"),
+            name: "URLImageStore",
+            dependencies: [ "URLImage", "FileIndex", "Log" ]),
         .target(
             name: "ImageDecoder",
             path: "Dependencies/Sources/ImageDecoder"),
         .target(
             name: "FileIndex",
-            dependencies: [ "PlainDatabase", "Log", "Common" ],
+            dependencies: [ "PlainDatabase", "Log", "Model" ],
             path: "Dependencies/Sources/FileIndex"),
         .target(
             name: "PlainDatabase",
@@ -48,8 +51,9 @@ let package = Package(
             name: "Log",
             path: "Dependencies/Sources/Log"),
         .target(
-            name: "Common",
-            path: "Dependencies/Sources/Common"),
+            name: "Model",
+            dependencies: [ "ImageDecoder" ],
+            path: "Dependencies/Sources/Model"),
         .testTarget(
             name: "URLImageTests",
             dependencies: ["URLImage"]),

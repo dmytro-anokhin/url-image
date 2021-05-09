@@ -15,10 +15,7 @@ public final class DownloadManager {
     let coordinator: URLSessionCoordinator
 
     public init() {
-        let configuration = URLSessionConfiguration.default
-        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
-
-        coordinator = URLSessionCoordinator(urlSessionConfiguration: configuration)
+        coordinator = URLSessionCoordinator(urlSessionConfiguration: .default)
     }
 
     public typealias DownloadTaskPublisher = Publishers.Share<DownloadPublisher>

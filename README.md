@@ -22,14 +22,14 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-    - [Basics](#basics)
-    - [States](#states)
-    - [Image Information](#image-information)
-    - [Cache](#cache)
-    - [Using URLCache](#using-urlcache)
+    - [View Customization](#view-customization)
     - [Options](#options)
+    - [Image Information](#image-information)
+- [Cache](#cache) 
+    - [Store Use cases](#store-use-cases) 
 - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
+- [Version 2 Migration Notes](#version-2-migration-notes)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -42,180 +42,156 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 
 ## Installation
 
-`URLImage` can be installed using Swift Package Manager or CocoaPods.
+`URLImage` can be installed using Swift Package Manager.
 
-### Using Swift Package Manager
+1. In Xcode open **File/Swift Packages/Add Package Dependency...** menu.
 
-Use the package URL to search for the `URLImage` package: https://github.com/dmytro-anokhin/url-image.
+2. Copy and paste the package URL:
 
-For how-to integrate package dependencies refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
-
-### Using Cocoa Pods
-
-Add the `URLImage` pod to your Podfile:
-
-```rb
-pod 'URLImage'
+```
+https://github.com/dmytro-anokhin/url-image
 ```
 
-Refer to https://cocoapods.org for information on setup Cocoa Pods for your project.
+For more details refer to [Adding Package Dependencies to Your App](https://developer.apple.com/documentation/xcode/adding_package_dependencies_to_your_app) documentation.
 
 ## Usage
 
-### Basics
-
-`URLImage` expects URL of the image and the content view:
+You can create `URLImage` with URL and a [`ViewBuilder`](https://developer.apple.com/documentation/swiftui/viewbuilder) to display downloaded image.
 
 ```swift
 import URLImage // Import the package module
 
-URLImage(url: url,
-         content: { image in
-             image
-                 .resizable()
-                 .aspectRatio(contentMode: .fit)
-         })
+let url: URL = //...
+
+URLImage(url) { image in
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
 ```
 
-### States
+*Note: first argument of the `URLImage` initialiser is of `URL` type, if you have a `String` you must first create a `URL` object.*
 
-`URLImage` transitions between 4 states:
+### View Customization
+
+`URLImage` view manages and transitions between 4 download states: 
+
 - Empty state, when download has not started yet, or there is nothing to display;
 - In Progress state to indicate download process;
 - Failure state in case there is an error;
 - Content to display the image.
 
-Each of this states has a separate view that can be provided using closures. You can also customize certain settings, like cache policy and expiry interval, using `URLImageOptions`.
+Each of this states has a separate view. You can customize one or more using `ViewBuilder` arguments.
 
 ```swift
-struct MyView: View {
-
-    let url: URL
-    let id: UUID
-
-    init(url: URL, id: UUID) {
-        self.url = url
-        self.id = id
-
-        formatter = NumberFormatter()
-        formatter.numberStyle = .percent
+URLImage(item.imageURL) {
+    // This view is displayed before download starts
+    EmptyView()
+} inProgress: { progress in
+    // Display progress
+    Text("Loading...")
+} failure: { error, retry in
+    // Display error and retry button
+    VStack {
+        Text(error.localizedDescription)
+        Button("Retry", action: retry)
     }
-    
-    private let formatter: NumberFormatter // Used to format download progress as percentage. Note: this is only for example, better use shared formatter to avoid creating it for every view.
-    
-    var body: some View {
-        URLImage(url: url,
-                 options: URLImageOptions(
-                    identifier: id.uuidString,      // Custom identifier
-                    expireAfter: 300.0,             // Expire after 5 minutes
-                    cachePolicy: .returnCacheElseLoad(cacheDelay: nil, downloadDelay: 0.25) // Return cached image or download after delay 
-                 ),
-                 empty: {
-                    Text("Nothing here")            // This view is displayed before download starts
-                 },
-                 inProgress: { progress -> Text in  // Display progress
-                    if let progress = progress {
-                        return Text(formatter.string(from: progress as NSNumber) ?? "Loading...")
-                    }
-                    else {
-                        return Text("Loading...")
-                    }
-                 },
-                 failure: { error, retry in         // Display error and retry button
-                    VStack {
-                        Text(error.localizedDescription)
-                        Button("Retry", action: retry)
-                    }
-                 },
-                 content: { image in                // Content view
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                 })
+} content: { image in
+    // Downloaded image
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
+```
+
+### Options
+
+`URLImage` allows to control certain aspects using `URLImageOptions` structure. Things like whenever to download image or use cached, when to start and cancel download, how to configure network request, what is the maximum pixel size, etc.
+
+`URLImageOptions` is the environment value and can be set using `\.urlImageOptions` key path.
+
+```swift
+URLImage(url) { image in
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
+.environment(\.urlImageOptions, URLImageOptions(
+    maxPixelSize: CGSize(width: 600.0, height: 600.0)
+))
+```
+
+Setting `URLImageOptions` in the environment value allows to set options for a whole or a part of your views hierarchy.
+
+```swift
+@main
+struct MyApp: App {
+
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+                .environment(\.urlImageOptions, URLImageOptions(
+                    maxPixelSize: CGSize(width: 600.0, height: 600.0)
+                ))
+        }
     }
 }
 ```
 
 ### Image Information
 
-You can use `init(url: URL, content: @escaping (_ image: Image, _ info: ImageInfo) -> Content)` initializer if you need information about an image, like size, or access the underlying `CGImage` object.
-
-### Cache
-
-`URLImage`  uses two caches:
-- In memory cache for quick access;
-- Local disk cache.
-
-Downloaded images stored in user caches folder. This allows OS to take care of cleaning up files. It is also a good idea to perform manual cleanup time to time.
-
-You can remove expired images by calling `cleanup` as a part of your startup routine. This will also remove image files from the previous `URLImage` version if you used it.
+You can use `ImageInfo` structure if you need information about an image, like actual size, or access the underlying `CGImage` object. `ImageInfo` is an argument of `content` view builder closure. 
 
 ```swift
-URLImageService.shared.cleanup()
+URLImage(item.imageURL) { image, info in
+    if info.size.width < 1024.0 {
+        image
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+    } else {
+        image
+            .resizable()
+            .aspectRatio(contentMode: .fill)
+    }
+}
 ```
 
-Downloaded images expire after some time. Expired images removed in `cleanup` routine. Expiry interval can be set using `expiryInterval` property of `URLImageOptions`.
+## Cache
 
-You can also remove individual or all cached images using `URLImageService`.
+`URLImage` can also cache images to lower network bandwith or for offline use.
 
-### Using URLCache
+By default, `URLImage` uses protocol cache policy, i.e. Cache-Control HTTP header and `URLCache`. This corresponds to how images work on web and requires network connection.
 
-Alternatively you can use `URLCache`. You can configure the package globally and also per view.
+Alternatively, if you want to view images offline, you must configure the file store. When configured, `URLImage` will no longer use protocol cache policy, and instead follow `URLImageOptions.FetchPolicy` setting.
 
 ```swift
-URLImageService.shared.defaultOptions.cachePolicy = .useProtocol
+import URLImage
+import URLImageStore
 
-// Download using `URLSessionDataTask` 
-URLImageService.shared.defaultOptions.loadOptions.formUnion(.inMemory)
+@main
+struct MyApp: App {
 
-// Set your `NSURLRequest.CachePolicy`
-URLImageService.shared.defaultOptions.urlRequestConfiguration.cachePolicy = .returnCacheDataElseLoad
+    var body: some Scene {
+
+        let fileStore = URLImageFileStore()
+        let inMemoryStore = URLImageInMemoryStore()
+        let urlImageService = URLImageService(fileStore: fileStore, inMemoryStore: inMemoryStore)
+
+        return WindowGroup {
+            FeedListView()
+                .environment(\.urlImageService, urlImageService)
+        }
+    }
+}
 ```
 
-Using `URLCache` adds support for Cache-Control header. As a trade-off you lose some control, like in-memory caching, download delays, expiry intervals (you get it with Cache-Control header). It also only works for in-memory downloads (using `URLSessionDataTask`).
+### Store Use Cases
 
-### Options
+You may ask when to use protocol or custom cache. `URLImage` designed to serve two use cases:
 
-`URLImage` allows controlling various aspects of download and cache using `URLImageOptions` structure. You can set default options using `URLImageService.shared.defaultOptions` property. Here are the main settings:
+Use protocol cache policy when an app can only work connected to the internet. Ecommerce apps, such as shopping, travel, event reservation apps, etc., work like this. Following protocol cache policy you can be sure that images are cached in a way that your CDN defines, can still be accessed quickly, and don't take unnecessary space on user devices.
 
-**`identifier: String?`**
-
-By default an image is identified by its URL. Alternatively, you can provide a string identifier to override this.
-
-**`expiryInterval: TimeInterval?`**
-
-Time interval after which the cached image expires and can be deleted. Images are deleted as part of cleanup routine described in [Cache](#cache) paragraph.
-
-**`maxPixelSize: CGSize?`**
-
-Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
-
-**`cachePolicy: CachePolicy`**
-
-The cache policy controls how the image loaded from cache.
-
-### Cache Policy
-
-Cache policy, `URLImageOptions.CachePolicy` type, allows to specify how `URLImage` utilizes it's cache, similar to `NSURLRequest.CachePolicy`. This type also allows to specify delays for accessing disk cache and starting download.
-
-**`returnCacheElseLoad`**
-    
-Return an image from cache or download it.
-
-**`returnCacheDontLoad`**
-
-Return an image from cache, do not download it.
-
-**`ignoreCache`**
-
-Ignore cached image and download remote one.
-
----
-
-Some options are can be set globally using `URLImageService.shared.defaultOptions` property. Those are set by default:
-- `expireAfter` to 24 hours;
-- `cachePolicy` to `returnCacheElseLoad` without delays;
-- `maxPixelSize` to 1000 by 1000 pixels (300 by 300 pixels for watchOS).
+Configure `URLImageStore` for content that needs to be accessed offline or downloaded in background. This can be a reader app, you probably want to download articles before user opens them, maybe while the app is in the background. This content should stay for a considerably long period of time.
 
 ## Fetching an Image
 
@@ -257,6 +233,14 @@ When downloading image using the `RemoteImagePublisher` object all options apply
 Unfortunately views in WidgetKit can not run asynchronous operations: https://developer.apple.com/forums/thread/652581. The recommended way is to load your content, including images, in `TimelineProvider`.
 
 You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImagePublisher` object, and display it in the `URLImage` view.
+
+## Version 2 Migration Notes
+
+- `URLImage` initialiser now omits an argument label for the first parameter, making `URLImage(url: url)` just `URLImage(url)`.
+- `URLImage` initialiser now uses `ViewBuilder` attribute for closures that construct views.
+- `URLImageOptions` now passed in the environment, instead of as an argument. Custom identifier can still be passed as an argument of `URLImage`.
+- By default `URLImage` uses protocol cache policy and `URLCache`. This won't store images for offline usage. You can configure the file store as described in [cache](#cache) section.
+- Swift Package Manager is now the only officially supported dependency manager.
 
 ## Reporting a Bug
 

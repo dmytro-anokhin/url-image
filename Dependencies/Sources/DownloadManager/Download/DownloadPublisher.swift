@@ -6,10 +6,7 @@
 //
 
 import Combine
-
-#if canImport(Log)
 import Log
-#endif
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
@@ -33,7 +30,7 @@ public struct DownloadPublisher: Publisher {
         self.manager = manager
     }
 
-    private unowned let manager: DownloadManager
+    private let manager: DownloadManager
 }
 
 
