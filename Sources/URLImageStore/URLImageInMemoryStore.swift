@@ -6,10 +6,7 @@
 //
 
 import Foundation
-
-#if canImport(URLImage)
 import URLImage
-#endif
 
 
 public final class URLImageInMemoryStore {

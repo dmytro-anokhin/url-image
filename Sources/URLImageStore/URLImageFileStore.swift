@@ -7,22 +7,10 @@
 
 import Foundation
 import CoreGraphics
-
-#if canImport(FileIndex)
 import FileIndex
-#endif
-
-#if canImport(Log)
 import Log
-#endif
-
-#if canImport(URLImage)
 import URLImage
-#endif
-
-#if canImport(ImageDecoder)
 import ImageDecoder
-#endif
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)

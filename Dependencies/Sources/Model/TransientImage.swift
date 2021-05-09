@@ -7,10 +7,7 @@
 
 import Foundation
 import ImageIO
-
-#if canImport(ImageDecoder)
 import ImageDecoder
-#endif
 
 
 /// Temporary representation used after decoding an image from data or file on disk and before creating an image object for display.

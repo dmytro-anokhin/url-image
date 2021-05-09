@@ -7,10 +7,7 @@
 
 import Foundation
 import CoreGraphics
-
-#if canImport(Model)
 import Model
-#endif
 
 
 /// The `URLImageInMemoryStoreType` describes an object used to store images in-memory for fast access.

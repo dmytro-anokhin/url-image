@@ -7,10 +7,7 @@
 
 import Foundation
 import CoreGraphics
-
-#if canImport(DownloadManager)
 import DownloadManager
-#endif
 
 
 /// Options to control how the image is downloaded and stored

@@ -7,10 +7,7 @@
 
 import Foundation
 import Combine
-
-#if canImport(Log)
 import Log
-#endif
 
 
 /// `URLSessionCoordinator` manages `URLSession` instance and forwards callbacks to responding `DownloadController` instances.

@@ -5,9 +5,7 @@
 //  Created by Dmytro Anokhin on 19/08/2020.
 //
 
-#if canImport(Model)
 import Model
-#endif
 
 
 /// The state of the loading process.
