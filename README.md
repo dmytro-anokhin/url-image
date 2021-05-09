@@ -23,7 +23,8 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Installation](#installation)
 - [Usage](#usage)
     - [Basics](#basics)
-    - [States](#states)
+    - [View Customization](#view-customization)
+    - [Options](#options)
     - [Image Information](#image-information)
     - [Cache](#cache)
     - [Using URLCache](#using-urlcache)
@@ -58,7 +59,7 @@ For more details refer to [Adding Package Dependencies to Your App](https://deve
 
 ### Basics
 
-You can create `URLImage` with URL and a [`ViewBuilder`](https://developer.apple.com/documentation/swiftui/viewbuilder).
+You can create `URLImage` with URL and a [`ViewBuilder`](https://developer.apple.com/documentation/swiftui/viewbuilder) to display downloaded image.
 
 ```swift
 import URLImage // Import the package module
@@ -74,68 +75,87 @@ URLImage(url) { image in
 
 *Note: first argument of the `URLImage` initialiser is of `URL` type, if you have a `String` you must first create a `URL` object.*
 
-### States
+*Note for migration from v2 to v3: `URLImage` initialiser now omits an argument label for the first parameter, making `URLImage(url: url)` just `URLImage(url)`*
 
-`URLImage` transitions between 4 states:
+### View Customization
+
+`URLImage` view manages and transitions between 4 download states: 
+
 - Empty state, when download has not started yet, or there is nothing to display;
 - In Progress state to indicate download process;
 - Failure state in case there is an error;
 - Content to display the image.
 
-Each of this states has a separate view that can be provided using closures. You can also customize certain settings, like cache policy and expiry interval, using `URLImageOptions`.
+Each of this states has a separate view. You can customize one or more using `ViewBuilder` arguments.
 
 ```swift
-struct MyView: View {
-
-    let url: URL
-    let id: UUID
-
-    init(url: URL, id: UUID) {
-        self.url = url
-        self.id = id
-
-        formatter = NumberFormatter()
-        formatter.numberStyle = .percent
+URLImage(item.imageURL) {
+    // This view is displayed before download starts
+    EmptyView()
+} inProgress: { progress in
+    // Display progress
+    Text("Loading...")
+} failure: { error, retry in
+    // Display error and retry button
+    VStack {
+        Text(error.localizedDescription)
+        Button("Retry", action: retry)
     }
-    
-    private let formatter: NumberFormatter // Used to format download progress as percentage. Note: this is only for example, better use shared formatter to avoid creating it for every view.
-    
-    var body: some View {
-        URLImage(url: url,
-                 options: URLImageOptions(
-                    identifier: id.uuidString,      // Custom identifier
-                    expireAfter: 300.0,             // Expire after 5 minutes
-                    cachePolicy: .returnCacheElseLoad(cacheDelay: nil, downloadDelay: 0.25) // Return cached image or download after delay 
-                 ),
-                 empty: {
-                    Text("Nothing here")            // This view is displayed before download starts
-                 },
-                 inProgress: { progress -> Text in  // Display progress
-                    if let progress = progress {
-                        return Text(formatter.string(from: progress as NSNumber) ?? "Loading...")
-                    }
-                    else {
-                        return Text("Loading...")
-                    }
-                 },
-                 failure: { error, retry in         // Display error and retry button
-                    VStack {
-                        Text(error.localizedDescription)
-                        Button("Retry", action: retry)
-                    }
-                 },
-                 content: { image in                // Content view
-                    image
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                 })
+} content: { image in
+    // Downloaded image
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
+```
+
+*Note for migration from v2 to v3: this arguments are now `ViewBuilder` type.*
+
+### Options
+
+`URLImage` allows to control certain aspects using `URLImageOptions` structure. Things like whenever to download image or use cached, when to start and cancel download, how to configure network request, what is the maximum pixel size, etc.
+
+`URLImageOptions` is the environment value and can be set using `\.urlImageOptions` key path.
+
+```swift
+URLImage(url) { image in
+    image
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+}
+.environment(\.urlImageOptions, URLImageOptions(
+    maxPixelSize: CGSize(width: 600.0, height: 600.0)
+))
+```
+
+*Note for migration from v2 to v3: `URLImageOptions` are now passed in the environment, instead of as an argument.*
+
+### Image Information
+
+You can use `ImageInfo` structure if you need information about an image, like actual size, or access the underlying `CGImage` object. `ImageInfo` is an argument of `content` view builder closure. 
+
+```swift
+URLImage(item.imageURL) { image, info in
+    if info.size.width < 1024.0 {
+        image
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+    } else {
+        image
+            .resizable()
+            .aspectRatio(contentMode: .fill)
     }
 }
 ```
 
-### Image Information
 
-You can use `init(url: URL, content: @escaping (_ image: Image, _ info: ImageInfo) -> Content)` initializer if you need information about an image, like size, or access the underlying `CGImage` object.
+
+---
+---
+---
+---
+---
+
 
 ### Cache
 
