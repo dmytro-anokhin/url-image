@@ -27,11 +27,9 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [Image Information](#image-information)
 - [Cache](#cache) 
     - [Store Use cases](#store-use-cases) 
-    - [Cache](#cache)
-    - [Using URLCache](#using-urlcache)
-    - [Options](#options)
 - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
+- [Version 2 Migration Notes](#version-2-migration-notes)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -74,8 +72,6 @@ URLImage(url) { image in
 
 *Note: first argument of the `URLImage` initialiser is of `URL` type, if you have a `String` you must first create a `URL` object.*
 
-*Note for migration from v2 to v3: `URLImage` initialiser now omits an argument label for the first parameter, making `URLImage(url: url)` just `URLImage(url)`*
-
 ### View Customization
 
 `URLImage` view manages and transitions between 4 download states: 
@@ -107,8 +103,6 @@ URLImage(item.imageURL) {
         .aspectRatio(contentMode: .fit)
 }
 ```
-
-*Note for migration from v2 to v3: this arguments are now `ViewBuilder` type.*
 
 ### Options
 
@@ -143,8 +137,6 @@ struct MyApp: App {
     }
 }
 ```
-
-*Note for migration from v2 to v3: `URLImageOptions` are now passed in the environment, instead of as an argument.*
 
 ### Image Information
 
@@ -192,8 +184,6 @@ struct MyApp: App {
     }
 }
 ```
-
-*Note for migration from v2 to v3: previous versions always had store configured and used `URLImageOptions.FetchPolicy` setting, in v3 you can choose between system or configure custom cache.*
 
 ### Store Use Cases
 
@@ -243,6 +233,14 @@ When downloading image using the `RemoteImagePublisher` object all options apply
 Unfortunately views in WidgetKit can not run asynchronous operations: https://developer.apple.com/forums/thread/652581. The recommended way is to load your content, including images, in `TimelineProvider`.
 
 You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImagePublisher` object, and display it in the `URLImage` view.
+
+## Version 2 Migration Notes
+
+- `URLImage` initialiser now omits an argument label for the first parameter, making `URLImage(url: url)` just `URLImage(url)`.
+- `URLImage` initialiser now uses `ViewBuilder` attribute for closures that construct views.
+- `URLImageOptions` now passed in the environment, instead of as an argument. Custom identifier can still be passed as an argument of `URLImage`.
+- By default `URLImage` uses protocol cache policy and `URLCache`. This won't store images for offline usage. You can configure the file store as described in [cache](#cache) section.
+- Swift Package Manager is now the only officially supported dependency manager.
 
 ## Reporting a Bug
 
