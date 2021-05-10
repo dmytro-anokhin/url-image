@@ -29,7 +29,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [Store Use cases](#store-use-cases) 
 - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
-- [Version 2 Migration Notes](#version-2-migration-notes)
+- [Migration Notes v2 to v3](#migration-notes-v2-to-v3)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -234,7 +234,7 @@ Unfortunately views in WidgetKit can not run asynchronous operations: https://de
 
 You can still use `URLImage` for this. The idea is that you load image in `TimelineProvider` using the `RemoteImagePublisher` object, and display it in the `URLImage` view.
 
-## Version 2 Migration Notes
+## Migration Notes v2 to v3
 
 - `URLImage` initialiser now omits an argument label for the first parameter, making `URLImage(url: url)` just `URLImage(url)`.
 - `URLImage` initialiser now uses `ViewBuilder` attribute for closures that construct views.
