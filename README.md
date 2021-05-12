@@ -173,9 +173,8 @@ struct MyApp: App {
 
     var body: some Scene {
 
-        let fileStore = URLImageFileStore()
-        let inMemoryStore = URLImageInMemoryStore()
-        let urlImageService = URLImageService(fileStore: fileStore, inMemoryStore: inMemoryStore)
+        let urlImageService = URLImageService(fileStore: URLImageFileStore(),
+                                          inMemoryStore: URLImageInMemoryStore())
 
         return WindowGroup {
             FeedListView()
@@ -184,6 +183,8 @@ struct MyApp: App {
     }
 }
 ```
+
+Make sure to include `URLImageStore` library under "Frameworks, Libraries,and Embedded Content" of your target settings.
 
 ### Store Use Cases
 
