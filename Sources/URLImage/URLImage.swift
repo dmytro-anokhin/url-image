@@ -48,7 +48,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     private let content: (_ image: TransientImage) -> Content
 
     private init(_ url: URL,
-                 identifier: String? = nil,
+                 identifier: String?,
                  @ViewBuilder empty: @escaping () -> Empty,
                  @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
                  @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -69,12 +69,14 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 public extension URLImage {
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -84,12 +86,14 @@ public extension URLImage {
     }
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
@@ -104,11 +108,13 @@ public extension URLImage {
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -116,11 +122,13 @@ public extension URLImage where Empty == EmptyView {
     }
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -134,10 +142,12 @@ public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -145,10 +155,12 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -162,10 +174,12 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -173,10 +187,12 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -191,9 +207,11 @@ public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
@@ -201,9 +219,11 @@ public extension URLImage where Empty == EmptyView,
     }
 
     init(_ url: URL,
+         identifier: String? = nil,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
+                  identifier: identifier,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
