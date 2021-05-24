@@ -15,7 +15,7 @@ import DownloadManager
 public struct URLImageOptions {
 
     /// The `FetchPolicy` allows to choose between returning stored image or downloading the remote one.
-    public enum FetchPolicy {
+    public enum FetchPolicy: Hashable {
 
         /// Return an image from the store or download it
         ///
@@ -27,7 +27,7 @@ public struct URLImageOptions {
     }
 
     /// Controls some aspects of download process
-    public struct LoadOptions: OptionSet {
+    public struct LoadOptions: OptionSet, Hashable {
 
         public let rawValue: Int
 
@@ -64,5 +64,21 @@ public struct URLImageOptions {
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration
         self.maxPixelSize = maxPixelSize
+    }
+}
+
+
+@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+extension URLImageOptions: Hashable {
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(fetchPolicy)
+        hasher.combine(loadOptions)
+        hasher.combine(urlRequestConfiguration)
+
+        if let maxPixelSize = maxPixelSize {
+            hasher.combine(maxPixelSize.width)
+            hasher.combine(maxPixelSize.height)
+        }
     }
 }
