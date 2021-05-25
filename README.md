@@ -205,7 +205,35 @@ TBD
 
 ### Make Your Own URLImage
 
-TBD 
+Alternatively you can make your own `URLImage` to customize appearance and behaviour for your needs. 
+
+```swift
+struct MyURLImage: View {
+
+    @ObservedObject private var remoteImage: RemoteImage
+
+    init(service: URLImageService, url: URL) {
+        remoteImage = service.makeRemoteImage(url: url, identifier: nil, options: URLImageOptions())
+    }
+
+    var body: some View {
+        ZStack {
+            switch remoteImage.loadingState {
+                case .success(let value):
+                    value.image
+
+                default:
+                    EmptyView()
+            }
+        }
+        .onAppear {
+            remoteImage.load()
+        }
+    }
+}
+```
+
+You can access service environment value from enclosing view: `@Environment(\.urlImageService) var service: URLImageService`.
 
 ### Fetching an Image
 
