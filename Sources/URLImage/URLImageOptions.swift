@@ -57,7 +57,7 @@ public struct URLImageOptions {
     public var maxPixelSize: CGSize?
 
     public init(fetchPolicy: FetchPolicy = .returnStoreElseLoad(downloadDelay: 0.25),
-                loadOptions: LoadOptions = [ .loadOnAppear, .cancelOnDisappear ],
+                loadOptions: LoadOptions = [ .loadImmediately ],
                 urlRequestConfiguration: Download.URLRequestConfiguration? = nil,
                 maxPixelSize: CGSize? = nil) {
         self.fetchPolicy = fetchPolicy
