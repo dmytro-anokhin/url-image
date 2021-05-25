@@ -27,21 +27,4 @@ public class URLImageService {
     // MARK: - Internal
 
     let downloadManager = DownloadManager()
-
-    func remoteImage(url: URL, identifier: String?, options: URLImageOptions) -> RemoteImage {
-        let key = RemoteImageKey(url: url, identifier: identifier, options: options)
-
-        if let remoteImage = remoteImages[key] {
-            return remoteImage
-        }
-
-        let remoteImage = makeRemoteImage(url: url, identifier: identifier, options: options)
-        remoteImages[key] = remoteImage
-
-        return remoteImage
-    }
-
-    // MARK: - Private
-
-    private var remoteImages: [RemoteImageKey: RemoteImage] = [:]
 }
