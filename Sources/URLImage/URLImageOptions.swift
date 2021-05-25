@@ -35,7 +35,7 @@ public struct URLImageOptions {
             self.rawValue = rawValue
         }
 
-        /// Start load when the image view is created
+        /// Start load when the image view is rendered
         public static let loadImmediately: LoadOptions = .init(rawValue: 1 << 0)
 
         /// Start load when the image view appears
