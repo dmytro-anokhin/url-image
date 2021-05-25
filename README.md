@@ -27,7 +27,10 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [Image Information](#image-information)
 - [Cache](#cache) 
     - [Store Use cases](#store-use-cases) 
-- [Fetching an Image](#fetching-an-image)
+- [Advanced](#advanced)
+    - [Optimize Loading](#optimize-loading)
+    - [Make Your Own URLImage](#make-your-own-urlimage)
+    - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
 - [Migration Notes v2 to v3](#migration-notes-v2-to-v3)
 - [Reporting a Bug](#reporting-a-bug)
@@ -194,7 +197,17 @@ Use protocol cache policy when an app can only work connected to the internet. E
 
 Configure `URLImageStore` for content that needs to be accessed offline or downloaded in background. This can be a reader app, you probably want to download articles before user opens them, maybe while the app is in the background. This content should stay for a considerably long period of time.
 
-## Fetching an Image
+## Advanced
+
+### Optimize Loading
+
+TBD 
+
+### Make Your Own URLImage
+
+TBD 
+
+### Fetching an Image
 
 You may want to download an image without a view. This is possible using the `RemoteImagePublisher` object. The `RemoteImagePublisher` can cache images for future use by the `URLImage` view.
 
