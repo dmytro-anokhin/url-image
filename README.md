@@ -28,7 +28,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
 - [Cache](#cache) 
     - [Store Use cases](#store-use-cases) 
 - [Advanced](#advanced)
-    - [Optimize Loading](#optimize-loading)
+    - [Start Loading](#start-loading)
     - [Make Your Own URLImage](#make-your-own-urlimage)
     - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
@@ -199,9 +199,18 @@ Configure `URLImageStore` for content that needs to be accessed offline or downl
 
 ## Advanced
 
-### Optimize Loading
+### Start Loading
 
-TBD 
+`URLImage` starts loading when the image view is rendered. In some cases (like with `List`) you may want to start loading when view appears and cancel when it disappears. You can customize this using `URLImageOptions.LoadOptions` options. You can combine multiple to achieve behaviour that fits your UI best.
+
+```swift
+List(/* ... */) {
+    // ...
+}
+    .environment(\.urlImageOptions, URLImageOptions(loadOptions: [ .loadOnAppear, .cancelOnDisappear ]))
+``` 
+
+Note: versions prior to 3.1 start loading on appearance and cancel when view disappears. Version 3.1 starts loading when the view renders. This is because `onAppear` and `onDisappear` callbacks are quite unpredictable without context.
 
 ### Make Your Own URLImage
 
