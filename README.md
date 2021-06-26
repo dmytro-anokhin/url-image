@@ -25,6 +25,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [View Customization](#view-customization)
     - [Options](#options)
     - [Image Information](#image-information)
+    - [Zoom In](#zoom-in)
 - [Cache](#cache) 
     - [Store Use cases](#store-use-cases) 
 - [Advanced](#advanced)
@@ -155,6 +156,21 @@ URLImage(item.imageURL) { image, info in
         image
             .resizable()
             .aspectRatio(contentMode: .fill)
+    }
+}
+```
+
+### Zoom In
+
+If you want to add ability to scale the image consider checking [AdvancedScrollView](https://github.com/dmytro-anokhin/advanced-scrollview) package.
+
+```swift
+import AdvancedScrollView
+import URLImage
+
+URLImage(url) { image in
+    AdvancedScrollView(magnificationRange: 1.0...4.0) { _ in
+        image
     }
 }
 ```
