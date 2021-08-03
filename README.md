@@ -1,7 +1,7 @@
 # URLImage
 
 [![](https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Fdmytro-anokhin%2Furl-image%2Fbadge%3Ftype%3Dplatforms)](https://swiftpackageindex.com/dmytro-anokhin/url-image)
-[![Follow me on Twitter](https://img.shields.io/twitter/follow/dmytroanokhin?style=social)](https://twitter.com/intent/follow?screen_name=dmytroanokhin)
+[![Follow me on Twitter](https://img.shields.io/twitter/follow/dmytroanokhin?style=social)](https://twitter.com/dmytroanokhin)
 
 
 `URLImage` is a SwiftUI view that displays an image downloaded from provided URL. `URLImage` manages downloading remote image and caching it locally, both in memory and on disk, for you.
