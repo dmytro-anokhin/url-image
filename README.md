@@ -34,6 +34,7 @@ Take a look at some examples in [the demo app](https://github.com/dmytro-anokhin
     - [Fetching an Image](#fetching-an-image)
     - [Download an Image in iOS 14 Widget](#download-an-image-in-ios-14-widget)
 - [Migration Notes v2 to v3](#migration-notes-v2-to-v3)
+- [Common Issues](#common-issues)
 - [Reporting a Bug](#reporting-a-bug)
 - [Requesting a Feature](#requesting-a-feature)
 - [Contributing](#contributing)
@@ -308,6 +309,42 @@ You can still use `URLImage` for this. The idea is that you load image in `Timel
 - `URLImageOptions` now passed in the environment, instead of as an argument. Custom identifier can still be passed as an argument of `URLImage`.
 - By default `URLImage` uses protocol cache policy and `URLCache`. This won't store images for offline usage. You can configure the file store as described in [cache](#cache) section.
 - Swift Package Manager is now the only officially supported dependency manager.
+
+## Common Issues
+
+### Image reloads when view reloads
+
+This is a common issue if you use `URLImage` alongside `TextField` or another control that updates a state that triggers view update. Because `URLImage` is asynchronous and initially empty, it will reset to empty state before displaying downloaded image. To avoid this, setup `URLImageInMemoryStore` somewhere in your `App`.
+
+```
+import SwiftUI
+import URLImage
+import URLImageStore
+
+@main
+struct MyApp: App {
+    var body: some Scene {
+        let urlImageService = URLImageService(fileStore: nil, inMemoryStore: URLImageInMemoryStore())
+
+        return WindowGroup {
+            ContentView()
+                .environment(\.urlImageService, urlImageService)
+        }
+    }
+}
+```
+
+Note: you can reset cached image using `removeImageWithURL`, `removeImageWithIdentifier`, or `removeAllImages` methods of `URLImageInMemoryStore`.
+
+### Image in navigation/toolbar displayed as single color rectangle
+
+This is not a bug. Navigation/toolbar uses `.renderingMode(.template)` to display images as templates (renders all non-transparent pixels as the foreground color). The way to reset it is to specify `.renderingMode(.original)`:
+
+```
+URLImage(url) { image in
+    image.renderingMode(.original)
+}
+```
 
 ## Reporting a Bug
 
