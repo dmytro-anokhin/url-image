@@ -6,8 +6,8 @@ import PackageDescription
 let package = Package(
     name: "URLImage",
     platforms: [
-        .iOS(.v11),
-        .tvOS(.v11),
+        .iOS(.v12),
+        .tvOS(.v12),
         .macOS(.v10_13),
         .watchOS(.v4)
     ],
