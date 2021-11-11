@@ -11,17 +11,14 @@ import Model
 
 
 @available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
-public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
-                                                                         InProgress : View,
-                                                                         Failure : View,
-                                                                         Content : View {
+public struct URLImage<Content> : View where Content : View {
 
     @Environment(\.urlImageService) var service: URLImageService
 
     /// Options passed in the environment.
     @Environment(\.urlImageOptions) var urlImageOptions: URLImageOptions
 
-    let url: URL
+    let url: URL?
 
     /// Unique identifier used to identify an image in cache.
     ///
@@ -32,35 +29,41 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     let identifier: String?
 
     public var body: some View {
-        let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
-
-        return RemoteImageView(remoteImage: remoteImage,
-                               loadOptions: urlImageOptions.loadOptions,
-                               empty: empty,
-                               inProgress: inProgress,
-                               failure: failure,
-                               content: content)
+        EmptyView()
+//        let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
+//
+//        return RemoteImageView(remoteImage: remoteImage,
+//                               loadOptions: urlImageOptions.loadOptions,
+//                               empty: empty,
+//                               inProgress: inProgress,
+//                               failure: failure,
+//                               content: content)
     }
+//
+//    private let empty: () -> Empty
+//    private let inProgress: (_ progress: Float?) -> InProgress
+//    private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
+//    private let content: (_ image: TransientImage) -> Content
+//
+//    private init(_ url: URL,
+//                 identifier: String?,
+//                 @ViewBuilder empty: @escaping () -> Empty,
+//                 @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
+//                 @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
+//                 @ViewBuilder content: @escaping (_ transientImage: TransientImage) -> Content) {
+//
+//        self.url = url
+//        self.identifier = identifier
+//
+//        self.empty = empty
+//        self.inProgress = inProgress
+//        self.failure = failure
+//        self.content = content
+//    }
 
-    private let empty: () -> Empty
-    private let inProgress: (_ progress: Float?) -> InProgress
-    private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
-    private let content: (_ image: TransientImage) -> Content
-
-    private init(_ url: URL,
-                 identifier: String?,
-                 @ViewBuilder empty: @escaping () -> Empty,
-                 @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
-                 @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                 @ViewBuilder content: @escaping (_ transientImage: TransientImage) -> Content) {
-
+    public init(url: URL?, scale: CGFloat = 1, transaction: Transaction = Transaction(), @ViewBuilder content: @escaping (URLImagePhase) -> Content) {
         self.url = url
-        self.identifier = identifier
-
-        self.empty = empty
-        self.inProgress = inProgress
-        self.failure = failure
-        self.content = content
+        self.identifier = nil
     }
 }
 
