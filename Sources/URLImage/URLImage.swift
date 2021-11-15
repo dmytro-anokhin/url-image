@@ -29,15 +29,18 @@ public struct URLImage<Content> : View where Content : View {
     let identifier: String?
 
     public var body: some View {
-        EmptyView()
-//        let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
-//
-//        return RemoteImageView(remoteImage: remoteImage,
-//                               loadOptions: urlImageOptions.loadOptions,
-//                               empty: empty,
-//                               inProgress: inProgress,
-//                               failure: failure,
-//                               content: content)
+        if let url = url {
+            let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
+
+            return RemoteImageView(remoteImage: remoteImage,
+                                   loadOptions: urlImageOptions.loadOptions,
+                                   empty: { EmptyView() },
+                                   inProgress: { progress in EmptyView() },
+                                   failure: { error,retry in EmptyView() },
+                                   content: { value in EmptyView() })
+        } else {
+            return EmptyView()
+        }
     }
 //
 //    private let empty: () -> Empty
