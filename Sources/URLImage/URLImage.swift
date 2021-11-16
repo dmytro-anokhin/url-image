@@ -64,9 +64,13 @@ public struct URLImage<Content> : View where Content : View {
 //        self.content = content
 //    }
 
+    @ViewBuilder
+    private let content: (URLImagePhase) -> Content
+
     public init(url: URL?, scale: CGFloat = 1, transaction: Transaction = Transaction(), @ViewBuilder content: @escaping (URLImagePhase) -> Content) {
         self.url = url
         self.identifier = nil
+        self.content = content
     }
 }
 
