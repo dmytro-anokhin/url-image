@@ -187,7 +187,7 @@ extension RemoteImage {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnStored!)
     }
 
-    // Second store lookup is necessary, for a case if the same image was downloaded by another instance of RemoteImage
+    // Second store lookup is necessary for a case if the same image was downloaded by another instance of RemoteImage
     private func scheduleDownload(afterDelay delay: TimeInterval? = nil, secondStoreLookup: Bool = false) {
         guard let delay = delay else {
             // Start download immediately if no delay needed
