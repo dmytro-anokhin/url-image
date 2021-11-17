@@ -30,16 +30,17 @@ public struct URLImage<Content> : View where Content : View {
 
     public var body: some View {
         if let url = url {
-            let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
-
-            return RemoteImageView(remoteImage: remoteImage,
-                                   loadOptions: urlImageOptions.loadOptions,
-                                   empty: { EmptyView() },
-                                   inProgress: { progress in EmptyView() },
-                                   failure: { error,retry in EmptyView() },
-                                   content: { value in EmptyView() })
+            return content(.empty)
+//            let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
+//
+//            return RemoteImageView(remoteImage: remoteImage,
+//                                   loadOptions: urlImageOptions.loadOptions,
+//                                   empty: { EmptyView() },
+//                                   inProgress: { progress in EmptyView() },
+//                                   failure: { error,retry in EmptyView() },
+//                                   content: { value in EmptyView() })
         } else {
-            return EmptyView()
+            return content(.empty)
         }
     }
 //
@@ -64,12 +65,15 @@ public struct URLImage<Content> : View where Content : View {
 //        self.content = content
 //    }
 
+    private let transaction: Transaction
+
     @ViewBuilder
     private let content: (URLImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1, transaction: Transaction = Transaction(), @ViewBuilder content: @escaping (URLImagePhase) -> Content) {
         self.url = url
         self.identifier = nil
+        self.transaction = transaction
         self.content = content
     }
 }
