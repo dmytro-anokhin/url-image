@@ -11,7 +11,7 @@ import ImageDecoder
 
 
 /// Temporary representation used after decoding an image from data or file on disk and before creating an image object for display.
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct TransientImage {
 
     public var cgImage: CGImage {
@@ -39,7 +39,7 @@ public struct TransientImage {
 
 
 /// Proxy used to decode image lazily
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 final class CGImageProxy {
 
     let decoder: ImageDecoder

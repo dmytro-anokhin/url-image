@@ -10,7 +10,7 @@ import DownloadManager
 import Model
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImage<Content> : View where Content : View {
 
     @Environment(\.urlImageService) var service: URLImageService
@@ -79,7 +79,7 @@ public struct URLImage<Content> : View where Content : View {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public enum URLImagePhase {
 
     /// No image is loaded.
