@@ -11,6 +11,13 @@ import Model
 
 
 @available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+private final class URLImageModel: ObservableObject {
+
+    @Published var url: URL? = nil
+}
+
+
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImage<Content> : View where Content : View {
 
     @Environment(\.urlImageService) var service: URLImageService
@@ -29,41 +36,10 @@ public struct URLImage<Content> : View where Content : View {
     let identifier: String?
 
     public var body: some View {
-        if let url = url {
-            return content(.empty)
-//            let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
-//
-//            return RemoteImageView(remoteImage: remoteImage,
-//                                   loadOptions: urlImageOptions.loadOptions,
-//                                   empty: { EmptyView() },
-//                                   inProgress: { progress in EmptyView() },
-//                                   failure: { error,retry in EmptyView() },
-//                                   content: { value in EmptyView() })
-        } else {
-            return content(.empty)
-        }
+        content(.empty)
     }
-//
-//    private let empty: () -> Empty
-//    private let inProgress: (_ progress: Float?) -> InProgress
-//    private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
-//    private let content: (_ image: TransientImage) -> Content
-//
-//    private init(_ url: URL,
-//                 identifier: String?,
-//                 @ViewBuilder empty: @escaping () -> Empty,
-//                 @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
-//                 @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-//                 @ViewBuilder content: @escaping (_ transientImage: TransientImage) -> Content) {
-//
-//        self.url = url
-//        self.identifier = identifier
-//
-//        self.empty = empty
-//        self.inProgress = inProgress
-//        self.failure = failure
-//        self.content = content
-//    }
+
+    @StateObject private var model = URLImageModel()
 
     private let transaction: Transaction
 
@@ -75,6 +51,7 @@ public struct URLImage<Content> : View where Content : View {
         self.identifier = nil
         self.transaction = transaction
         self.content = content
+        self.model.url = url
     }
 }
 
