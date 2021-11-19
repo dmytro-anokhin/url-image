@@ -13,7 +13,15 @@ import Model
 @available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 private final class URLImageModel: ObservableObject {
 
-    @Published var url: URL? = nil
+    @Published var url: URL?
+
+    /// Unique identifier used to identify an image in cache.
+    ///
+    /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
+    /// For images that don't have a persistent URL create an identifier and store it with your model.
+    ///
+    /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
+    @Published var identifier: String?
 }
 
 
@@ -24,16 +32,6 @@ public struct URLImage<Content> : View where Content : View {
 
     /// Options passed in the environment.
     @Environment(\.urlImageOptions) var urlImageOptions: URLImageOptions
-
-    let url: URL?
-
-    /// Unique identifier used to identify an image in cache.
-    ///
-    /// By default an image is identified by its URL. This is useful for static resources that have persistent URLs.
-    /// For images that don't have a persistent URL create an identifier and store it with your model.
-    ///
-    /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
-    let identifier: String?
 
     public var body: some View {
         content(.empty)
@@ -47,11 +45,10 @@ public struct URLImage<Content> : View where Content : View {
     private let content: (URLImagePhase) -> Content
 
     public init(url: URL?, scale: CGFloat = 1, transaction: Transaction = Transaction(), @ViewBuilder content: @escaping (URLImagePhase) -> Content) {
-        self.url = url
-        self.identifier = nil
         self.transaction = transaction
         self.content = content
         self.model.url = url
+        self.model.identifier = nil
     }
 }
 
