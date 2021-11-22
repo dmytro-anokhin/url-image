@@ -26,6 +26,7 @@ private final class URLImageModel: ObservableObject {
     var identifier: String?
 
     init() {
+        print("Created URLImageModel")
     }
 
     @Published var phase: URLImagePhase = .empty
@@ -55,6 +56,9 @@ public struct URLImage<Content> : View where Content : View {
         if model.service !== service {
             model.service = service
         }
+
+        model.url = url
+        model.identifier = identifier
 
         return content(model.phase)
     }
