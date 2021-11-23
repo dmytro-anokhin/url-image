@@ -15,7 +15,15 @@ private final class URLImageModel: ObservableObject {
 
     unowned var service: URLImageService!
 
-    var url: URL?
+    var url: URL? {
+        didSet {
+            guard url != oldValue else {
+                return
+            }
+            
+            load()
+        }
+    }
 
     /// Unique identifier used to identify an image in cache.
     ///
@@ -32,7 +40,13 @@ private final class URLImageModel: ObservableObject {
     @Published var phase: URLImagePhase = .empty
 
     func load() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else {
+                return
+            }
 
+            self.phase = .failure(NSError(domain: "", code: 0, userInfo: nil))
+        }
     }
 }
 
@@ -53,6 +67,8 @@ public struct URLImage<Content> : View where Content : View {
     }
 
     public var body: some View {
+        print("body")
+
         if model.service !== service {
             model.service = service
         }
