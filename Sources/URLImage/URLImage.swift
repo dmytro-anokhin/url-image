@@ -20,7 +20,7 @@ private final class URLImageModel: ObservableObject {
             guard url != oldValue else {
                 return
             }
-            
+
             load()
         }
     }
@@ -40,6 +40,13 @@ private final class URLImageModel: ObservableObject {
     @Published var phase: URLImagePhase = .empty
 
     func load() {
+        guard let url = url else {
+            return
+        }
+
+        // let (data, response) = await URLSession.shared.data(from: url)
+
+
         DispatchQueue.main.async { [weak self] in
             guard let self = self else {
                 return
