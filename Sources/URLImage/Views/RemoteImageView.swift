@@ -10,7 +10,7 @@ import Combine
 import Model
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 struct RemoteImageView<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                          InProgress : View,
                                                                          Failure : View,

@@ -9,7 +9,7 @@ import Foundation
 import CoreData
 
 
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public typealias PlainDatabaseObject = ManagedObjectCodable
 
 
@@ -69,7 +69,7 @@ public enum PredicateOperator {
 /**
     A database that stores a plain list of same type objects.
  */
-@available(iOS 13.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
 public final class PlainDatabase<Object: PlainDatabaseObject> {
 
     public init<T: NSManagedObject>(configuration: Database.Configuration, modelDescription: CoreDataModelDescription<T>) {

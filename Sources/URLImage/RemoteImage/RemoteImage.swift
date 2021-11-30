@@ -13,7 +13,7 @@ import ImageDecoder
 import Log
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public final class RemoteImage : ObservableObject {
 
     /// Reference to URLImageService used to download and store the image.
@@ -138,7 +138,7 @@ public final class RemoteImage : ObservableObject {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 extension RemoteImage {
 
     private var isLoadedSuccessfully: Bool {
@@ -187,7 +187,7 @@ extension RemoteImage {
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: delayedReturnStored!)
     }
 
-    // Second store lookup is necessary, for a case if the same image was downloaded by another instance of RemoteImage
+    // Second store lookup is necessary for a case if the same image was downloaded by another instance of RemoteImage
     private func scheduleDownload(afterDelay delay: TimeInterval? = nil, secondStoreLookup: Bool = false) {
         guard let delay = delay else {
             // Start download immediately if no delay needed

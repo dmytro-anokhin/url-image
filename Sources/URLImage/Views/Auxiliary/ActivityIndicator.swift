@@ -13,7 +13,7 @@ import SwiftUI
 import UIKit
 
 
-@available(iOS 13.0, tvOS 13.0, *)
+@available(iOS 14.0, tvOS 13.0, *)
 @available(watchOS, unavailable)
 struct ActivityIndicatorUIKit: UIViewRepresentable {
 
@@ -50,7 +50,7 @@ struct ActivityIndicatorAppKit: NSViewRepresentable {
 #endif
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct ActivityIndicator: View {
 
     public init() {
@@ -72,7 +72,7 @@ public struct ActivityIndicator: View {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 struct ActivityIndicator_Previews: PreviewProvider {
     static var previews: some View {
         ActivityIndicator()

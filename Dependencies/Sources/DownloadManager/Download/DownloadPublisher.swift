@@ -9,7 +9,7 @@ import Combine
 import Log
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct DownloadPublisher: Publisher {
 
     public typealias Output = DownloadInfo
@@ -34,7 +34,7 @@ public struct DownloadPublisher: Publisher {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
                                                         where SubscriberType.Input == DownloadInfo,
                                                               SubscriberType.Failure == DownloadError

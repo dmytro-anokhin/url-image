@@ -1,6 +1,6 @@
 //
 //  URLImage.swift
-//  
+//
 //
 //  Created by Dmytro Anokhin on 16/08/2020.
 //
@@ -10,7 +10,7 @@ import DownloadManager
 import Model
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                          InProgress : View,
                                                                          Failure : View,
@@ -65,7 +65,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage {
 
     init(_ url: URL,
@@ -104,7 +104,7 @@ public extension URLImage {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
@@ -137,7 +137,7 @@ public extension URLImage where Empty == EmptyView {
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
@@ -169,7 +169,7 @@ public extension URLImage where Empty == EmptyView,
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
@@ -201,7 +201,7 @@ public extension URLImage where Empty == EmptyView,
 }
 
 
-@available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator,
                                 Failure == EmptyView {
@@ -228,5 +228,44 @@ public extension URLImage where Empty == EmptyView,
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
                   content: content)
+    }
+}
+
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+public enum URLImagePhase {
+
+    /// No image is loaded.
+    case empty
+
+    /// An image succesfully loaded.
+    case success(Image)
+
+    /// An image failed to load with an error.
+    case failure(Error)
+
+    /// The loaded image, if any.
+    ///
+    /// If this value isn't `nil`, the image load operation has finished,
+    /// and you can use the image to update the view. You can use the image
+    /// directly, or you can modify it in some way. For example, you can add
+    /// a ``Image/resizable(capInsets:resizingMode:)`` modifier to make the
+    /// image resizable.
+    public var image: Image? {
+        switch self {
+            case .success(let image):
+                return image
+            default:
+                return nil
+        }
+    }
+
+    /// The error that occurred when attempting to load an image, if any.
+    public var error: Error? {
+        switch self {
+            case .failure(let error):
+                return error
+            default:
+                return nil
+        }
     }
 }
