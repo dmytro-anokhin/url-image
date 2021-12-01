@@ -18,7 +18,7 @@ public final class URLImageFileStore {
 
     let fileIndex: FileIndex
 
-    init(fileIndex: FileIndex) {
+    public init(fileIndex: FileIndex) {
         self.fileIndex = fileIndex
     }
 
