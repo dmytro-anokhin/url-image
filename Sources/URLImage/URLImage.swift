@@ -269,3 +269,12 @@ public enum URLImagePhase {
         }
     }
 }
+
+
+@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+public extension URLImage {
+
+    init(url: URL, @ViewBuilder content: @escaping (_ phase: Image) -> Content) {
+        fatalError("Not implemented")
+    }
+}
