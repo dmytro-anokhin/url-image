@@ -280,9 +280,7 @@ public extension URLImage where InProgress == ActivityIndicator,
         self.init(url,
                   identifier: nil,
                   empty: { content(.empty) },
-                  inProgress: { _ in
-                    ActivityIndicator()
-                  },
+                  inProgress: { _ in ActivityIndicator() },
                   failure: { error, retry in content(.failure(error)) },
                   content: { image in content(.success(image)) })
     }
