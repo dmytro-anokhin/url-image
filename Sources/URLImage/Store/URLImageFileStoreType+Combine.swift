@@ -11,7 +11,7 @@ import Combine
 import Model
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 extension URLImageFileStoreType {
 
     func getImagePublisher(_ keys: [URLImageKey], maxPixelSize: CGSize?) -> AnyPublisher<TransientImage?, Swift.Error> {
