@@ -9,7 +9,7 @@ import CoreData
 
 
 /// Describes `NSFetchIndexDescription`
-@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
 public struct CoreDataFetchIndexDescription {
 
     /// Describes `NSFetchIndexElementDescription`

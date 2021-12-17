@@ -11,7 +11,7 @@ import Log
 
 
 /// `URLSessionCoordinator` manages `URLSession` instance and forwards callbacks to responding `DownloadController` instances.
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 final class URLSessionCoordinator {
 
     init(urlSessionConfiguration: URLSessionConfiguration) {
