@@ -9,7 +9,7 @@ import CoreData
 
 
 /// Used to create `NSEntityDescription`
-@available(iOS 14.0, tvOS 13.0, macOS 10.15, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
 public struct CoreDataEntityDescription<ManagedObject: NSManagedObject> {
 
     public init(name: String, managedObjectClassName: String, attributes: [CoreDataAttributeDescription], indexes: [CoreDataFetchIndexDescription]) {

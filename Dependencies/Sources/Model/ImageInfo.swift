@@ -8,7 +8,7 @@
 import CoreGraphics
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public struct ImageInfo {
 
     /// Decoded image
