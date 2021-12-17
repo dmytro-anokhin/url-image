@@ -272,7 +272,7 @@ public enum URLImagePhase {
 
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public extension URLImage where InProgress == ActivityIndicator,
+public extension URLImage where InProgress == Content,
                                 Empty == Content,
                                 Failure == Content {
 
@@ -280,7 +280,7 @@ public extension URLImage where InProgress == ActivityIndicator,
         self.init(url,
                   identifier: nil,
                   empty: { content(.empty) },
-                  inProgress: { _ in ActivityIndicator() },
+                  inProgress: { _ in content(.empty) },
                   failure: { error, retry in content(.failure(error)) },
                   content: { image in content(.success(image)) })
     }
