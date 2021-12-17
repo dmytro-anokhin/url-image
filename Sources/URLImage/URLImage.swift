@@ -10,7 +10,7 @@ import DownloadManager
 import Model
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty : View,
                                                                          InProgress : View,
                                                                          Failure : View,
@@ -65,7 +65,7 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage {
 
     init(_ url: URL,
@@ -104,7 +104,7 @@ public extension URLImage {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
@@ -137,7 +137,7 @@ public extension URLImage where Empty == EmptyView {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator {
 
@@ -169,7 +169,7 @@ public extension URLImage where Empty == EmptyView,
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 Failure == EmptyView {
 
@@ -201,7 +201,7 @@ public extension URLImage where Empty == EmptyView,
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage where Empty == EmptyView,
                                 InProgress == ActivityIndicator,
                                 Failure == EmptyView {
@@ -231,7 +231,7 @@ public extension URLImage where Empty == EmptyView,
     }
 }
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public enum URLImagePhase {
 
     /// No image is loaded.
@@ -271,7 +271,7 @@ public enum URLImagePhase {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public extension URLImage where InProgress == ActivityIndicator,
                                 Empty == Content,
                                 Failure == Content {

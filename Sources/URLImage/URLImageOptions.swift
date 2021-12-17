@@ -11,7 +11,7 @@ import DownloadManager
 
 
 /// Options to control how the image is downloaded and stored
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public struct URLImageOptions {
 
     /// The `FetchPolicy` allows to choose between returning stored image or downloading the remote one.
@@ -68,7 +68,7 @@ public struct URLImageOptions {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 extension URLImageOptions: Hashable {
 
     public func hash(into hasher: inout Hasher) {
