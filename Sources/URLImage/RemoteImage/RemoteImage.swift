@@ -13,7 +13,7 @@ import ImageDecoder
 import Log
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public final class RemoteImage : ObservableObject {
 
     /// Reference to URLImageService used to download and store the image.
@@ -138,7 +138,7 @@ public final class RemoteImage : ObservableObject {
 }
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 extension RemoteImage {
 
     private var isLoadedSuccessfully: Bool {

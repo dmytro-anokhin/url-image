@@ -8,21 +8,21 @@
 import SwiftUI
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 private struct URLImageServiceEnvironmentKey: EnvironmentKey {
 
     static let defaultValue: URLImageService = URLImageService()
 }
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 private struct URLImageOptionsEnvironmentKey: EnvironmentKey {
 
     static let defaultValue: URLImageOptions = URLImageOptions()
 }
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension EnvironmentValues {
 
     /// Service used by instances of the `URLImage` view

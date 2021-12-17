@@ -16,7 +16,7 @@ import Model
 ///
 /// This dual purpose allows the view to use switch statement in its `body` and return different view in each case.
 ///
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public enum RemoteImageLoadingState {
 
     case initial
@@ -29,7 +29,7 @@ public enum RemoteImageLoadingState {
 }
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public extension RemoteImageLoadingState {
 
     var isInProgress: Bool {

@@ -13,7 +13,7 @@ import URLImage
 import ImageDecoder
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public final class URLImageFileStore {
 
     let fileIndex: FileIndex
@@ -199,7 +199,7 @@ public final class URLImageFileStore {
 }
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 extension URLImageFileStore: URLImageFileStoreType {
 
     public func removeAllImages() {
