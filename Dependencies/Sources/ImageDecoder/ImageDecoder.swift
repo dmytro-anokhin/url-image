@@ -18,7 +18,7 @@ import Cocoa
 #endif
 
 
-@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
 public final class ImageDecoder {
 
     public struct DecodingOptions {
@@ -312,7 +312,7 @@ public final class ImageDecoder {
 }
 
 
-@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
 extension ImageDecoder {
 
     fileprivate static func animationProperties(from properties: [CFString: Any]) -> [CFString: Any]? {

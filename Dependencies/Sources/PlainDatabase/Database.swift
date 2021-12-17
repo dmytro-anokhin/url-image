@@ -9,7 +9,7 @@ import Foundation
 import CoreData
 
 
-@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
 public final class Database {
 
     public struct Configuration {
@@ -94,7 +94,7 @@ public final class Database {
 }
 
 
-@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
 fileprivate extension NSPersistentContainer {
 
     func load() {

@@ -10,7 +10,7 @@ import XCTest
 @testable import FileIndex
 
 
-@available(iOS 14.0, tvOS 13.0, macOS 11.0, watchOS 6.0, *)
+@available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 6.0, *)
 final class FileIndexTests: XCTestCase {
 
     func testCopy() throws {

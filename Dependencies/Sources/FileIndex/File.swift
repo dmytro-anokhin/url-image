@@ -10,7 +10,7 @@ import CoreData
 import PlainDatabase
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 public struct File : Identifiable {
 
     public var id: String
@@ -37,7 +37,7 @@ public struct File : Identifiable {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 extension File : Equatable {
 
     public static func == (lhs: Self, rhs: Self) -> Bool {
@@ -51,7 +51,7 @@ extension File : Equatable {
 }
 
 
-@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 6.0, *)
 extension File : ManagedObjectCodable {
 
     public init?(managedObject: NSManagedObject) {
