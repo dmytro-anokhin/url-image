@@ -12,7 +12,7 @@ import Log
 import Model
 
 
-@available(macOS 10.15, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
+@available(macOS 11.0, iOS 14.0, tvOS 13.0, watchOS 6.0, *)
 public class FileIndex {
 
     public struct Configuration {
