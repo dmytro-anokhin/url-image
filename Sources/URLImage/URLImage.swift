@@ -111,12 +111,14 @@ public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -125,12 +127,14 @@ public extension URLImage where Empty == EmptyView {
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: failure,
@@ -145,11 +149,13 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -158,11 +164,13 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: failure,
@@ -177,11 +185,13 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -190,11 +200,13 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: inProgress,
                   failure: { _, _ in EmptyView() },
@@ -210,10 +222,12 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder content: @escaping (_ image: Image) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
@@ -222,10 +236,12 @@ public extension URLImage where Empty == EmptyView,
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder content: @escaping (_ image: Image, _ info: ImageInfo) -> Content) {
 
         self.init(url,
                   identifier: identifier,
+                  scale: scale,
                   empty: { EmptyView() },
                   inProgress: { _ in ActivityIndicator() },
                   failure: { _, _ in EmptyView() },
@@ -278,9 +294,10 @@ public extension URLImage where InProgress == Content,
                                 Empty == Content,
                                 Failure == Content {
 
-    init(url: URL, @ViewBuilder content: @escaping (_ phase: URLImagePhase) -> Content) {
+    init(url: URL, scale: CGFloat = 1, @ViewBuilder content: @escaping (_ phase: URLImagePhase) -> Content) {
         self.init(url,
                   identifier: nil,
+                  scale: scale,
                   empty: { content(.empty) },
                   inProgress: { _ in content(.empty) },
                   failure: { error, retry in content(.failure(error)) },
