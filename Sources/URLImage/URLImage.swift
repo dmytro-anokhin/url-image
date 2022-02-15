@@ -70,6 +70,7 @@ public extension URLImage {
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -81,12 +82,13 @@ public extension URLImage {
                   inProgress: inProgress,
                   failure: failure,
                   content: { (transientImage: TransientImage) -> Content in
-                      content(transientImage.image)
+                      content(transientImage.image(scale: scale))
                   })
     }
 
     init(_ url: URL,
          identifier: String? = nil,
+         scale: CGFloat = 1,
          @ViewBuilder empty: @escaping () -> Empty,
          @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
          @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
@@ -98,7 +100,7 @@ public extension URLImage {
                   inProgress: inProgress,
                   failure: failure,
                   content: { (transientImage: TransientImage) -> Content in
-                      content(transientImage.image, transientImage.info)
+                      content(transientImage.image(scale: scale), transientImage.info)
                   })
     }
 }
