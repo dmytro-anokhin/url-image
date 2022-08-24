@@ -14,7 +14,7 @@ import ImageDecoder
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public struct TransientImage {
 
-    public var cgImage: CGImage {
+    public var cgImage: CGImage? {
         proxy.cgImage
     }
 
@@ -51,12 +51,12 @@ final class CGImageProxy {
         self.maxPixelSize = maxPixelSize
     }
 
-    var cgImage: CGImage {
+    var cgImage: CGImage? {
         if decodedCGImage == nil {
             decodeImage()
         }
 
-        return decodedCGImage!
+        return decodedCGImage
     }
 
     private var decodedCGImage: CGImage?
@@ -64,9 +64,9 @@ final class CGImageProxy {
     private func decodeImage() {
         if let sizeForDrawing = maxPixelSize {
             let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
-            decodedCGImage = decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)!
+            decodedCGImage = decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)
         } else {
-            decodedCGImage = decoder.createFrameImage(at: 0)!
+            decodedCGImage = decoder.createFrameImage(at: 0)
         }
     }
 }

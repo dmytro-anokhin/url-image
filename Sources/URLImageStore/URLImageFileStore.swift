@@ -174,9 +174,9 @@ public final class URLImageFileStore {
 
                     if let sizeForDrawing = maxPixelSize {
                         let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
-                        return decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)!
+                        return decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)
                     } else {
-                        return decoder.createFrameImage(at: 0)!
+                        return decoder.createFrameImage(at: 0)
                     }
                  },
                  completion: { result in

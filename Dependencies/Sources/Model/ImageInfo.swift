@@ -12,7 +12,7 @@ import CoreGraphics
 public struct ImageInfo {
 
     /// Decoded image
-    public var cgImage: CGImage {
+    public var cgImage: CGImage? {
         proxy.cgImage
     }
 
