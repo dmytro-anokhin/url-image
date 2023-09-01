@@ -163,7 +163,7 @@ final class URLSessionCoordinator {
     private func makeDownloadTask(for download: Download, withObserver observer: DownloadTask.Observer) -> DownloadTask {
         let urlSessionTask: URLSessionTask
 
-        var request = URLRequest(url: download.url)
+        var request = URLRequest(url: download.url, cachePolicy: download.urlRequestConfiguration.cachePolicy)
         request.allHTTPHeaderFields = download.urlRequestConfiguration.allHTTPHeaderFields
 
         switch download.destination {
