@@ -17,7 +17,7 @@ extension URLImageService {
         switch result {
             case .data(let data):
 
-                guard let transientImage = TransientImage(data: data, maxPixelSize: options.maxPixelSize) else {
+                guard let transientImage = TransientImage(data: data, maxPixelSize: nil) else {
                     throw URLImageError.decode
                 }
 
@@ -33,7 +33,7 @@ extension URLImageService {
 
                 let location = URL(fileURLWithPath: path)
 
-                guard let transientImage = TransientImage(location: location, maxPixelSize: options.maxPixelSize) else {
+                guard let transientImage = TransientImage(location: location, maxPixelSize: nil) else {
                     throw URLImageError.decode
                 }
 
