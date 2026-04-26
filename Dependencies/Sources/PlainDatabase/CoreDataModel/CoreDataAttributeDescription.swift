@@ -10,7 +10,7 @@ import CoreData
 
 /// Used to create `NSAttributeDescription`
 @available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
-public struct CoreDataAttributeDescription {
+public struct CoreDataAttributeDescription: Sendable {
 
     public static func attribute(name: String, type: NSAttributeType, isOptional: Bool = false) -> CoreDataAttributeDescription {
         CoreDataAttributeDescription(name: name, attributeType: type, isOptional: isOptional)

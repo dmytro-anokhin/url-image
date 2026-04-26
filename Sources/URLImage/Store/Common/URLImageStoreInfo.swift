@@ -9,7 +9,7 @@ import Foundation
 
 
 /// Information that describes an image in a store
-public struct URLImageStoreInfo {
+public struct URLImageStoreInfo: Sendable {
 
     /// Original URL of the image
     public var url: URL
@@ -19,4 +19,10 @@ public struct URLImageStoreInfo {
 
     /// The uniform type identifier (UTI) of the image.
     public var uti: String
+    
+    public init(url: URL, identifier: String? = nil, uti: String) {
+        self.url = url
+        self.identifier = identifier
+        self.uti = uti
+    }
 }

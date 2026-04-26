@@ -8,14 +8,21 @@
 import Foundation
 import ImageIO
 import ImageDecoder
+import DownloadManager
 
+@globalActor
+public actor URLImageInMemoryStoreActor {
+    public static let shared = URLImageInMemoryStoreActor()
+}
 
 /// Temporary representation used after decoding an image from data or file on disk and before creating an image object for display.
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public struct TransientImage {
+public struct TransientImage: Sendable {
 
     public var cgImage: CGImage {
-        proxy.cgImage
+        get async {
+            await proxy.cgImage
+        }
     }
 
     public let info: ImageInfo
@@ -27,30 +34,37 @@ public struct TransientImage {
 
     public let cgOrientation: CGImagePropertyOrientation
 
-    init(proxy: CGImageProxy, info: ImageInfo, uti: String, cgOrientation: CGImagePropertyOrientation) {
+    init(proxy: CGImageProxy, info: ImageInfo, uti: String, presentation: DownloadResult, cgOrientation: CGImagePropertyOrientation) {
         self.proxy = proxy
         self.info = info
         self.uti = uti
         self.cgOrientation = cgOrientation
+        self.presentation = presentation
     }
-
-    private let proxy: CGImageProxy
+    
+    public let presentation: DownloadResult
+    public let proxy: CGImageProxy
 }
 
+@globalActor
+actor CGImageProxyActor {
+    static let shared = CGImageProxyActor()
+}
 
 /// Proxy used to decode image lazily
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-final class CGImageProxy {
+public final class CGImageProxy: Sendable {
 
-    let decoder: ImageDecoder
+    public let decoder: ImageDecoder
 
-    let maxPixelSize: CGSize?
+    public let maxPixelSize: CGSize?
 
     init(decoder: ImageDecoder, maxPixelSize: CGSize?) {
         self.decoder = decoder
         self.maxPixelSize = maxPixelSize
     }
 
+    @CGImageProxyActor
     var cgImage: CGImage {
         if decodedCGImage == nil {
             decodeImage()
@@ -58,9 +72,11 @@ final class CGImageProxy {
 
         return decodedCGImage!
     }
-
+    
+    @CGImageProxyActor
     private var decodedCGImage: CGImage?
 
+    @CGImageProxyActor
     private func decodeImage() {
         if let sizeForDrawing = maxPixelSize {
             let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)

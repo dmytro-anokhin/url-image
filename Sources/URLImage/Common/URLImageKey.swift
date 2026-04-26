@@ -9,7 +9,7 @@ import Foundation
 
 
 /// Various key types used to access images.
-public enum URLImageKey {
+public enum URLImageKey: Sendable {
 
     /// Unique identifier as a string
     case identifier(_ identifier: String)

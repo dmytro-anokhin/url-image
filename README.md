@@ -143,6 +143,30 @@ struct MyApp: App {
 }
 ```
 
+### GIF 
+
+By default, `URLImage` can display GIF images, but it only displays the first frame of the GIF as a static image. To display the ***animated GIF***, you should use `GIFImage`. The default display mode for image is similar to SwiftUI's default `Image`, but to achieve scaling effects, you need to call the `.aspectResizeble(ratio:,contentMode:)` method. Additionally, ***Zoom In*** operation is supported.
+
+```swift
+GIFImage(item.imageURL) {
+    // This view is displayed before download starts
+    EmptyView()
+} inProgress: { progress in
+    // Display progress
+    Text("Loading...")
+} failure: { error, retry in
+    // Display error and retry button
+    VStack {
+        Text(error.localizedDescription)
+        Button("Retry", action: retry)
+    }
+} content: { image in
+    // Downloaded GIF image
+    image
+        .aspectResizeble(ratio: ratio, contentMode: .fit)
+}
+```
+
 ### Image Information
 
 You can use `ImageInfo` structure if you need information about an image, like actual size, or access the underlying `CGImage` object. `ImageInfo` is an argument of `content` view builder closure. 

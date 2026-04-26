@@ -13,7 +13,7 @@ import DownloadManager
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 extension URLImageService {
 
-    func decode(result: DownloadResult, download: Download, identifier: String?, options: URLImageOptions) throws -> TransientImage {
+    func decode(result: DownloadResult, download: Download, identifier: String?, options: URLImageOptions) async throws -> TransientImage {
         switch result {
             case .data(let data):
 
@@ -24,7 +24,9 @@ extension URLImageService {
                 if shouldStore {
                     let info = URLImageStoreInfo(url: download.url, identifier: identifier, uti: transientImage.uti)
                     fileStore?.storeImageData(data, info: info)
-                    inMemoryStore?.store(transientImage, info: info)
+                    if Self.shouldStoreInMemory(uti: transientImage.uti) {
+                        await inMemoryStore?.store(transientImage, info: info)
+                    }
                 }
 
                 return transientImage
@@ -40,7 +42,9 @@ extension URLImageService {
                 if shouldStore {
                     let info = URLImageStoreInfo(url: download.url, identifier: identifier, uti: transientImage.uti)
                     fileStore?.moveImageFile(from: location, info: info)
-                    inMemoryStore?.store(transientImage, info: info)
+                    if Self.shouldStoreInMemory(uti: transientImage.uti) {
+                        await inMemoryStore?.store(transientImage, info: info)
+                    }
                 }
 
                 return transientImage
@@ -49,5 +53,13 @@ extension URLImageService {
 
     private var shouldStore: Bool {
         fileStore != nil || inMemoryStore != nil
+    }
+
+    nonisolated static func shouldStoreInMemory(uti: String) -> Bool {
+#if os(macOS)
+        return uti != "com.compuserve.gif"
+#else
+        return true
+#endif
     }
 }

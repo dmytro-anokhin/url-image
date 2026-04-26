@@ -6,7 +6,7 @@
 //
 //  ImageDecoder is based on ImageDecoderCG from WebCore https://trac.webkit.org/browser/webkit/trunk/Source/WebCore/platform/graphics/cg/ImageDecoderCG.cpp
 
-import ImageIO
+@preconcurrency import ImageIO
 import Foundation
 
 #if canImport(MobileCoreServices)
@@ -17,9 +17,8 @@ import MobileCoreServices
 import Cocoa
 #endif
 
-
 @available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
-public final class ImageDecoder {
+public final class ImageDecoder: Sendable {
 
     public struct DecodingOptions {
 
@@ -83,26 +82,30 @@ public final class ImageDecoder {
     }
 
     public convenience init?(url: URL) {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("file url not exsist \(url)")
+            return nil
+        }
         guard let dataProvider = CGDataProvider(url: url as CFURL) else {
             return nil
         }
-
+        
         self.init()
         setDataProvider(dataProvider, allDataReceived: true)
     }
 
-    public private(set) var isAllDataReceived: Bool = false
-
+//    public var isAllDataReceived: Bool = false
+    
     public func setData(_ data: Data, allDataReceived: Bool) {
-        assert(!isAllDataReceived)
-
-        isAllDataReceived = allDataReceived
+//        assert(!isAllDataReceived)
+//
+//        isAllDataReceived = allDataReceived
         CGImageSourceUpdateData(imageSource, data as CFData, allDataReceived)
     }
 
     public func setDataProvider(_ dataProvider: CGDataProvider, allDataReceived: Bool) {
-        assert(!isAllDataReceived)
-        isAllDataReceived = allDataReceived
+//        assert(!isAllDataReceived)
+//        isAllDataReceived = allDataReceived
         CGImageSourceUpdateDataProvider(imageSource, dataProvider, allDataReceived)
     }
 
@@ -125,8 +128,8 @@ public final class ImageDecoder {
                 fallthrough
             case .statusReadingHeader:
                 // Ragnaros yells: TOO SOON! You have awakened me TOO SOON, Executus!
-                return isAllDataReceived ? .error : .unknown
-
+//                return isAllDataReceived ? .error : .unknown
+                return .error
             case .statusIncomplete:
                 // WebCore checks isSupportedImageType here and returns error if not:
                 // if (!isSupportedImageType(uti))
@@ -233,7 +236,7 @@ public final class ImageDecoder {
 
             case .synchronous:
                 options = imageSourceOptions(with: subsamplingLevel)
-                image = CGImageSourceCreateImageAtIndex(imageSource, index, options)
+                image = CGImageSourceCreateThumbnailAtIndex(imageSource, index, options)
         }
 
         // WebKit has support for xbm images but we don't
@@ -273,16 +276,16 @@ public final class ImageDecoder {
 
     // MARK: - Private
 
-    private static let imageSourceOptions: [CFString: Any] = [
+    nonisolated(unsafe) private static let imageSourceOptions: [CFString: Any] = [
         kCGImageSourceShouldCache: true
     ]
 
-    private static let imageSourceAsyncOptions: [CFString: Any] = [
+    nonisolated(unsafe) private static let imageSourceAsyncOptions: [CFString: Any] = [
         kCGImageSourceShouldCacheImmediately: true,
         kCGImageSourceCreateThumbnailFromImageAlways: true
     ]
 
-    private let imageSource: CGImageSource
+    public let imageSource: CGImageSource
 
     private func imageSourceOptions(with subsamplingLevel: SubsamplingLevel = .default) -> CFDictionary {
         var options = ImageDecoder.imageSourceOptions

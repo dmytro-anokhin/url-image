@@ -8,128 +8,84 @@
 import Foundation
 import Log
 
+//@globalActor
+//public actor URLSessionActor {
+//    public static let shared = URLSessionActor()
+//}
 
 final class URLSessionDelegate : NSObject {
-
-    // URLSessionTaskDelegate
-
-    /// func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?)
-    typealias TaskDidCompleteWithError = (_ task: URLSessionTask, _ error: Error?) -> Void
-
-    private var taskDidCompleteWithError: TaskDidCompleteWithError?
-
-    @discardableResult
-    func onTaskDidCompleteWithError(_ handler: @escaping TaskDidCompleteWithError) -> Self {
-        taskDidCompleteWithError = handler
-        return self
+    // 定义任务的状态枚举
+    enum TaskState {
+        case didCompleteWithError(task: URLSessionTask, error: Error?)
+        case didReceiveResponse(task: URLSessionDataTask,  response: URLResponse, completionHandler: @Sendable (URLSession.ResponseDisposition) -> Void)
+        case didReceiveData(task: URLSessionDataTask, data: Data)
+        case didFinishDownloadingTo(downloadTask: URLSessionDownloadTask, location: URL)
+        case downloadTaskDidWriteData(downloadTask: URLSessionDownloadTask, bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64)
     }
-
-    // URLSessionDataDelegate
-
-    /// func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void)
-    typealias DataTaskDidReceiveResponse = (_ task: URLSessionDataTask, _ response: URLResponse, _ completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) -> Void
-
-    private var dataTaskDidReceiveResponse: DataTaskDidReceiveResponse?
-
-    @discardableResult
-    func onDataTaskDidReceiveResponse(_ handler: @escaping DataTaskDidReceiveResponse) -> Self {
-        dataTaskDidReceiveResponse = handler
-        return self
+    
+//    @URLSessionActor
+//    private var continuations: [UUID: AsyncStream<TaskState>.Continuation] = [:]
+    
+    let onTaskStateUpdate: (@Sendable (TaskState) -> Void)?
+    
+    init(onTaskStateUpdate: (@Sendable (TaskState) -> Void)?) {
+        self.onTaskStateUpdate = onTaskStateUpdate
     }
-
-    /// func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data)
-    typealias DataTaskDidReceiveData = (_ task: URLSessionDataTask, _ data: Data) -> Void
-
-    private var dataTaskDidReceiveData: DataTaskDidReceiveData?
-
-    @discardableResult
-    func onDataTaskDidReceiveData(_ handler: @escaping DataTaskDidReceiveData) -> Self {
-        dataTaskDidReceiveData = handler
-        return self
+    
+//    func taskStateStream() -> AsyncStream<TaskState> {
+//        let id = UUID()
+//        return AsyncStream { continuation in
+//            Task { @URLSessionActor [weak self] in
+//                self?.continuations[id] = continuation
+//                continuation.onTermination = { _ in
+//                    Task { @URLSessionActor in
+//                        self?.continuations.removeValue(forKey: id)
+//                    }
+//                }
+//            }
+//        }
+//    }
+    
+    private func broadcast(_ state: TaskState) {
+//        Task { @URLSessionActor [weak self] in
+//            guard let self else { return }
+//            for (_, continuation) in self.continuations {
+//                continuation.yield(state)
+//            }
+//        }
+        onTaskStateUpdate?(state)
     }
-
-    // URLSessionDownloadDelegate
-
-    typealias DownloadTaskDidFinishDownloadingTo = (_ downloadTask: URLSessionDownloadTask, _ location: URL) -> Void
-
-    private var downloadTaskDidFinishDownloadingTo: DownloadTaskDidFinishDownloadingTo?
-
-    @discardableResult
-    func onDownloadTaskDidFinishDownloadingTo(_ handler: @escaping DownloadTaskDidFinishDownloadingTo) -> Self {
-        downloadTaskDidFinishDownloadingTo = handler
-        return self
-    }
-
-    typealias DownloadTaskDidWriteData = (_ downloadTask: URLSessionDownloadTask, _ bytesWritten: Int64, _ totalBytesWritten: Int64, _ totalBytesExpectedToWrite: Int64) -> Void
-
-    private var downloadTaskDidWriteData: DownloadTaskDidWriteData?
-
-    @discardableResult
-    func onDownloadTaskDidWriteData(_ handler: @escaping DownloadTaskDidWriteData) -> Self {
-        downloadTaskDidWriteData = handler
-        return self
-    }
+    
+//    deinit {
+//        continuations.removeAll()
+//    }
 }
 
 
 extension URLSessionDelegate : Foundation.URLSessionDelegate {
-
-    //optional func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?)
-    //
-    //
-    //optional func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
+    
 }
 
 
 extension URLSessionDelegate : URLSessionTaskDelegate {
-
-
-//    @available(OSX 10.13, *)
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, willBeginDelayedRequest request: URLRequest, completionHandler: @escaping (URLSession.DelayedRequestDisposition, URLRequest?) -> Void)
-//
-//
-//    @available(OSX 10.13, *)
-//    optional func urlSession(_ session: URLSession, taskIsWaitingForConnectivity task: URLSessionTask)
-//
-//
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void)
-//
-//
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void)
-//
-//
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void)
-//
-//
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64)
-//
-//
-//    @available(OSX 10.12, *)
-//    optional func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics)
-
-
+    
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         log_debug(self, #function, "\(String(describing: task.originalRequest))", detail: log_detailed)
-        taskDidCompleteWithError?(task, error)
+        broadcast(.didCompleteWithError(task: task, error: error))
     }
 }
 
 
 extension URLSessionDelegate : URLSessionDataDelegate {
 
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @Sendable @escaping (URLSession.ResponseDisposition) -> Void) {
         log_debug(self, #function, "\(String(describing: dataTask.originalRequest))", detail: log_detailed)
-        dataTaskDidReceiveResponse?(dataTask, response, completionHandler)
+        broadcast(.didReceiveResponse(task: dataTask, response: response, completionHandler: completionHandler))
     }
-
-//    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome downloadTask: URLSessionDownloadTask)
-
-//    @available(OSX 10.11, *)
-//    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didBecome streamTask: URLSessionStreamTask)
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         log_debug(self, #function, "\(String(describing: dataTask.originalRequest))", detail: log_detailed)
-        dataTaskDidReceiveData?(dataTask, data)
+        broadcast(.didReceiveData(task: dataTask, data: data))
     }
 
     func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, willCacheResponse proposedResponse: CachedURLResponse, completionHandler: @escaping (CachedURLResponse?) -> Void) {
@@ -143,12 +99,19 @@ extension URLSessionDelegate : URLSessionDownloadDelegate {
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         log_debug(self, #function, "\(String(describing: downloadTask.originalRequest))", detail: log_detailed)
-        downloadTaskDidFinishDownloadingTo?(downloadTask, location)
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        do {
+            try FileManager.default.moveItem(at: location, to: tempURL)
+            broadcast(.didFinishDownloadingTo(downloadTask: downloadTask, location: tempURL))
+        } catch {
+            print("move file failed \(error)")
+            broadcast(.didFinishDownloadingTo(downloadTask: downloadTask, location: location))
+        }
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         log_debug(self, #function, "\(String(describing: downloadTask.originalRequest))", detail: log_detailed)
-        downloadTaskDidWriteData?(downloadTask, bytesWritten, totalBytesWritten, totalBytesExpectedToWrite)
+        broadcast(.downloadTaskDidWriteData(downloadTask: downloadTask, bytesWritten: bytesWritten, totalBytesWritten: totalBytesWritten, totalBytesExpectedToWrite: totalBytesExpectedToWrite))
     }
 
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didResumeAtOffset fileOffset: Int64, expectedTotalBytes: Int64) {

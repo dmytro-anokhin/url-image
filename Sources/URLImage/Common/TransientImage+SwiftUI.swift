@@ -13,7 +13,9 @@ import Model
 public extension TransientImage {
 
     var image: Image {
-        let orientation = Image.Orientation(cgOrientation)
-        return Image(decorative: self.cgImage, scale: 1.0, orientation: orientation)
+        get async {
+            let orientation = Image.Orientation(cgOrientation)
+            return Image(decorative: await self.cgImage, scale: 1.0, orientation: orientation)
+        }
     }
 }

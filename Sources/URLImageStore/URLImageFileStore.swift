@@ -14,7 +14,7 @@ import ImageDecoder
 
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public final class URLImageFileStore {
+public final class URLImageFileStore: Sendable {
 
     let fileIndex: FileIndex
 
@@ -35,26 +35,26 @@ public final class URLImageFileStore {
     public func getImage(_ identifier: String,
                          maxPixelSize: CGSize? = nil,
                          completionQueue: DispatchQueue? = nil,
-                         completion: @escaping (_ image: CGImage?) -> Void) {
+                         completion: @Sendable @escaping (_ image: CGImage?) -> Void) {
         getImage([ .identifier(identifier) ], maxPixelSize: maxPixelSize, completionQueue: completionQueue, completion: completion)
     }
 
     public func getImage(_ url: URL,
                          maxPixelSize: CGSize? = nil,
                          completionQueue: DispatchQueue? = nil,
-                         completion: @escaping (_ image: CGImage?) -> Void) {
+                         completion: @Sendable @escaping (_ image: CGImage?) -> Void) {
         getImage([ .url(url) ], maxPixelSize: maxPixelSize, completionQueue: completionQueue, completion: completion)
     }
 
     public func getImageLocation(_ identifier: String,
                                  completionQueue: DispatchQueue? = nil,
-                                 completion: @escaping (_ location: URL?) -> Void) {
+                                 completion: @Sendable @escaping (_ location: URL?) -> Void) {
         getImageLocation([ .identifier(identifier) ], completionQueue: completionQueue, completion: completion)
     }
 
     public func getImageLocation(_ url: URL,
                                  completionQueue: DispatchQueue? = nil,
-                                 completion: @escaping (_ location: URL?) -> Void) {
+                                 completion: @Sendable @escaping (_ location: URL?) -> Void) {
         getImageLocation([ .url(url) ], completionQueue: completionQueue, completion: completion)
     }
 
@@ -126,7 +126,7 @@ public final class URLImageFileStore {
 
     private func getImageLocation(_ keys: [URLImageKey],
                                   completionQueue: DispatchQueue? = nil,
-                                  completion: @escaping (_ location: URL?) -> Void) {
+                                  completion: @Sendable @escaping (_ location: URL?) -> Void) {
 
         fileIndexQueue.async { [weak self] in
             guard let self = self else {
@@ -165,36 +165,35 @@ public final class URLImageFileStore {
     private func getImage(_ keys: [URLImageKey],
                           maxPixelSize: CGSize? = nil,
                           completionQueue: DispatchQueue? = nil,
-                          completion: @escaping (_ image: CGImage?) -> Void) {
+                          completion: @Sendable @escaping (_ image: CGImage?) -> Void) {
         getImage(keys,
                  open: { location -> CGImage? in
-                    guard let decoder = ImageDecoder(url: location) else {
-                        return nil
-                    }
-
-                    if let sizeForDrawing = maxPixelSize {
-                        let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
-                        return decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)!
-                    } else {
-                        return decoder.createFrameImage(at: 0)!
-                    }
-                 },
-                 completion: { result in
-                    let queue = completionQueue ?? DispatchQueue.global()
-
-                    switch result {
-
-                        case .success(let image):
-                            queue.async {
-                                completion(image)
-                            }
-
-                        case .failure:
-                            queue.async {
-                                completion(nil)
-                            }
-                    }
-                 })
+            guard let decoder = ImageDecoder(url: location) else {
+                return nil
+            }
+            
+            if let sizeForDrawing = maxPixelSize {
+                let decodingOptions = ImageDecoder.DecodingOptions(mode: .asynchronous, sizeForDrawing: sizeForDrawing)
+                return decoder.createFrameImage(at: 0, decodingOptions: decodingOptions)!
+            } else {
+                return decoder.createFrameImage(at: 0)!
+            }
+        }, completion: { result in
+            let queue = completionQueue ?? DispatchQueue.global()
+            
+            switch result {
+                
+            case .success(let image):
+                queue.async {
+                    completion(image)
+                }
+                
+            case .failure:
+                queue.async {
+                    completion(nil)
+                }
+            }
+        })
     }
 }
 
@@ -245,8 +244,8 @@ extension URLImageFileStore: URLImageFileStoreType {
     }
 
     public func getImage<T>(_ keys: [URLImageKey],
-                            open: @escaping (_ location: URL) throws -> T?,
-                            completion: @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
+                            open: @Sendable @escaping (_ location: URL) throws -> T?,
+                            completion: @Sendable @escaping (_ result: Result<T?, Swift.Error>) -> Void) {
 
         getImageLocation(keys, completionQueue: decodeQueue) { [weak self] location in
             guard let _ = self else { // Just a sanity check if the cache object is still exists

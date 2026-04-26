@@ -10,12 +10,12 @@ import CoreData
 
 /// Describes `NSFetchIndexDescription`
 @available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
-public struct CoreDataFetchIndexDescription {
+public struct CoreDataFetchIndexDescription: Sendable {
 
     /// Describes `NSFetchIndexElementDescription`
-    public struct Element {
+    public struct Element: Sendable {
 
-        public enum Property {
+        public enum Property: Sendable {
 
             case property(name: String)
         }

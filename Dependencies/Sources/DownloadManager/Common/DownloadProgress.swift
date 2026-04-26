@@ -8,7 +8,7 @@
 import Foundation
 
 
-struct DownloadProgress {
+struct DownloadProgress: Sendable {
 
     var totalBytesExpected: Int64
 

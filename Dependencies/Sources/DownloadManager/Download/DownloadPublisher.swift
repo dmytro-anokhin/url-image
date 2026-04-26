@@ -5,98 +5,51 @@
 //  Created by Dmytro Anokhin on 28/07/2020.
 //
 
-import Combine
 import Log
-
-
-@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public struct DownloadPublisher: Publisher {
-
-    public typealias Output = DownloadInfo
-    public typealias Failure = DownloadError
-
-    public let download: Download
-
-    public func receive<S>(subscriber: S) where S: Subscriber,
-                                                DownloadPublisher.Failure == S.Failure,
-                                                DownloadPublisher.Output == S.Input
-    {
-        let subscription = DownloadSubscription(subscriber: subscriber, download: download, manager: manager)
-        subscriber.receive(subscription: subscription)
-    }
-
-    init(download: Download, manager: DownloadManager) {
-        self.download = download
-        self.manager = manager
-    }
-
-    private let manager: DownloadManager
-}
-
+import Foundation
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-final class DownloadSubscription<SubscriberType: Subscriber>: Subscription
-                                                        where SubscriberType.Input == DownloadInfo,
-                                                              SubscriberType.Failure == DownloadError
-{
-    private var subscriber: SubscriberType?
-
-    private let download: Download
-
-    private unowned let manager: DownloadManager
-
-    init(subscriber: SubscriberType, download: Download, manager: DownloadManager) {
-        self.subscriber = subscriber
+public struct DownloadAsyncTask: Sendable {
+    let download: Download
+    let coordinator: URLSessionCoordinator
+    
+    init(download: Download, coordinator: URLSessionCoordinator) {
         self.download = download
-        self.manager = manager
+        self.coordinator = coordinator
     }
-
-    func request(_ demand: Subscribers.Demand) {
-        guard demand > 0 else { return }
-
-        log_debug(self, #function, "download.id = \(download.id), download.url = \(self.download.url)", detail: log_detailed)
-
-        manager.coordinator.startDownload(download,
-            receiveResponse: { _ in
-            },
-            receiveData: {  _, _ in
-            },
-            reportProgress: { [weak self] _, progress in
-                guard let self = self else {
-                    return
+    
+    @available(macOS 15.0, iOS 18.0, *)
+    func quickStart() -> some AsyncSequence<DownloadInfo, DownloadError> {
+        coordinator
+            .startDownload(download)
+            .compactMap { next in
+                switch next {
+                case .completion(download: _, .success(let value)):
+                    return DownloadInfo.completion(value)
+                case .completion(download: _, .failure(let error)):
+                    throw error
+                case .reportProgress(download: _, let progress):
+                    return .progress(progress)
+                default:
+                    throw URLError(.badServerResponse)
                 }
-
-                let _ = self.subscriber?.receive(.progress(progress))
-            },
-            completion: { [weak self] _, result in
-                guard let self = self else {
-                    return
-                }
-                
-                switch result {
-                    case .success(let downloadResult):
-                        switch downloadResult {
-                            case .data(let data):
-                                log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded \(data.count) bytes", detail: log_detailed)
-                            case .file(let path):
-                                log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded file to \(path)", detail: log_detailed)
-                        }
-
-                        let _ = self.subscriber?.receive(.completion(downloadResult))
-                        self.subscriber?.receive(completion: .finished)
-
-                    case .failure(let error):
-                        log_debug(self, #function, "download.id = \(self.download.id), download.url = \(self.download.url), downloaded failed \(error)", detail: log_detailed)
-                        self.subscriber?.receive(completion: .failure(error))
-                }
-
-                self.manager.reset(download: self.download)
-            })
+            }
     }
-
-    func cancel() {
-        log_debug(self, #function, "download.id = \(download.id), download.url = \(self.download.url)", detail: log_detailed)
-        manager.coordinator.cancelDownload(download)
-        manager.reset(download: download)
+    
+    func start() -> some AsyncSequence {
+        coordinator
+            .startDownload(download)
+            .compactMap { next -> Result<DownloadInfo, DownloadError>? in
+                switch next {
+                case .completion(download: _, .success(let value)):
+                    return .success(.completion(value))
+                case .completion(download: _, .failure(let error)):
+                    return .failure(error)
+                case .reportProgress(download: _, let progress):
+                    return .success(.progress(progress))
+                default:
+                    return nil
+                }
+            }
     }
 }

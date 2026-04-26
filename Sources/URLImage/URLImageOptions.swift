@@ -12,10 +12,10 @@ import DownloadManager
 
 /// Options to control how the image is downloaded and stored
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public struct URLImageOptions {
+public struct URLImageOptions: Sendable {
 
     /// The `FetchPolicy` allows to choose between returning stored image or downloading the remote one.
-    public enum FetchPolicy: Hashable {
+    public enum FetchPolicy: Hashable, Sendable {
 
         /// Return an image from the store or download it
         ///
@@ -27,7 +27,7 @@ public struct URLImageOptions {
     }
 
     /// Controls some aspects of download process
-    public struct LoadOptions: OptionSet, Hashable {
+    public struct LoadOptions: OptionSet, Hashable, Sendable {
 
         public let rawValue: Int
 
@@ -55,15 +55,19 @@ public struct URLImageOptions {
 
     /// Maximum size of a decoded image in pixels. If this property is not specified, the width and height of a decoded is not limited and may be as big as the image itself.
     public var maxPixelSize: CGSize?
+    
+    public var loadingAnimated: Bool
 
     public init(fetchPolicy: FetchPolicy = .returnStoreElseLoad(downloadDelay: 0.25),
                 loadOptions: LoadOptions = [ .loadImmediately ],
+                loadingAnimated: Bool = true,
                 urlRequestConfiguration: Download.URLRequestConfiguration? = nil,
                 maxPixelSize: CGSize? = nil) {
         self.fetchPolicy = fetchPolicy
         self.loadOptions = loadOptions
         self.urlRequestConfiguration = urlRequestConfiguration
         self.maxPixelSize = maxPixelSize
+        self.loadingAnimated = loadingAnimated
     }
 }
 
@@ -75,6 +79,7 @@ extension URLImageOptions: Hashable {
         hasher.combine(fetchPolicy)
         hasher.combine(loadOptions)
         hasher.combine(urlRequestConfiguration)
+        hasher.combine(loadingAnimated)
 
         if let maxPixelSize = maxPixelSize {
             hasher.combine(maxPixelSize.width)

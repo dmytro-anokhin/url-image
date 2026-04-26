@@ -10,7 +10,7 @@ import CoreData
 
 /// Used to create `NSEntityDescription`
 @available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
-public struct CoreDataEntityDescription<ManagedObject: NSManagedObject> {
+public struct CoreDataEntityDescription<ManagedObject: NSManagedObject>: Sendable {
 
     public init(name: String, managedObjectClassName: String, attributes: [CoreDataAttributeDescription], indexes: [CoreDataFetchIndexDescription]) {
         self.name = name

@@ -11,7 +11,7 @@ import PlainDatabase
 
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public struct File : Identifiable {
+public struct File : Identifiable, Sendable {
 
     public var id: String
 

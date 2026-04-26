@@ -12,7 +12,7 @@ import Foundation
 ///
 /// `Synchronized` provides getter/setter synchronization, thread safety of the wrapped value is up to its implementation.
 @propertyWrapper
-public final class Synchronized<Value> {
+public final class Synchronized<Value: Sendable>: @unchecked Sendable {
 
     public var wrappedValue: Value {
         get {

@@ -13,7 +13,7 @@ import CoreData
 public typealias PlainDatabaseObject = ManagedObjectCodable
 
 
-public enum PredicateOperator {
+public enum PredicateOperator: Sendable {
 
     case lessThan
 
@@ -70,7 +70,7 @@ public enum PredicateOperator {
     A database that stores a plain list of same type objects.
  */
 @available(iOS 14.0, tvOS 14.0, macOS 11.0, watchOS 7.0, *)
-public final class PlainDatabase<Object: PlainDatabaseObject> {
+public final class PlainDatabase<Object: PlainDatabaseObject>: Sendable {
 
     public init<T: NSManagedObject>(configuration: Database.Configuration, modelDescription: CoreDataModelDescription<T>) {
         database = Database(configuration: configuration, model: modelDescription.model)

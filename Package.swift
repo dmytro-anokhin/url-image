@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,9 +6,9 @@ import PackageDescription
 let package = Package(
     name: "URLImage",
     platforms: [
-        .iOS(.v12),
+        .iOS(.v14),
         .tvOS(.v12),
-        .macOS(.v10_13),
+        .macOS(.v10_15),
         .watchOS(.v4)
     ],
     products: [
@@ -18,7 +18,10 @@ let package = Package(
             targets: ["URLImage"]),
         .library(
             name: "URLImageStore",
-            targets: ["URLImageStore"])
+            targets: ["URLImageStore"]),
+        .library(
+            name: "URLImageFFmpeg",
+            targets: ["URLImageFFmpeg"])
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -29,7 +32,21 @@ let package = Package(
         // Targets can depend on other targets in this package, and on products in packages which this package depends on.
         .target(
             name: "URLImage",
-            dependencies: [ "DownloadManager", "ImageDecoder", "FileIndex", "Model", "Log" ]),
+            dependencies: [
+                "DownloadManager",
+                "ImageDecoder",
+                "FileIndex",
+                "Model",
+                "Log",
+                .target(name: "URLImageFFmpeg", condition: .when(platforms: [.iOS, .macOS]))
+            ]),
+        .target(
+            name: "URLImageFFmpeg",
+            dependencies: [ "CURLImageFFmpeg" ]),
+        .target(
+            name: "CURLImageFFmpeg",
+            path: "Sources/CURLImageFFmpeg",
+            publicHeadersPath: "include"),
         .target(
             name: "URLImageStore",
             dependencies: [ "URLImage", "FileIndex", "Log" ]),
@@ -52,7 +69,7 @@ let package = Package(
             path: "Dependencies/Sources/Log"),
         .target(
             name: "Model",
-            dependencies: [ "ImageDecoder" ],
+            dependencies: [ "ImageDecoder", "DownloadManager" ],
             path: "Dependencies/Sources/Model"),
         .testTarget(
             name: "URLImageTests",

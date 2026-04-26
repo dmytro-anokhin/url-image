@@ -122,6 +122,7 @@ final class FileIndexTests: XCTestCase {
         XCTAssertTrue(files2.isEmpty)
     }
 
+    @MainActor
     func testDeleteExpired() throws {
         let tmpLocation1 = makeTemporaryFile("This file expiring soon")
         let tmpLocation2 = makeTemporaryFile("This file expiring not so soon")
@@ -165,6 +166,7 @@ final class FileIndexTests: XCTestCase {
         waitForExpectations(timeout: 1.0)
     }
 
+    @MainActor
     func testDeleteAll() throws {
         let tmpLocation1 = makeTemporaryFile("This file expiring soon")
         let tmpLocation2 = makeTemporaryFile("This file expiring not so soon")

@@ -13,9 +13,9 @@ import Model
 
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
-public class FileIndex {
+public final class FileIndex: Sendable {
 
-    public struct Configuration {
+    public struct Configuration: Sendable {
 
         /// URL of the directory to keep file index, typically `~/Library/Caches/<main bundle identifier>`
         public var directoryURL: URL

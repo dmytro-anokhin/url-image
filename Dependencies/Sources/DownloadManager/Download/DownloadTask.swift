@@ -7,32 +7,42 @@
 
 import Foundation
 
+@globalActor
+public actor DownloadTaskActor {
+    public static let shared = DownloadTaskActor()
+}
 
 /// `DownloadTask` is a wrapper around `URLSessionTask` that accumulates received data in a memory buffer.
-final class DownloadTask {
-
-    final class Observer {
-
+final class DownloadTask: Sendable {
+    final class Observer: Sendable {
+        @DownloadTaskActor
         private var receiveResponse: DownloadReceiveResponse?
 
+        @DownloadTaskActor
         func notifyReceiveResponse() {
             receiveResponse?(download)
         }
 
+        @DownloadTaskActor
         private var receiveData: DownloadReceiveData?
 
+        @DownloadTaskActor
         func notifyReceiveData(_ data: Data) {
             receiveData?(download, data)
         }
 
+        @DownloadTaskActor
         private var reportProgress: DownloadReportProgress?
 
+        @DownloadTaskActor
         func notifyReportProgress(_ progress: Float?) {
             reportProgress?(download, progress)
         }
 
+        @DownloadTaskActor
         private var completion: DownloadCompletion?
 
+        @DownloadTaskActor
         func notifyCompletion(_ result: Result<DownloadResult, DownloadError>) {
             completion?(download, result)
         }
@@ -47,9 +57,9 @@ final class DownloadTask {
             self.completion = completion
         }
     }
-
+    
     let download: Download
-
+    
     let urlSessionTask: URLSessionTask
 
     let observer: Observer
@@ -58,36 +68,36 @@ final class DownloadTask {
         self.download = download
         self.urlSessionTask = urlSessionTask
         self.observer = observer
-        serialQueue = DispatchQueue(label: "DownloadController.serialQueue." + download.id.uuidString)
     }
-
-    func complete(withError error: Error? = nil) {
-        serialQueue.async {
-            if let error = error {
-                self.observer.notifyCompletion(.failure(error))
-                return
+    
+    func complete(withError error: Error? = nil) async {
+        let observer = self.observer
+        let destination = self.download.destination
+        if let error = error {
+            await observer.notifyCompletion(.failure(error))
+            return
+        }
+        
+        switch destination {
+        case .inMemory:
+            if let data = await self.buffer {
+                let result = DownloadResult.data(data)
+                await observer.notifyCompletion(.success(result))
             }
-
-            switch self.download.destination {
-                case .inMemory:
-                    if let data = self.buffer {
-                        let result = DownloadResult.data(data)
-                        self.observer.notifyCompletion(.success(result))
-                    }
-                    else {
-                        let error = URLError(.unknown)
-                        self.observer.notifyCompletion(.failure(error))
-                    }
-
-                case .onDisk(let path):
-                    let result = DownloadResult.file(path)
-                    self.observer.notifyCompletion(.success(result))
+            else {
+                let error = URLError(.unknown)
+                await observer.notifyCompletion(.failure(error))
             }
+            
+        case .onDisk(let path):
+            let result = DownloadResult.file(path)
+            await observer.notifyCompletion(.success(result))
         }
     }
 
     func receive(response: URLResponse) {
-        serialQueue.async {
+        Task { @DownloadTaskActor [weak self] in
+            guard let self else { return }
             self.progress = DownloadProgress(response: response)
             self.buffer = Data()
             self.observer.notifyReceiveResponse()
@@ -95,7 +105,8 @@ final class DownloadTask {
     }
 
     func receive(data: Data) {
-        serialQueue.async {
+        Task { @DownloadTaskActor [weak self] in
+            guard let self else { return }
             self.buffer?.append(data)
             self.observer.notifyReceiveData(data)
             self.observer.notifyReportProgress(self.progress?.percentage)
@@ -103,7 +114,8 @@ final class DownloadTask {
     }
 
     func downloadProgress(received: Int64, expected: Int64) {
-        serialQueue.async {
+        Task { @DownloadTaskActor [weak self] in
+            guard let self else { return }
             if self.progress == nil {
                 self.progress = DownloadProgress()
             }
@@ -114,10 +126,10 @@ final class DownloadTask {
         }
     }
 
-    fileprivate let serialQueue: DispatchQueue
-
+    @DownloadTaskActor
     private var progress: DownloadProgress?
 
+    @DownloadTaskActor
     private var buffer: Data?
 }
 

@@ -30,29 +30,31 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
     ///
     /// Note: do not use sensitive information as identifier, the cache is stored in a non-encrypted database on disk.
     let identifier: String?
+    
+    @State private var lazyImage: Image?
 
     public var body: some View {
-        let remoteImage = service.makeRemoteImage(url: url, identifier: identifier, options: urlImageOptions)
-
-        return RemoteImageView(remoteImage: remoteImage,
-                               loadOptions: urlImageOptions.loadOptions,
-                               empty: empty,
-                               inProgress: inProgress,
-                               failure: failure,
-                               content: content)
+        InstalledRemoteView(service: service, url: url, identifier: identifier, options: urlImageOptions) { remoteImage in
+            RemoteImageView(remoteImage: remoteImage,
+                                   loadOptions: urlImageOptions.loadOptions,
+                                   empty: empty,
+                                   inProgress: inProgress,
+                                   failure: failure,
+                                   content: content)
+        }
     }
 
     private let empty: () -> Empty
     private let inProgress: (_ progress: Float?) -> InProgress
     private let failure: (_ error: Error, _ retry: @escaping () -> Void) -> Failure
-    private let content: (_ image: TransientImage) -> Content
+    private let content: (_ image: TransientImage, _ cgImage: CGImage?) -> Content
 
     private init(_ url: URL,
                  identifier: String?,
                  @ViewBuilder empty: @escaping () -> Empty,
                  @ViewBuilder inProgress: @escaping (_ progress: Float?) -> InProgress,
                  @ViewBuilder failure: @escaping (_ error: Error, _ retry: @escaping () -> Void) -> Failure,
-                 @ViewBuilder content: @escaping (_ transientImage: TransientImage) -> Content) {
+                 @ViewBuilder content: @escaping (_ transientImage: TransientImage, _ cgImage: CGImage?) -> Content) {
 
         self.url = url
         self.identifier = identifier
@@ -63,7 +65,6 @@ public struct URLImage<Empty, InProgress, Failure, Content> : View where Empty :
         self.content = content
     }
 }
-
 
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 public extension URLImage {
@@ -80,9 +81,9 @@ public extension URLImage {
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
-                  content: { (transientImage: TransientImage) -> Content in
-                      content(transientImage.image)
-                  })
+                  content: { (transientImage: TransientImage, cgImage: CGImage?) -> Content in
+            content(Image(decorative: cgImage!, scale: 1.0, orientation: Image.Orientation(transientImage.cgOrientation)))
+        })
     }
 
     init(_ url: URL,
@@ -97,8 +98,8 @@ public extension URLImage {
                   empty: empty,
                   inProgress: inProgress,
                   failure: failure,
-                  content: { (transientImage: TransientImage) -> Content in
-                      content(transientImage.image, transientImage.info)
+                  content: { (transientImage: TransientImage, cgImage: CGImage?) -> Content in
+                      content(Image(decorative: cgImage!, scale: 1.0, orientation: Image.Orientation(transientImage.cgOrientation)), transientImage.info)
                   })
     }
 }
@@ -283,5 +284,45 @@ public extension URLImage where InProgress == Content,
                   inProgress: { _ in content(.empty) },
                   failure: { error, retry in content(.failure(error)) },
                   content: { image in content(.success(image)) })
+    }
+}
+
+@available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
+struct InstalledRemoteView<Content: View>: View {
+    var service: URLImageService
+    var content: (RemoteImage) -> Content
+    var url: URL
+    var identifier: String?
+    var options: URLImageOptions
+    @StateObject private var remoteImage = RemoteImageWrapper()
+    
+    init(service: URLImageService, url: URL, identifier: String?, options: URLImageOptions, @ViewBuilder content: @escaping (RemoteImage) -> Content) {
+        self.service = service
+        self.content = content
+        self.url = url
+        self.identifier = identifier
+        self.options = options
+    }
+    
+    var body: some View {
+        if let remoteImge = remoteImage.remote {
+            content(remoteImge)
+        } else {
+            Color.clear.backport.task {
+                await inital()
+            }
+        }
+    }
+    
+    private func inital() {
+        let image = service.makeRemoteImage(url: url, identifier: identifier, options: options)
+        remoteImage.remote = image
+        if Self.shouldStartLoadingDuringInstallation(loadOptions: options.loadOptions) {
+            image.load()
+        }
+    }
+
+    nonisolated static func shouldStartLoadingDuringInstallation(loadOptions: URLImageOptions.LoadOptions) -> Bool {
+        loadOptions.contains(.loadImmediately)
     }
 }

@@ -6,83 +6,11 @@
 //
 
 import Foundation
-import Combine
 import Model
 import DownloadManager
 
-
 @available(macOS 11.0, iOS 14.0, tvOS 14.0, watchOS 7.0, *)
 extension URLImageService {
-
-    public struct RemoteImagePublisher: Publisher {
-
-        public typealias Output = ImageInfo
-        public typealias Failure = Error
-
-        public func receive<S>(subscriber: S) where S: Subscriber,
-                                                    RemoteImagePublisher.Failure == S.Failure,
-                                                    RemoteImagePublisher.Output == S.Input {
-
-            let subscription = RemoteImageSubscription(subscriber: subscriber, remoteImage: remoteImage)
-            subscriber.receive(subscription: subscription)
-        }
-
-        let remoteImage: RemoteImage
-
-        init(remoteImage: RemoteImage) {
-            self.remoteImage = remoteImage
-        }
-    }
-
-    final class RemoteImageSubscription<SubscriberType: Subscriber>: Subscription where SubscriberType.Input == ImageInfo,
-                                                                                       SubscriberType.Failure == Error {
-
-        private var subscriber: SubscriberType?
-
-        private let remoteImage: RemoteImage
-
-        init(subscriber: SubscriberType, remoteImage: RemoteImage) {
-            self.subscriber = subscriber
-            self.remoteImage = remoteImage
-        }
-
-        private var cancellable: AnyCancellable?
-
-        func request(_ demand: Subscribers.Demand) {
-            guard demand > 0 else {
-                return
-            }
-
-            cancellable = remoteImage.$loadingState.sink(receiveValue: { [weak self] loadingState in
-                guard let self = self else {
-                    return
-                }
-
-                switch loadingState {
-                    case .initial:
-                        break
-
-                    case .inProgress:
-                        break
-
-                    case .success(let transientImage):
-                        let _ = self.subscriber?.receive(transientImage.info)
-                        self.subscriber?.receive(completion: .finished)
-
-                    case .failure(let error):
-                        self.subscriber?.receive(completion: .failure(error))
-                }
-            })
-
-            remoteImage.load()
-        }
-
-        func cancel() {
-            remoteImage.cancel()
-            cancellable = nil
-        }
-    }
-
     public func makeRemoteImage(url: URL, identifier: String?, options: URLImageOptions) -> RemoteImage {
         let inMemory = fileStore == nil
 
@@ -93,10 +21,43 @@ extension URLImageService {
 
         return RemoteImage(service: self, download: download, identifier: identifier, options: options)
     }
-
-    public func remoteImagePublisher(_ url: URL, identifier: String?, options: URLImageOptions = URLImageOptions()) -> RemoteImagePublisher {
+    
+    public func remoteImagePublisher(_ url: URL, identifier: String?, options: URLImageOptions = URLImageOptions()) -> AsyncThrowingStream<ImageInfo, Error> {
         let remoteImage = makeRemoteImage(url: url, identifier: identifier, options: options)
-        return RemoteImagePublisher(remoteImage: remoteImage)
+        let operation: @Sendable (AsyncThrowingStream<ImageInfo, Error>.Continuation) async -> Void = { continuation in
+            if #available(macOS 12.0, iOS 15, *) {
+                let state = remoteImage.loadingState
+                for await loadingState in state.values {
+                    switch loadingState {
+                    case .initial:
+                        break
+                        
+                    case .inProgress:
+                        break
+                        
+                    case .success(let transientImage):
+                        continuation.yield(transientImage.info)
+                        continuation.finish()
+                        return
+                        
+                    case .failure(let error):
+                        continuation.finish(throwing: error)
+                        return
+                    }
+                }
+            } else {
+                // Fallback on earlier versions
+                assert(false)
+            }
+        }
+        let (stream, continuation) = AsyncThrowingStream<ImageInfo, Error>.makeStream(bufferingPolicy: .bufferingNewest(1))
+        let task = Task {
+            await operation(continuation)
+        }
+        continuation.onTermination = { _ in
+            task.cancel()
+        }
+        return stream
     }
 
     /// Creates download destination depending if download must happen in memory or on disk

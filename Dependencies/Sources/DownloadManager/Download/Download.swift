@@ -11,13 +11,13 @@ import Foundation
 /**
     The `Download` object describes a single file download.
  */
-public struct Download {
+public struct Download: Sendable {
 
     public var url: URL
 
     public var id: UUID
 
-    public enum Destination : Codable, Hashable {
+    public enum Destination : Codable, Hashable, Sendable {
 
         /// Download to a shared buffer in memory
         case inMemory
@@ -70,7 +70,7 @@ public struct Download {
 
     public var destination: Destination
 
-    public struct DownloadPolicy : OptionSet, Codable, Hashable {
+    public struct DownloadPolicy : OptionSet, Codable, Hashable, Sendable {
 
         public let rawValue: Int
 
@@ -84,7 +84,7 @@ public struct Download {
 
     public var downloadPolicy: DownloadPolicy
 
-    public struct URLRequestConfiguration : Hashable, Codable {
+    public struct URLRequestConfiguration : Hashable, Codable, Sendable {
 
         public var allHTTPHeaderFields: [String : String]?
 
